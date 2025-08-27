@@ -38,7 +38,7 @@ class HTKLineView: UIScrollView {
 
     var childDraw: HTKLineDrawProtocol?
 
-    var animationView = AnimationView.init()
+    var animationView = LottieAnimationView()
 
     var lastLoadAnimationSource = ""
 
