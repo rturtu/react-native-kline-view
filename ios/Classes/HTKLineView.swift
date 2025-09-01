@@ -38,7 +38,7 @@ class HTKLineView: UIScrollView {
 
     var childDraw: HTKLineDrawProtocol?
 
-    var animationView = AnimationView.init()
+    var animationView = LottieAnimationView()
 
     var lastLoadAnimationSource = ""
 
@@ -117,7 +117,7 @@ class HTKLineView: UIScrollView {
         lastLoadAnimationSource = configManager.closePriceRightLightLottieSource
 
         DispatchQueue.global().async { [weak self] in
-            guard let this = self, let data = this.configManager.closePriceRightLightLottieSource.data(using: String.Encoding.utf8), let animation = try? JSONDecoder().decode(Animation.self, from: data) else {
+            guard let this = self, let data = this.configManager.closePriceRightLightLottieSource.data(using: String.Encoding.utf8), let animation = try? JSONDecoder().decode(LottieAnimation.self, from: data) else {
                 return
             }
             DispatchQueue.main.async {
