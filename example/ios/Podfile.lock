@@ -8,7 +8,7 @@ PODS:
   - hermes-engine (0.80.0):
     - hermes-engine/Pre-built (= 0.80.0)
   - hermes-engine/Pre-built (0.80.0)
-  - lottie-ios (3.2.3)
+  - lottie-ios (4.5.2)
   - RCT-Folly (2024.11.18.00):
     - boost
     - DoubleConversion
@@ -2124,7 +2124,7 @@ PODS:
     - React-utils (= 0.80.0)
     - SocketRocket
   - RNKLineView (1.0.0):
-    - lottie-ios (~> 3.2.3)
+    - lottie-ios (~> 4.5.0)
     - React
   - SocketRocket (0.7.1)
   - Yoga (0.0.0)
@@ -2368,7 +2368,7 @@ SPEC CHECKSUMS:
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   glog: 5683914934d5b6e4240e497e0f4a3b42d1854183
   hermes-engine: 7068e976238b29e97b3bafd09a994542af7d5c0b
-  lottie-ios: c058aeafa76daa4cf64d773554bccc8385d0150e
+  lottie-ios: 96784afc26ea031d3e2b6cae342a4b8915072489
   RCT-Folly: 846fda9475e61ec7bcbf8a3fe81edfcaeb090669
   RCTDeprecation: ff787f6c860a1b97dd1bc27264b61d23ad1994da
   RCTRequired: 664eb8399ed8a83e26ab65af7c2ad390f7e61696
@@ -2408,14 +2408,14 @@ SPEC CHECKSUMS:
   React-performancetimeline: 6b9a6951922d764073bc69617be43a9552de96ba
   React-RCTActionSheet: 99864bd8422649219f24eca9a51445e698b70b8e
   React-RCTAnimation: ae0790201f87e9782f4a8b4346ac414f4c3273f3
-  React-RCTAppDelegate: 5a32ca90fdfc805c89294c689e53ed192dc59d91
+  React-RCTAppDelegate: e94955f941036818be7583fe820d13bf47c5e9af
   React-RCTBlob: 472203c0f6fa4f25996ed94a2cdf5eaa92200fe3
-  React-RCTFabric: 476ab6a4b21a92c3c66e739d09e21aa4d8898011
-  React-RCTFBReactNativeSpec: 0c06ff95736105a0b48990bfc18b397a0aa9a174
+  React-RCTFabric: 6f6b6979e6395f4fc33e6e25612f6272a71b7af5
+  React-RCTFBReactNativeSpec: 9a0d5b08fcc6e0c73f2afc8fce60e8537db82b58
   React-RCTImage: 14ce85b3f9e898ad8ab2fd49be97f09e43251fb9
   React-RCTLinking: b189fd2fd5fce9c3189d64204f1a92c36ffc27bd
   React-RCTNetwork: 66f7536d038d5ecec63acdc5e7c9b7f843fed4ac
-  React-RCTRuntime: 6060b0d01644a41f8d299c82db0f3f34384ed7b3
+  React-RCTRuntime: 62482bc3df825749a51ff2c7aa2dd0b8d74ee930
   React-RCTSettings: 98360df5a9e6f6d10bd9738c6d4637005e4f842e
   React-RCTText: 667ac6f696da8cd6671b5b562adf43419a787705
   React-RCTVibration: 13de9226d181fb939b187f3f682767c6e8cc80f8
@@ -2433,10 +2433,10 @@ SPEC CHECKSUMS:
   ReactAppDependencyProvider: 3267432b637c9b38e86961b287f784ee1b08dde0
   ReactCodegen: 5d41e1df061200130dd326e55cdfdf94b0289c6e
   ReactCommon: b028d09a66e60ebd83ca59d8cc9a1216360db147
-  RNKLineView: b30a0931de09e6e2af8564328be2d9b4977de00b
+  RNKLineView: 63ee9b426eec82f4a56c8074d987fbe88f8b2414
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: 0c4b7d2aacc910a1f702694fa86be830386f4ceb
 
-PODFILE CHECKSUM: 3444ac63bf1eef029b5d0a5d0ffa75d3732a20e1
+PODFILE CHECKSUM: 0e0c0ed40b53c3b691d112894b19058c6370e0a6
 
 COCOAPODS: 1.15.2
