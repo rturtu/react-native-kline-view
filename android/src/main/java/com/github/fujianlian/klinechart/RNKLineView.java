@@ -29,6 +29,8 @@ public class RNKLineView extends SimpleViewManager<HTKLineContainerView> {
 
 	public static String onDrawPointCompleteKey = "onDrawPointComplete";
 
+	public static String onScrollKey = "onScroll";
+
     @Nonnull
     @Override
     public String getName() {

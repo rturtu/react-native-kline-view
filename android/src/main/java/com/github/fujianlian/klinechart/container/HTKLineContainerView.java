@@ -66,6 +66,7 @@ public class HTKLineContainerView extends RelativeLayout {
         klineView.setMTextColor(klineView.configManager.candleTextColor);
         klineView.reloadColor();
         Boolean isEnd = klineView.getScrollOffset() >= klineView.getMaxScrollX();
+        klineView.configManager.onScroll.invoke(new HTPoint(klineView.getScrollOffset(), 0));
         klineView.notifyChanged();
         if (isEnd || klineView.configManager.shouldScrollToEnd) {
             klineView.setScrollX(klineView.getMaxScrollX());
@@ -127,6 +128,23 @@ public class HTKLineContainerView extends RelativeLayout {
                 reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(
                         id,
                         RNKLineView.onDrawPointCompleteKey,
+                        map
+                );
+            }
+        };
+
+        configManager.onScroll = new Callback() {
+            @Override
+            public void invoke(Object... args) {
+                WritableMap map = Arguments.createMap();
+                if (args.length > 0) {
+                    HTPoint contentOffset = (HTPoint) args[0];
+                    map.putDouble("contentOffsetX", contentOffset.x);
+                    map.putDouble("contentOffsetY", contentOffset.y);
+                }
+                reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(
+                        id,
+                        RNKLineView.onScrollKey,
                         map
                 );
             }

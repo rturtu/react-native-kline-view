@@ -16,6 +16,8 @@ class HTKLineContainerView: UIView {
     @objc var onDrawItemComplete: RCTBubblingEventBlock?
     
     @objc var onDrawPointComplete: RCTBubblingEventBlock?
+
+    @objc var onScroll: RCTBubblingEventBlock?
     
     @objc var optionList: String? {
         didSet {
@@ -108,6 +110,13 @@ class HTKLineContainerView: UIView {
             }
             self?.onDrawPointComplete?([
                 "pointCount": drawItem.pointList.count
+            ])
+        }
+
+        configManager.onScroll = { [weak self] (contentOffset) in
+            self?.onScroll?([
+                "contentOffsetX": contentOffset.x,
+                "contentOffsetY": contentOffset.y
             ])
         }
         
