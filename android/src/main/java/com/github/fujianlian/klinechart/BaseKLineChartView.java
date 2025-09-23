@@ -865,6 +865,21 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
         super.onScaleChanged(scale, oldScale);
     }
 
+    @Override
+    protected void checkLeftSideThreshold() {
+        // Calculate how many candlesticks are to the left of the current view
+        float candlesticksToLeft = mScrollX / configManager.itemWidth;
+
+        if (candlesticksToLeft <= 100) {
+            if (!mHasTriggeredLeftSide) {
+                mHasTriggeredLeftSide = true;
+                onLeftSide();
+            }
+        } else {
+            mHasTriggeredLeftSide = false;
+        }
+    }
+
     /**
      * 计算当前的显示区域
      */

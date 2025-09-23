@@ -1084,7 +1084,7 @@ class App extends Component {
         style={styles.chart}
         optionList={this.state.optionList}
         onDrawItemDidTouch={this.onDrawItemDidTouch}
-				onScrollLeft={(event) => console.log('on scroll left', event.nativeEvent.timestamp)}
+				onScrollLeft={(event) => console.log('onScrollLeft triggered - less than 100 candlesticks to the left, timestamp:', event.nativeEvent.timestamp)}
         onDrawItemComplete={this.onDrawItemComplete}
         onDrawPointComplete={this.onDrawPointComplete}
       />

@@ -38,8 +38,8 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
 
     private boolean mScaleEnable = true;
 
-    private boolean mHasTriggeredLeftSide = false;
-    private boolean mHasTriggeredRightSide = false;
+    protected boolean mHasTriggeredLeftSide = false;
+    protected boolean mHasTriggeredRightSide = false;
 
     public ScrollAndScaleView(Context context) {
         super(context);
@@ -290,11 +290,6 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
         if (mScrollX < getMinScrollX()) {
             mScrollX = getMinScrollX();
             mScroller.forceFinished(true);
-            if (!mHasTriggeredLeftSide) {
-                mHasTriggeredLeftSide = true;
-                mHasTriggeredRightSide = false;
-                onLeftSide();
-            }
         } else if (mScrollX > contentSizeWidth) {
             mScrollX = contentSizeWidth;
             mScroller.forceFinished(true);
@@ -304,10 +299,16 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
                 onRightSide();
             }
         } else {
-            // Reset flags when we're not at boundaries
-            mHasTriggeredLeftSide = false;
+            // Reset right side flag when we're not at right boundary
             mHasTriggeredRightSide = false;
         }
+
+        // Check if there are less than 100 candlesticks to the left
+        checkLeftSideThreshold();
+    }
+
+    protected void checkLeftSideThreshold() {
+        // This method should be overridden by BaseKLineChartView to access itemWidth
     }
 
     public float getScaleXMax() {

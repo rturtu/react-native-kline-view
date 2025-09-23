@@ -705,8 +705,9 @@ extension HTKLineView: UIScrollViewDelegate {
         visibleEndIndex = min(max(0, visibleEndIndex), configManager.modelArray.count - 1)
         visibleRange = visibleStartIndex...visibleEndIndex
 
-        // Trigger onScrollLeft when user scrolls to the leftmost position (only once)
-        if contentOffsetX <= 0 {
+        // Trigger onScrollLeft when there are less than 100 candlesticks to the left
+        let candlesticksToLeft = contentOffsetX / configManager.itemWidth
+        if candlesticksToLeft <= 100 {
             if !hasTriggeredScrollLeft {
                 hasTriggeredScrollLeft = true
                 let timestamp = Int64(Date().timeIntervalSince1970 * 1000)
