@@ -108,6 +108,41 @@ public class HTKLineContainerView extends RelativeLayout {
                 );
             }
         };
+        configManager.onScrollLeft = new Callback() {
+            @Override
+            public void invoke(Object... args) {
+                HTDrawItem drawItem = (HTDrawItem) args[0];
+                int drawItemIndex = (int) args[1];
+                configManager.shouldReloadDrawItemIndex = drawItemIndex;
+
+                WritableMap map = Arguments.createMap();
+                if (drawItem != null) {
+                    int drawColor = drawItem.drawColor;
+                    int alpha = (drawColor >> 24) & 0xFF;
+                    int red = (drawColor >> 16) & 0xFF;
+                    int green = (drawColor >> 8) & 0xFF;
+                    int blue = (drawColor) & 0xFF;
+                    WritableArray colorList = Arguments.createArray();
+
+                    colorList.pushDouble(red / 255.0);
+                    colorList.pushDouble(green / 255.0);
+                    colorList.pushDouble(blue / 255.0);
+                    colorList.pushDouble(alpha / 255.0);
+
+                    map.putArray("drawColor", colorList);
+                    map.putDouble("drawLineHeight", drawItem.drawLineHeight);
+                    map.putDouble("drawDashWidth", drawItem.drawDashWidth);
+                    map.putDouble("drawDashSpace", drawItem.drawDashSpace);
+                    map.putBoolean("drawIsLock", drawItem.drawIsLock);
+                }
+                map.putInt("shouldReloadDrawItemIndex", drawItemIndex);
+                reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(
+                        id,
+                        RNKLineView.onScrollLeftKey,
+                        map
+                );
+            }
+        };
         configManager.onDrawItemComplete = new Callback() {
             @Override
             public void invoke(Object... args) {

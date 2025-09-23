@@ -44,6 +44,7 @@ class HTDrawContext {
                 if (selectedDrawItem.pointList.count >= selectedDrawItem.drawType.count) {
                     if (HTDrawItem.canResponseLocation(drawItemList, location, klineView) != selectedDrawItem) {
                         configManager.onDrawItemDidTouch?(nil, HTDrawState.showPencil.rawValue)
+                        configManager.onScrollLeft?(nil, HTDrawState.showPencil.rawValue)
                         breakTouch = true
                         setNeedsDisplay()
                         return
@@ -72,6 +73,7 @@ class HTDrawContext {
         if HTDrawItem.canResponseTouch(drawItemList, location, translation, state, klineView) {
             if state == .began, let moveItem = HTDrawItem.findTouchMoveItem(drawItemList), let moveItemIndex = drawItemList.index(of: moveItem) {
                 configManager.onDrawItemDidTouch?(moveItem, moveItemIndex)
+                configManager.onScrollLeft?(moveItem, moveItemIndex)
             }
             setNeedsDisplay()
             return
@@ -112,6 +114,7 @@ class HTDrawContext {
                 
                 drawItemList.append(drawItem)
                 configManager.onDrawItemDidTouch?(drawItem, drawItemList.count - 1)
+                configManager.onScrollLeft?(drawItem, drawItemList.count - 1)
             } else {
                 drawItem?.pointList.append(location)
             }

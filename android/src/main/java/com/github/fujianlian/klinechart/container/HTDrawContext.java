@@ -43,6 +43,7 @@ public class HTDrawContext {
                     if (selectedDrawItem.pointList.size() >= selectedDrawItem.drawType.count()) {
                         if (HTDrawItem.canResponseLocation(drawItemList, location, klineView) != selectedDrawItem) {
                             configManager.onDrawItemDidTouch.invoke(null, HTDrawState.showPencil);
+                            configManager.onScrollLeft.invoke(null, HTDrawState.showPencil);
                             breakTouch = true;
                             invalidate();
                             return;
@@ -58,6 +59,7 @@ public class HTDrawContext {
                 if (moveItem != null) {
                     int moveItemIndex = drawItemList.indexOf(moveItem);
                     configManager.onDrawItemDidTouch.invoke(moveItem, moveItemIndex);
+                    configManager.onScrollLeft.invoke(moveItem, moveItemIndex);
                 }
             }
             invalidate();
@@ -80,6 +82,7 @@ public class HTDrawContext {
                 drawItem.drawDashSpace = configManager.drawDashSpace;
                 drawItemList.add(drawItem);
                 configManager.onDrawItemDidTouch.invoke(drawItem, drawItemList.size() - 1);
+                configManager.onScrollLeft.invoke(drawItem, drawItemList.size() - 1);
             } else {
                 drawItem.pointList.add(location);
             }

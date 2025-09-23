@@ -253,6 +253,8 @@ class HTKLineConfigManager: NSObject {
     var drawIsLock = false
     
     var onDrawItemDidTouch: HTKLineDrawItemBlock?
+
+    var onScrollLeft: HTKLineDrawItemBlock?
     
     var onDrawItemComplete: HTKLineDrawItemBlock?
     

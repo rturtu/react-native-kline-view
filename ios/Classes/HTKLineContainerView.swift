@@ -12,6 +12,8 @@ class HTKLineContainerView: UIView {
     var configManager = HTKLineConfigManager()
     
     @objc var onDrawItemDidTouch: RCTBubblingEventBlock?
+
+    @objc var onScrollLeft: RCTBubblingEventBlock?
     
     @objc var onDrawItemComplete: RCTBubblingEventBlock?
     
@@ -91,6 +93,23 @@ class HTKLineContainerView: UIView {
                 return
             }
             self?.onDrawItemDidTouch?([
+                "shouldReloadDrawItemIndex": drawItemIndex,
+                "drawColor": colorList,
+                "drawLineHeight": drawItem.drawLineHeight,
+                "drawDashWidth": drawItem.drawDashWidth,
+                "drawDashSpace": drawItem.drawDashSpace,
+                "drawIsLock": drawItem.drawIsLock
+            ])
+        }
+        configManager.onScrollLeft = { [weak self] (drawItem, drawItemIndex) in
+            self?.configManager.shouldReloadDrawItemIndex = drawItemIndex
+            guard let drawItem = drawItem, let colorList = drawItem.drawColor.cgColor.components else {
+                self?.onScrollLeft?([
+                    "shouldReloadDrawItemIndex": drawItemIndex,
+                ])
+                return
+            }
+            self?.onScrollLeft?([
                 "shouldReloadDrawItemIndex": drawItemIndex,
                 "drawColor": colorList,
                 "drawLineHeight": drawItem.drawLineHeight,
