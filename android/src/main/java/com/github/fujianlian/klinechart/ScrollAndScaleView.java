@@ -38,6 +38,9 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
 
     private boolean mScaleEnable = true;
 
+    private boolean mHasTriggeredLeftSide = false;
+    private boolean mHasTriggeredRightSide = false;
+
     public ScrollAndScaleView(Context context) {
         super(context);
         init();
@@ -283,12 +286,27 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
 
     protected void checkAndFixScrollX() {
         int contentSizeWidth = (getMaxScrollX());
+
         if (mScrollX < getMinScrollX()) {
             mScrollX = getMinScrollX();
             mScroller.forceFinished(true);
+            if (!mHasTriggeredLeftSide) {
+                mHasTriggeredLeftSide = true;
+                mHasTriggeredRightSide = false;
+                onLeftSide();
+            }
         } else if (mScrollX > contentSizeWidth) {
             mScrollX = contentSizeWidth;
             mScroller.forceFinished(true);
+            if (!mHasTriggeredRightSide) {
+                mHasTriggeredRightSide = true;
+                mHasTriggeredLeftSide = false;
+                onRightSide();
+            }
+        } else {
+            // Reset flags when we're not at boundaries
+            mHasTriggeredLeftSide = false;
+            mHasTriggeredRightSide = false;
         }
     }
 

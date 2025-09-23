@@ -161,6 +161,14 @@ public class KLineChartView extends BaseKLineChartView {
 
     @Override
     public void onLeftSide() {
+        try {
+            if (configManager != null && configManager.onScrollLeft != null) {
+                long timestamp = System.currentTimeMillis();
+                configManager.onScrollLeft.invoke(timestamp);
+            }
+        } catch (Exception e) {
+            // Silently handle any callback errors to prevent crashes
+        }
         // showLoading();
     }
 

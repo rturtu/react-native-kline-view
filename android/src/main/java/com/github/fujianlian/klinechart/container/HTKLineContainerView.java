@@ -108,6 +108,20 @@ public class HTKLineContainerView extends RelativeLayout {
                 );
             }
         };
+        configManager.onScrollLeft = new Callback() {
+            @Override
+            public void invoke(Object... args) {
+                long timestamp = (long) args[0];
+
+                WritableMap map = Arguments.createMap();
+                map.putDouble("timestamp", timestamp);
+                reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(
+                        id,
+                        RNKLineView.onScrollLeftKey,
+                        map
+                );
+            }
+        };
         configManager.onDrawItemComplete = new Callback() {
             @Override
             public void invoke(Object... args) {

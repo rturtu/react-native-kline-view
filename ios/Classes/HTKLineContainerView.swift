@@ -12,6 +12,8 @@ class HTKLineContainerView: UIView {
     var configManager = HTKLineConfigManager()
     
     @objc var onDrawItemDidTouch: RCTBubblingEventBlock?
+
+    @objc var onScrollLeft: RCTBubblingEventBlock?
     
     @objc var onDrawItemComplete: RCTBubblingEventBlock?
     
@@ -97,6 +99,11 @@ class HTKLineContainerView: UIView {
                 "drawDashWidth": drawItem.drawDashWidth,
                 "drawDashSpace": drawItem.drawDashSpace,
                 "drawIsLock": drawItem.drawIsLock
+            ])
+        }
+        configManager.onScrollLeft = { [weak self] (timestamp) in
+            self?.onScrollLeft?([
+                "timestamp": timestamp,
             ])
         }
         configManager.onDrawItemComplete = { [weak self] (drawItem, drawItemIndex) in

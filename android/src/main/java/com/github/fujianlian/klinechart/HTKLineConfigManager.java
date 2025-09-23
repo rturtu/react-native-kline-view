@@ -55,6 +55,8 @@ public class HTKLineConfigManager {
 
     public Callback onDrawItemDidTouch;
 
+    public Callback onScrollLeft;
+
     public Callback onDrawPointComplete;
 
 

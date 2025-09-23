@@ -63,6 +63,7 @@ enum HTDrawState: Int {
 }
 
 typealias HTKLineDrawItemBlock = (HTDrawItem?, Int) -> Void
+typealias HTKLineScrollBlock = (Int64) -> Void
 
 class HTKLineConfigManager: NSObject {
 
@@ -253,6 +254,8 @@ class HTKLineConfigManager: NSObject {
     var drawIsLock = false
     
     var onDrawItemDidTouch: HTKLineDrawItemBlock?
+
+    var onScrollLeft: HTKLineScrollBlock?
     
     var onDrawItemComplete: HTKLineDrawItemBlock?
     
