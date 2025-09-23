@@ -608,7 +608,7 @@ extension HTKLineView: UIScrollViewDelegate {
         visibleStartIndex = min(max(0, visibleStartIndex), configManager.modelArray.count - 1)
         visibleEndIndex = min(max(0, visibleEndIndex), configManager.modelArray.count - 1)
         visibleRange = visibleStartIndex...visibleEndIndex
-        configManager?.onScroll?(scrollView.contentOffset)
+        configManager.onScroll?(scrollView.contentOffset)
         self.setNeedsDisplay()
     }
 
