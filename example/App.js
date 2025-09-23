@@ -1084,7 +1084,7 @@ class App extends Component {
         style={styles.chart}
         optionList={this.state.optionList}
         onDrawItemDidTouch={this.onDrawItemDidTouch}
-				onScrollLeft={() => console.log('on scroll left')}
+				onScrollLeft={(event) => console.log('on scroll left', event.nativeEvent.timestamp)}
         onDrawItemComplete={this.onDrawItemComplete}
         onDrawPointComplete={this.onDrawPointComplete}
       />

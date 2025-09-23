@@ -6,13 +6,13 @@
 //  Copyright © 2020 hublot. All rights reserved.
 //
 
-import UIKit
 import Lottie
+import UIKit
 
 class HTKLineView: UIScrollView {
-        
+
     var configManager: HTKLineConfigManager
-    
+
     lazy var drawContext: HTDrawContext = {
         let drawContext = HTDrawContext.init(self, configManager)
         return drawContext
@@ -42,9 +42,7 @@ class HTKLineView: UIScrollView {
 
     var lastLoadAnimationSource = ""
 
-
-
-
+    private var hasTriggeredScrollLeft = false
 
     // 计算属性
     var visibleModelArray = [HTKLineModel]()
@@ -52,18 +50,15 @@ class HTKLineView: UIScrollView {
     var allWidth: CGFloat = 0
     var allHeight: CGFloat = 0
     var mainMinMaxRange = Range<CGFloat>.init(uncheckedBounds: (lower: 0, upper: 0))
-    var textHeight: CGFloat  = 0
-    var mainBaseY: CGFloat  = 0
-    var mainHeight: CGFloat  = 0
+    var textHeight: CGFloat = 0
+    var mainBaseY: CGFloat = 0
+    var mainHeight: CGFloat = 0
     var volumeMinMaxRange = Range<CGFloat>.init(uncheckedBounds: (lower: 0, upper: 0))
-    var volumeBaseY: CGFloat  = 0
-    var volumeHeight: CGFloat  = 0
+    var volumeBaseY: CGFloat = 0
+    var volumeHeight: CGFloat = 0
     var childMinMaxRange = Range<CGFloat>.init(uncheckedBounds: (lower: 0, upper: 0))
-    var childBaseY: CGFloat  = 0
-    var childHeight: CGFloat  = 0
-
-
-
+    var childBaseY: CGFloat = 0
+    var childHeight: CGFloat = 0
 
     init(_ frame: CGRect, _ configManager: HTKLineConfigManager) {
         self.configManager = configManager
@@ -74,9 +69,12 @@ class HTKLineView: UIScrollView {
         showsVerticalScrollIndicator = false
         backgroundColor = UIColor.clear
 
-        addGestureRecognizer(UILongPressGestureRecognizer.init(target: self, action: #selector(longPressSelector)))
-        addGestureRecognizer(UITapGestureRecognizer.init(target: self, action: #selector(tapSelector)))
-        addGestureRecognizer(UIPinchGestureRecognizer.init(target: self, action: #selector(pinchSelector)))
+        addGestureRecognizer(
+            UILongPressGestureRecognizer.init(target: self, action: #selector(longPressSelector)))
+        addGestureRecognizer(
+            UITapGestureRecognizer.init(target: self, action: #selector(tapSelector)))
+        addGestureRecognizer(
+            UIPinchGestureRecognizer.init(target: self, action: #selector(pinchSelector)))
     }
 
     required init?(coder: NSCoder) {
@@ -101,7 +99,7 @@ class HTKLineView: UIScrollView {
         let isEnd = contentOffset.x + 1 + bounds.size.width >= contentSize.width
         reloadContentSize()
 
-        if (configManager.shouldScrollToEnd || isEnd) {
+        if configManager.shouldScrollToEnd || isEnd {
             let toEndContentOffset = contentSize.width - bounds.size.width
             let distance = abs(contentOffset.x - toEndContentOffset)
             let animated = distance <= configManager.itemWidth
@@ -117,7 +115,11 @@ class HTKLineView: UIScrollView {
         lastLoadAnimationSource = configManager.closePriceRightLightLottieSource
 
         DispatchQueue.global().async { [weak self] in
-            guard let this = self, let data = this.configManager.closePriceRightLightLottieSource.data(using: String.Encoding.utf8), let animation = try? JSONDecoder().decode(LottieAnimation.self, from: data) else {
+            guard let this = self,
+                let data = this.configManager.closePriceRightLightLottieSource.data(
+                    using: String.Encoding.utf8),
+                let animation = try? JSONDecoder().decode(LottieAnimation.self, from: data)
+            else {
                 return
             }
             DispatchQueue.main.async {
@@ -138,7 +140,9 @@ class HTKLineView: UIScrollView {
 
     func reloadContentSize() {
         configManager.reloadScrollViewScale(scale)
-        let contentWidth = configManager.itemWidth * CGFloat(configManager.modelArray.count) + configManager.paddingRight
+        let contentWidth =
+            configManager.itemWidth * CGFloat(configManager.modelArray.count)
+            + configManager.paddingRight
         contentSize = CGSize.init(width: contentWidth, height: frame.size.height)
     }
 
@@ -146,7 +150,6 @@ class HTKLineView: UIScrollView {
         let offsetX = max(0, min(contentOffsetX, contentSize.width - bounds.size.width))
         setContentOffset(CGPoint.init(x: offsetX, y: 0), animated: animated)
     }
-    
 
     func contextTranslate(_ context: CGContext, _ x: CGFloat, _ block: (CGContext) -> Void) {
         context.saveGState()
@@ -161,35 +164,39 @@ class HTKLineView: UIScrollView {
         }
 
         calculateBaseHeight()
-        contextTranslate(context, CGFloat(visibleRange.lowerBound) * configManager.itemWidth, { context in
-            drawCandle(context)
-        })
+        contextTranslate(
+            context, CGFloat(visibleRange.lowerBound) * configManager.itemWidth,
+            { context in
+                drawCandle(context)
+            })
 
-        contextTranslate(context, contentOffset.x, { context in
-//            context.setFillColor(UIColor.red.withAlphaComponent(0.1).cgColor)
-//            context.fill(CGRect.init(x: 0, y: mainBaseY, width: allWidth, height: mainHeight))
+        contextTranslate(
+            context, contentOffset.x,
+            { context in
+                //            context.setFillColor(UIColor.red.withAlphaComponent(0.1).cgColor)
+                //            context.fill(CGRect.init(x: 0, y: mainBaseY, width: allWidth, height: mainHeight))
 
-            drawText(context)
-            drawValue(context)
+                drawText(context)
+                drawValue(context)
 
+                drawHighLow(context)
+                drawTime(context)
+                drawClosePrice(context)
+                drawSelectedLine(context)
+                drawSelectedBoard(context)
+                drawSelectedTime(context)
 
+                drawContext.draw(contentOffset.x)
+            })
 
-            drawHighLow(context)
-            drawTime(context)
-            drawClosePrice(context)
-            drawSelectedLine(context)
-            drawSelectedBoard(context)
-            drawSelectedTime(context)
-            
-            drawContext.draw(contentOffset.x)
-        })
-
-        
     }
 
     func calculateBaseHeight() {
-        self.visibleModelArray = configManager.modelArray.count > 0 ? Array(configManager.modelArray[visibleRange]) : configManager.modelArray
-        self.volumeRange = configManager.mainFlex...configManager.mainFlex + configManager.volumeFlex
+        self.visibleModelArray =
+            configManager.modelArray.count > 0
+            ? Array(configManager.modelArray[visibleRange]) : configManager.modelArray
+        self.volumeRange =
+            configManager.mainFlex...configManager.mainFlex + configManager.volumeFlex
 
         self.allHeight = self.bounds.size.height - configManager.paddingBottom
         self.allWidth = self.bounds.size.width
@@ -200,66 +207,95 @@ class HTKLineView: UIScrollView {
         self.mainHeight = allHeight * volumeRange.lowerBound - mainBaseY - textHeight
 
         self.volumeMinMaxRange = volumeDraw.minMaxRange(visibleModelArray, configManager)
-        self.volumeBaseY = allHeight * volumeRange.lowerBound + configManager.headerHeight + textHeight
-        self.volumeHeight = allHeight * (volumeRange.upperBound - volumeRange.lowerBound) - configManager.headerHeight - textHeight
+        self.volumeBaseY =
+            allHeight * volumeRange.lowerBound + configManager.headerHeight + textHeight
+        self.volumeHeight =
+            allHeight * (volumeRange.upperBound - volumeRange.lowerBound)
+            - configManager.headerHeight - textHeight
 
-        self.childMinMaxRange = childDraw?.minMaxRange(visibleModelArray, configManager) ?? Range<CGFloat>.init(uncheckedBounds: (lower: 0, upper: 0))
-        self.childBaseY = allHeight * volumeRange.upperBound + configManager.headerHeight + textHeight
-        self.childHeight = allHeight * (1 - volumeRange.upperBound) - configManager.headerHeight - textHeight
+        self.childMinMaxRange =
+            childDraw?.minMaxRange(visibleModelArray, configManager)
+            ?? Range<CGFloat>.init(uncheckedBounds: (lower: 0, upper: 0))
+        self.childBaseY =
+            allHeight * volumeRange.upperBound + configManager.headerHeight + textHeight
+        self.childHeight =
+            allHeight * (1 - volumeRange.upperBound) - configManager.headerHeight - textHeight
 
     }
 
     func yFromValue(_ value: CGFloat) -> CGFloat {
         let scale = (mainMinMaxRange.upperBound - mainMinMaxRange.lowerBound) / mainHeight
         var y = mainBaseY + mainHeight * 0.5
-        if (scale != 0) {
+        if scale != 0 {
             y = mainBaseY + (mainMinMaxRange.upperBound - value) / scale
         }
         return y
     }
-    
+
     func valueFromY(_ y: CGFloat) -> CGFloat {
         let scale = (mainMinMaxRange.upperBound - mainMinMaxRange.lowerBound) / mainHeight
         var value = scale * mainHeight * 0.5
-        if (scale != 0) {
+        if scale != 0 {
             value = mainMinMaxRange.upperBound - (y - mainBaseY) * scale
         }
         return value
     }
-    
+
     func xFromValue(_ value: CGFloat) -> CGFloat {
-        guard let firstItem = configManager.modelArray.first, let lastItem = configManager.modelArray.last else {
+        guard let firstItem = configManager.modelArray.first,
+            let lastItem = configManager.modelArray.last
+        else {
             return 0
         }
-        let scale = (lastItem.id - firstItem.id) / (configManager.itemWidth * CGFloat(configManager.modelArray.count - 1))
+        let scale =
+            (lastItem.id - firstItem.id)
+            / (configManager.itemWidth * CGFloat(configManager.modelArray.count - 1))
         let x = (value - firstItem.id) / scale + configManager.itemWidth / 2.0 - contentOffset.x
         return x
     }
-    
+
     func valueFromX(_ x: CGFloat) -> CGFloat {
-        guard let firstItem = configManager.modelArray.first, let lastItem = configManager.modelArray.last else {
+        guard let firstItem = configManager.modelArray.first,
+            let lastItem = configManager.modelArray.last
+        else {
             return 0
         }
-        let scale = (lastItem.id - firstItem.id) / (configManager.itemWidth * CGFloat(configManager.modelArray.count - 1))
+        let scale =
+            (lastItem.id - firstItem.id)
+            / (configManager.itemWidth * CGFloat(configManager.modelArray.count - 1))
         let value = scale * (x + contentOffset.x - configManager.itemWidth / 2.0) + firstItem.id
         return value
     }
 
     func drawCandle(_ context: CGContext) {
-        if (configManager.isMinute) {
-            mainDraw.drawGradient(visibleModelArray, mainMinMaxRange.upperBound, mainMinMaxRange.lowerBound, allWidth, mainBaseY, mainHeight, context, configManager)
+        if configManager.isMinute {
+            mainDraw.drawGradient(
+                visibleModelArray, mainMinMaxRange.upperBound, mainMinMaxRange.lowerBound, allWidth,
+                mainBaseY, mainHeight, context, configManager)
         }
 
         for (i, model) in visibleModelArray.enumerated() {
-            mainDraw.drawCandle(model, i, mainMinMaxRange.upperBound, mainMinMaxRange.lowerBound, mainBaseY, mainHeight, context, configManager)
-            volumeDraw.drawCandle(model, i, volumeMinMaxRange.upperBound, volumeMinMaxRange.lowerBound, volumeBaseY, volumeHeight, context, configManager)
-            childDraw?.drawCandle(model, i, childMinMaxRange.upperBound, childMinMaxRange.lowerBound, childBaseY, childHeight, context, configManager)
+            mainDraw.drawCandle(
+                model, i, mainMinMaxRange.upperBound, mainMinMaxRange.lowerBound, mainBaseY,
+                mainHeight, context, configManager)
+            volumeDraw.drawCandle(
+                model, i, volumeMinMaxRange.upperBound, volumeMinMaxRange.lowerBound, volumeBaseY,
+                volumeHeight, context, configManager)
+            childDraw?.drawCandle(
+                model, i, childMinMaxRange.upperBound, childMinMaxRange.lowerBound, childBaseY,
+                childHeight, context, configManager)
 
             let lastIndex = i == 0 ? i : i - 1
             let lastModel = visibleModelArray[lastIndex]
-            mainDraw.drawLine(model, lastModel, mainMinMaxRange.upperBound, mainMinMaxRange.lowerBound, mainBaseY, mainHeight, i, lastIndex, context, configManager)
-            volumeDraw.drawLine(model, lastModel, volumeMinMaxRange.upperBound, volumeMinMaxRange.lowerBound, volumeBaseY, volumeHeight, i, lastIndex, context, configManager)
-            childDraw?.drawLine(model, lastModel, childMinMaxRange.upperBound, childMinMaxRange.lowerBound, childBaseY, childHeight, i, lastIndex, context, configManager)
+            mainDraw.drawLine(
+                model, lastModel, mainMinMaxRange.upperBound, mainMinMaxRange.lowerBound, mainBaseY,
+                mainHeight, i, lastIndex, context, configManager)
+            volumeDraw.drawLine(
+                model, lastModel, volumeMinMaxRange.upperBound, volumeMinMaxRange.lowerBound,
+                volumeBaseY, volumeHeight, i, lastIndex, context, configManager)
+            childDraw?.drawLine(
+                model, lastModel, childMinMaxRange.upperBound, childMinMaxRange.lowerBound,
+                childBaseY, childHeight, i, lastIndex, context, configManager)
         }
     }
 
@@ -271,16 +307,24 @@ class HTKLineView: UIScrollView {
         if let model = model {
             let baseX: CGFloat = 5
             mainDraw.drawText(model, baseX, 10, context, configManager)
-            volumeDraw.drawText(model, baseX, volumeBaseY - configManager.headerHeight, context, configManager)
-            childDraw?.drawText(model, baseX, childBaseY - configManager.headerHeight, context, configManager)
+            volumeDraw.drawText(
+                model, baseX, volumeBaseY - configManager.headerHeight, context, configManager)
+            childDraw?.drawText(
+                model, baseX, childBaseY - configManager.headerHeight, context, configManager)
         }
     }
 
     func drawValue(_ context: CGContext) {
         let baseX = self.allWidth
-        mainDraw.drawValue(mainMinMaxRange.upperBound, mainMinMaxRange.lowerBound, baseX, mainBaseY, mainHeight, context, configManager)
-        volumeDraw.drawValue(volumeMinMaxRange.upperBound, volumeMinMaxRange.lowerBound, baseX, volumeBaseY, volumeHeight, context, configManager)
-        childDraw?.drawValue(childMinMaxRange.upperBound, childMinMaxRange.lowerBound, baseX, childBaseY, childHeight, context, configManager)
+        mainDraw.drawValue(
+            mainMinMaxRange.upperBound, mainMinMaxRange.lowerBound, baseX, mainBaseY, mainHeight,
+            context, configManager)
+        volumeDraw.drawValue(
+            volumeMinMaxRange.upperBound, volumeMinMaxRange.lowerBound, baseX, volumeBaseY,
+            volumeHeight, context, configManager)
+        childDraw?.drawValue(
+            childMinMaxRange.upperBound, childMinMaxRange.lowerBound, baseX, childBaseY,
+            childHeight, context, configManager)
 
     }
 
@@ -295,7 +339,7 @@ class HTKLineView: UIScrollView {
             itemIndex -= 1
             itemIndex -= visibleRange.lowerBound
             itemIndex = max(0, itemIndex)
-            if (itemIndex >= visibleModelArray.count) {
+            if itemIndex >= visibleModelArray.count {
                 continue
             }
             let item = visibleModelArray[itemIndex]
@@ -303,7 +347,10 @@ class HTKLineView: UIScrollView {
             let width = mainDraw.textWidth(title: title, font: font)
             let height = mainDraw.textHeight(font: font)
             let y = childBaseY + childHeight + (configManager.paddingBottom - height) / 2
-            mainDraw.drawText(title: title, point: CGPoint.init(x: x - width / 2.0, y: y), color: configManager.textColor, font: font, context: context, configManager: configManager)
+            mainDraw.drawText(
+                title: title, point: CGPoint.init(x: x - width / 2.0, y: y),
+                color: configManager.textColor, font: font, context: context,
+                configManager: configManager)
         }
     }
 
@@ -314,10 +361,10 @@ class HTKLineView: UIScrollView {
         var highIndex = 0
         var lowIndex = 0
         for (i, model) in visibleModelArray.enumerated() {
-            if (model.high > visibleModelArray[highIndex].high) {
+            if model.high > visibleModelArray[highIndex].high {
                 highIndex = i
             }
-            if (model.low < visibleModelArray[lowIndex].low) {
+            if model.low < visibleModelArray[lowIndex].low {
                 lowIndex = i
             }
         }
@@ -330,12 +377,14 @@ class HTKLineView: UIScrollView {
             var title = this.configManager.precision(value, this.configManager.price)
             let font = this.configManager.createFont(this.configManager.candleTextFontSize)
             let lineString = "--"
-            let offset = CGFloat(index + this.visibleRange.lowerBound) * this.configManager.itemWidth - this.contentOffset.x
+            let offset =
+                CGFloat(index + this.visibleRange.lowerBound) * this.configManager.itemWidth
+                - this.contentOffset.x
             let halfWidth = this.allWidth / 2
             var x = offset + this.configManager.itemWidth / 2
 
             var y = this.yFromValue(value)
-            if (offset < halfWidth) {
+            if offset < halfWidth {
                 title = lineString + title
             } else {
                 title = title + lineString
@@ -343,7 +392,10 @@ class HTKLineView: UIScrollView {
             }
             y -= this.mainDraw.textHeight(font: font) / 2
             y -= 1
-            this.mainDraw.drawText(title: title, point: CGPoint.init(x: x, y: y), color: this.configManager.candleTextColor, font: font, context: context, configManager: this.configManager)
+            this.mainDraw.drawText(
+                title: title, point: CGPoint.init(x: x, y: y),
+                color: this.configManager.candleTextColor, font: font, context: context,
+                configManager: this.configManager)
         }
         drawValue(highIndex, visibleModelArray[highIndex].high)
         drawValue(lowIndex, visibleModelArray[lowIndex].low)
@@ -355,10 +407,12 @@ class HTKLineView: UIScrollView {
             return
         }
         let offset = CGFloat(visibleRange.upperBound) * configManager.itemWidth - contentOffset.x
-        let valueWidth = mainDraw.textWidth(title: configManager.precision(lastModel.close, configManager.price), font: configManager.createFont(configManager.rightTextFontSize))
+        let valueWidth = mainDraw.textWidth(
+            title: configManager.precision(lastModel.close, configManager.price),
+            font: configManager.createFont(configManager.rightTextFontSize))
         let showCenter = offset > allWidth - valueWidth - configManager.itemWidth
         animationView.isHidden = true
-        if (showCenter) {
+        if showCenter {
             drawClosePriceCenter(context, lastModel)
         } else {
             drawClosePriceRight(context, lastModel, offset)
@@ -377,9 +431,14 @@ class HTKLineView: UIScrollView {
         let triangleMarginLeft: CGFloat = 3
         let x = allWidth - configManager.paddingRight
         let rectHeight = height + paddingVertical * 2
-        let y = max(mainBaseY - textHeight + rectHeight / 2, min(mainBaseY + mainHeight + textHeight - rectHeight / 2, yFromValue(lastModel.close)))
-        let rectWidth = paddingHorizontal + width + triangleMarginLeft + triangleWidth + paddingHorizontal
-        let rect = CGRect.init(x: x - rectWidth / 2, y: y - height / 2 - paddingVertical, width: rectWidth, height: rectHeight)
+        let y = max(
+            mainBaseY - textHeight + rectHeight / 2,
+            min(mainBaseY + mainHeight + textHeight - rectHeight / 2, yFromValue(lastModel.close)))
+        let rectWidth =
+            paddingHorizontal + width + triangleMarginLeft + triangleWidth + paddingHorizontal
+        let rect = CGRect.init(
+            x: x - rectWidth / 2, y: y - height / 2 - paddingVertical, width: rectWidth,
+            height: rectHeight)
 
         context.saveGState()
         context.setLineDash(phase: 0, lengths: [4, 4])
@@ -396,12 +455,20 @@ class HTKLineView: UIScrollView {
         context.setStrokeColor(configManager.closePriceCenterBorderColor.cgColor)
         context.addPath(rectPath.cgPath)
         context.strokePath()
-        mainDraw.drawText(title: title, point: CGPoint.init(x: rect.minX + paddingHorizontal, y: rect.minY + paddingVertical), color: configManager.textColor, font: font, context: context, configManager: configManager)
+        mainDraw.drawText(
+            title: title,
+            point: CGPoint.init(x: rect.minX + paddingHorizontal, y: rect.minY + paddingVertical),
+            color: configManager.textColor, font: font, context: context,
+            configManager: configManager)
 
         let trianglePath = UIBezierPath.init()
         trianglePath.move(to: CGPoint.init(x: rect.maxX - paddingHorizontal, y: y))
-        trianglePath.addLine(to: CGPoint.init(x: rect.maxX - paddingHorizontal - triangleWidth, y: y + triangleHeight / 2))
-        trianglePath.addLine(to: CGPoint.init(x: rect.maxX - paddingHorizontal - triangleWidth, y: y - triangleHeight / 2))
+        trianglePath.addLine(
+            to: CGPoint.init(
+                x: rect.maxX - paddingHorizontal - triangleWidth, y: y + triangleHeight / 2))
+        trianglePath.addLine(
+            to: CGPoint.init(
+                x: rect.maxX - paddingHorizontal - triangleWidth, y: y - triangleHeight / 2))
         trianglePath.close()
         context.setFillColor(configManager.closePriceCenterTriangleColor.cgColor)
         context.addPath(trianglePath.cgPath)
@@ -428,13 +495,15 @@ class HTKLineView: UIScrollView {
         let rect = CGRect.init(x: allWidth - width, y: y - height / 2, width: width, height: height)
         context.setFillColor(configManager.closePriceRightBackgroundColor.cgColor)
         context.fill(rect)
-        mainDraw.drawText(title: title, point: rect.origin, color: color, font: font, context: context, configManager: configManager)
+        mainDraw.drawText(
+            title: title, point: rect.origin, color: color, font: font, context: context,
+            configManager: configManager)
 
-
-        if (configManager.isMinute) {
+        if configManager.isMinute {
             animationView.isHidden = false
             UIView.animate(withDuration: 0.15) {
-                self.animationView.center = CGPoint.init(x: x + self.configManager.itemWidth / 2 + self.contentOffset.x, y: y)
+                self.animationView.center = CGPoint.init(
+                    x: x + self.configManager.itemWidth / 2 + self.contentOffset.x, y: y)
             }
         }
     }
@@ -452,21 +521,33 @@ class HTKLineView: UIScrollView {
         context.addLines(between: [CGPoint.init(x: 0, y: y), CGPoint.init(x: allWidth, y: y)])
         context.strokePath()
 
-        context.addArc(center: CGPoint.init(x: x, y: y), radius: configManager.candleWidth * 2 / 2, startAngle: 0, endAngle: CGFloat(Double.pi * 2), clockwise: true)
+        context.addArc(
+            center: CGPoint.init(x: x, y: y), radius: configManager.candleWidth * 2 / 2,
+            startAngle: 0, endAngle: CGFloat(Double.pi * 2), clockwise: true)
         context.setFillColor(configManager.selectedPointContainerColor.cgColor)
         context.fillPath()
-        context.addArc(center: CGPoint.init(x: x, y: y), radius: configManager.candleWidth / 1.5 / 2, startAngle: 0, endAngle: CGFloat(Double.pi * 2), clockwise: true)
+        context.addArc(
+            center: CGPoint.init(x: x, y: y), radius: configManager.candleWidth / 1.5 / 2,
+            startAngle: 0, endAngle: CGFloat(Double.pi * 2), clockwise: true)
         context.setFillColor(configManager.selectedPointContentColor.cgColor)
         context.fillPath()
 
         let colorList = configManager.packGradientColorList(configManager.panelGradientColorList)
         let locationList = configManager.panelGradientLocationList
-        if let gradient = CGGradient.init(colorSpace: CGColorSpaceCreateDeviceRGB(), colorComponents: colorList, locations: locationList, count: locationList.count) {
+        if let gradient = CGGradient.init(
+            colorSpace: CGColorSpaceCreateDeviceRGB(), colorComponents: colorList,
+            locations: locationList, count: locationList.count)
+        {
             let start = mainBaseY
             let end = childBaseY + childHeight
-            context.addRect(CGRect.init(x: x - configManager.candleWidth / 2, y: start, width: configManager.candleWidth, height: end - start))
+            context.addRect(
+                CGRect.init(
+                    x: x - configManager.candleWidth / 2, y: start,
+                    width: configManager.candleWidth, height: end - start))
             context.clip()
-            context.drawLinearGradient(gradient, start: CGPoint.init(x: 0, y: start), end: CGPoint.init(x: 0, y: end), options: .drawsBeforeStartLocation)
+            context.drawLinearGradient(
+                gradient, start: CGPoint.init(x: 0, y: start), end: CGPoint.init(x: 0, y: end),
+                options: .drawsBeforeStartLocation)
             context.resetClip()
         }
 
@@ -482,9 +563,11 @@ class HTKLineView: UIScrollView {
         let width = mainDraw.textWidth(title: title, font: font)
         let height = mainDraw.textHeight(font: font)
         let startX = leftAlign ? 0 : allWidth - width - paddingHorizontal * 2
-        let rect = CGRect.init(x: startX, y: y - height / 2 - paddingVertical, width: width + paddingHorizontal * 2, height: height + paddingVertical * 2)
+        let rect = CGRect.init(
+            x: startX, y: y - height / 2 - paddingVertical, width: width + paddingHorizontal * 2,
+            height: height + paddingVertical * 2)
         let bezierPath = UIBezierPath.init()
-        if (leftAlign) {
+        if leftAlign {
             bezierPath.move(to: CGPoint.init(x: rect.maxX, y: rect.minY))
             bezierPath.addLine(to: CGPoint.init(x: rect.minX, y: rect.minY))
             bezierPath.addLine(to: CGPoint.init(x: rect.minX, y: rect.maxY))
@@ -508,7 +591,10 @@ class HTKLineView: UIScrollView {
         context.fillPath()
         context.addPath(bezierPath.cgPath)
         context.strokePath()
-        mainDraw.drawText(title: title, point: CGPoint.init(x: startX + paddingHorizontal, y: y - height / 2), color: configManager.candleTextColor, font: font, context: context, configManager: configManager)
+        mainDraw.drawText(
+            title: title, point: CGPoint.init(x: startX + paddingHorizontal, y: y - height / 2),
+            color: configManager.candleTextColor, font: font, context: context,
+            configManager: configManager)
 
     }
 
@@ -547,7 +633,7 @@ class HTKLineView: UIScrollView {
         context.setLineWidth(configManager.lineWidth / 2.0)
         context.setStrokeColor(configManager.panelBorderColor.cgColor)
         let rect = CGRect.init(x: x, y: y, width: width, height: textY - lineSpace + padding - y)
-        let bezierPath  = UIBezierPath.init(roundedRect: rect, cornerRadius: 5)
+        let bezierPath = UIBezierPath.init(roundedRect: rect, cornerRadius: 5)
         context.addPath(bezierPath.cgPath)
         context.fillPath()
         context.addPath(bezierPath.cgPath)
@@ -557,10 +643,14 @@ class HTKLineView: UIScrollView {
             let title = item["title"] as? String ?? ""
             let detail = item["detail"] as? String ?? ""
             let detailColor = item["color"] as? UIColor ?? color
-            mainDraw.drawText(title: title, point: CGPoint.init(x: x + padding, y: textY), color: color, font: font, context: context, configManager: configManager)
+            mainDraw.drawText(
+                title: title, point: CGPoint.init(x: x + padding, y: textY), color: color,
+                font: font, context: context, configManager: configManager)
             let detailWidth = mainDraw.textWidth(title: detail, font: font)
             let detailHeight = mainDraw.textHeight(font: font)
-            mainDraw.drawText(title: detail, point: CGPoint.init(x: x + width - padding - detailWidth, y: textY), color: detailColor, font: font, context: context, configManager: configManager)
+            mainDraw.drawText(
+                title: detail, point: CGPoint.init(x: x + width - padding - detailWidth, y: textY),
+                color: detailColor, font: font, context: context, configManager: configManager)
             textY += detailHeight
             textY += lineSpace
         }
@@ -582,12 +672,18 @@ class HTKLineView: UIScrollView {
         context.setFillColor(configManager.panelBackgroundColor.cgColor)
         context.setLineWidth(configManager.lineWidth / 2.0)
         context.setStrokeColor(color.cgColor)
-        let rect = CGRect.init(x: x - width / 2 - padding, y: y, width: width + padding * 2, height: configManager.paddingBottom - configManager.lineWidth)
+        let rect = CGRect.init(
+            x: x - width / 2 - padding, y: y, width: width + padding * 2,
+            height: configManager.paddingBottom - configManager.lineWidth)
         context.fill(rect)
         context.stroke(rect)
-        mainDraw.drawText(title: title, point: CGPoint.init(x: x - width / 2.0, y: y + (configManager.paddingBottom - height) / 2), color: color, font: font, context: context, configManager: configManager)
+        mainDraw.drawText(
+            title: title,
+            point: CGPoint.init(
+                x: x - width / 2.0, y: y + (configManager.paddingBottom - height) / 2),
+            color: color, font: font, context: context, configManager: configManager)
     }
-    
+
     func valuePointFromViewPoint(_ point: CGPoint) -> CGPoint {
         return CGPoint.init(x: valueFromX(point.x), y: valueFromY(point.y))
     }
@@ -595,7 +691,6 @@ class HTKLineView: UIScrollView {
     func viewPointFromValuePoint(_ point: CGPoint) -> CGPoint {
         return CGPoint.init(x: xFromValue(point.x), y: yFromValue(point.y))
     }
-    
 
 }
 
@@ -604,14 +699,21 @@ extension HTKLineView: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let contentOffsetX = scrollView.contentOffset.x
         var visibleStartIndex = Int(floor(contentOffsetX / configManager.itemWidth))
-        var visibleEndIndex = Int(ceil((contentOffsetX + scrollView.bounds.size.width) / configManager.itemWidth))
+        var visibleEndIndex = Int(
+            ceil((contentOffsetX + scrollView.bounds.size.width) / configManager.itemWidth))
         visibleStartIndex = min(max(0, visibleStartIndex), configManager.modelArray.count - 1)
         visibleEndIndex = min(max(0, visibleEndIndex), configManager.modelArray.count - 1)
         visibleRange = visibleStartIndex...visibleEndIndex
 
-        // Trigger onScrollLeft when user scrolls to the leftmost position
+        // Trigger onScrollLeft when user scrolls to the leftmost position (only once)
         if contentOffsetX <= 0 {
-            configManager.onScrollLeft?(nil, 0)
+            if !hasTriggeredScrollLeft {
+                hasTriggeredScrollLeft = true
+                let timestamp = Int64(Date().timeIntervalSince1970 * 1000)
+                configManager.onScrollLeft?(timestamp)
+            }
+        } else {
+            hasTriggeredScrollLeft = false
         }
 
         self.setNeedsDisplay()
@@ -626,7 +728,7 @@ extension HTKLineView: UIScrollViewDelegate {
     func longPressSelector(_ gesture: UILongPressGestureRecognizer) {
         let index = Int(floor(gesture.location(in: self).x / configManager.itemWidth))
         selectedIndex = index
-        if (selectedIndex >= configManager.modelArray.count) {
+        if selectedIndex >= configManager.modelArray.count {
             selectedIndex = configManager.modelArray.count - 1
         }
         self.setNeedsDisplay()
@@ -650,14 +752,17 @@ extension HTKLineView: UIScrollViewDelegate {
 
         let width = bounds.size.width
         let halfWidth = width / 2
-        let offsetScale = (contentOffset.x + halfWidth) / (contentSize.width - configManager.paddingRight)
+        let offsetScale =
+            (contentOffset.x + halfWidth) / (contentSize.width - configManager.paddingRight)
 
         reloadContentSize()
-        let contentOffsetX = max(0, min((contentSize.width - configManager.paddingRight) * offsetScale - halfWidth, contentSize.width - width))
+        let contentOffsetX = max(
+            0,
+            min(
+                (contentSize.width - configManager.paddingRight) * offsetScale - halfWidth,
+                contentSize.width - width))
         reloadContentOffset(contentOffsetX)
         scrollViewDidScroll(self)
     }
-
-
 
 }
