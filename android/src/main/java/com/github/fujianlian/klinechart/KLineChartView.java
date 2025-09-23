@@ -161,6 +161,9 @@ public class KLineChartView extends BaseKLineChartView {
 
     @Override
     public void onLeftSide() {
+        if (configManager.onScrollLeft != null) {
+            configManager.onScrollLeft.invoke(null, 0);
+        }
         // showLoading();
     }
 

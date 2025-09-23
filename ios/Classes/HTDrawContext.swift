@@ -47,7 +47,6 @@ class HTDrawContext {
                         != selectedDrawItem
                     {
                         configManager.onDrawItemDidTouch?(nil, HTDrawState.showPencil.rawValue)
-                        configManager.onScrollLeft?(nil, 42)
                         breakTouch = true
                         setNeedsDisplay()
                         return
@@ -78,7 +77,6 @@ class HTDrawContext {
                 let moveItemIndex = drawItemList.index(of: moveItem)
             {
                 configManager.onDrawItemDidTouch?(moveItem, moveItemIndex)
-                configManager.onScrollLeft?(nil, 42)
             }
             setNeedsDisplay()
             return
@@ -120,7 +118,6 @@ class HTDrawContext {
 
                 drawItemList.append(drawItem)
                 configManager.onDrawItemDidTouch?(drawItem, drawItemList.count - 1)
-                configManager.onScrollLeft?(nil, 42)
             } else {
                 drawItem?.pointList.append(location)
             }

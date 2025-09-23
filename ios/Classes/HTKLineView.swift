@@ -608,6 +608,12 @@ extension HTKLineView: UIScrollViewDelegate {
         visibleStartIndex = min(max(0, visibleStartIndex), configManager.modelArray.count - 1)
         visibleEndIndex = min(max(0, visibleEndIndex), configManager.modelArray.count - 1)
         visibleRange = visibleStartIndex...visibleEndIndex
+
+        // Trigger onScrollLeft when user scrolls to the leftmost position
+        if contentOffsetX <= 0 {
+            configManager.onScrollLeft?(nil, 0)
+        }
+
         self.setNeedsDisplay()
     }
 

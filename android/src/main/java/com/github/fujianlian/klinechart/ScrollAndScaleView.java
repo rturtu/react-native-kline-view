@@ -286,9 +286,11 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
         if (mScrollX < getMinScrollX()) {
             mScrollX = getMinScrollX();
             mScroller.forceFinished(true);
+            onLeftSide();
         } else if (mScrollX > contentSizeWidth) {
             mScrollX = contentSizeWidth;
             mScroller.forceFinished(true);
+            onRightSide();
         }
     }
 
