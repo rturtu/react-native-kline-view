@@ -400,14 +400,19 @@ class App extends Component {
 			showDrawToolSelector: false,
 			klineData: this.generateMockData(),
 			drawShouldContinue: true,
-			optionList: null
+			optionList: null,
+			isLoadingNewData: false,
+			lastDataLength: 0,
+			currentScrollPosition: 0
 		}
 	}
 
 	componentDidMount() {
 		this.updateStatusBar()
 		// 初始化加载K线数据
-		this.reloadKLineData()
+		this.setState({ lastDataLength: this.state.klineData.length }, () => {
+			this.reloadKLineData()
+		})
 	}
 
 	componentDidUpdate(prevProps, prevState) {
@@ -430,7 +435,7 @@ class App extends Component {
 		const now = Date.now()
 		
 		for (let i = 0; i < 200; i++) {
-			const time = now - (200 - i) * 15 * 60 * 1000 // 15分钟间隔
+			const time = now - (200 - i) * 1 * 60 * 1000 // 15分钟间隔
 			
 			// 下一个open等于上一个close，保证连续性
 			const open = lastClose
@@ -530,14 +535,40 @@ class App extends Component {
 	}
 
 	// 重新加载K线数据
-	reloadKLineData = () => {
+	reloadKLineData = (shouldScrollToEnd = true) => {
 		if (!this.kLineViewRef) {
-			setTimeout(() => this.reloadKLineData(), 100)
+			setTimeout(() => this.reloadKLineData(shouldScrollToEnd), 100)
 			return
 		}
 
 		const processedData = this.processKLineData(this.state.klineData)
-		const optionList = this.packOptionList(processedData)
+		const optionList = this.packOptionList(processedData, shouldScrollToEnd)
+		this.setOptionList(optionList)
+	}
+
+	// 重新加载K线数据并调整滚动位置以保持当前视图
+	reloadKLineDataWithScrollAdjustment = (addedDataCount) => {
+		if (!this.kLineViewRef) {
+			setTimeout(() => this.reloadKLineDataWithScrollAdjustment(addedDataCount), 100)
+			return
+		}
+
+		const processedData = this.processKLineData(this.state.klineData)
+		const optionList = this.packOptionList(processedData, false)
+
+		// 计算需要调整的滚动距离（基于项目宽度）
+		const pixelRatio = Platform.select({
+			android: PixelRatio.get(),
+			ios: 1,
+		})
+		const itemWidth = 8 * pixelRatio // 这与configList中的itemWidth相匹配
+		const scrollAdjustment = addedDataCount * itemWidth
+
+		// 设置滚动位置调整参数
+		optionList.scrollPositionAdjustment = scrollAdjustment
+
+		console.log(`调整滚动位置: ${addedDataCount} 个数据点, 滚动距离: ${scrollAdjustment}px`)
+
 		this.setOptionList(optionList)
 	}
 
@@ -605,7 +636,7 @@ class App extends Component {
 	}
 
 	// 打包选项列表
-	packOptionList = (modelArray) => {
+	packOptionList = (modelArray, shouldScrollToEnd = true) => {
 		const theme = ThemeManager.getCurrentTheme(this.state.isDarkTheme)
 		
 		// 基本配置
@@ -708,10 +739,10 @@ class App extends Component {
 
 		return {
 			modelArray: modelArray,
-			shouldScrollToEnd: true,
+			shouldScrollToEnd: shouldScrollToEnd,
 			targetList: targetList,
 			price: 2, // 价格精度
-			volume: 0, // 成交量精度 
+			volume: 0, // 成交量精度
 			primary: this.state.selectedMainIndicator,
 			second: this.state.selectedSubIndicator,
 			time: TimeTypes[this.state.selectedTimeType].value,
@@ -1026,15 +1057,89 @@ class App extends Component {
 	onDrawPointComplete = (event) => {
 		const { nativeEvent } = event
 		console.log('绘图点完成:', nativeEvent.pointCount)
-		
+
 		// 可以在这里显示当前绘图进度
 		const currentTool = this.state.selectedDrawTool
 		const totalPoints = DrawToolHelper.count(currentTool)
-		
+
 		if (totalPoints > 0) {
 			const progress = `${nativeEvent.pointCount}/${totalPoints}`
 			console.log(`绘图进度: ${progress}`)
 		}
+	}
+
+	// 处理左滑触发的新数据加载
+	handleScrollLeft = (event) => {
+		console.log('onScrollLeft triggered - less than 100 candlesticks to the left, timestamp:', event.nativeEvent.timestamp)
+
+		if (this.state.isLoadingNewData) {
+			return // 防止重复加载
+		}
+
+		this.setState({ isLoadingNewData: true })
+
+		// 模拟异步数据加载
+		setTimeout(() => {
+			this.loadMoreHistoricalData()
+		}, 500)
+	}
+
+	// 生成更多历史数据
+	generateMoreHistoricalData = (existingData, count = 200) => {
+		const newData = []
+		const firstItem = existingData[0]
+		let lastClose = firstItem.open
+
+		for (let i = count; i > 0; i--) {
+			const time = firstItem.time - i * 1 * 60 * 1000 // 15分钟间隔，向前推
+
+			const open = lastClose
+			const volatility = 0.02
+			const change = (Math.random() - 0.5) * open * volatility
+			const close = Math.max(open + change, open * 0.95)
+
+			const maxPrice = Math.max(open, close)
+			const minPrice = Math.min(open, close)
+			const high = maxPrice + Math.random() * open * 0.01
+			const low = minPrice - Math.random() * open * 0.01
+
+			const volume = (0.5 + Math.random()) * 1000000
+
+			newData.push({
+				time: time,
+				open: parseFloat(open.toFixed(2)),
+				high: parseFloat(high.toFixed(2)),
+				low: parseFloat(low.toFixed(2)),
+				close: parseFloat(close.toFixed(2)),
+				volume: parseFloat(volume.toFixed(2))
+			})
+
+			lastClose = close
+		}
+
+		return newData
+	}
+
+	// 加载更多历史数据
+	loadMoreHistoricalData = () => {
+		console.log("loadMoreHistoricalData called")
+		const currentData = this.state.klineData
+		const newHistoricalData = this.generateMoreHistoricalData(currentData, 200)
+		const combinedData = [...newHistoricalData, ...currentData]
+
+		console.log(`加载了 ${newHistoricalData.length} 个新的历史K线数据点`)
+
+		// 计算需要调整的scroll offset来保持当前视图
+		const addedDataCount = newHistoricalData.length
+
+		this.setState({
+			klineData: combinedData,
+			lastDataLength: currentData.length,
+			isLoadingNewData: false
+		}, () => {
+			// 重新加载数据并保持当前视图位置
+			this.reloadKLineDataWithScrollAdjustment(addedDataCount)
+		})
 	}
 
 	render() {
@@ -1084,7 +1189,7 @@ class App extends Component {
         style={styles.chart}
         optionList={this.state.optionList}
         onDrawItemDidTouch={this.onDrawItemDidTouch}
-				onScrollLeft={(event) => console.log('onScrollLeft triggered - less than 100 candlesticks to the left, timestamp:', event.nativeEvent.timestamp)}
+				onScrollLeft={this.handleScrollLeft}
         onDrawItemComplete={this.onDrawItemComplete}
         onDrawPointComplete={this.onDrawPointComplete}
       />

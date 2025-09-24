@@ -97,9 +97,14 @@ class HTKLineView: UIScrollView {
         }
 
         let isEnd = contentOffset.x + 1 + bounds.size.width >= contentSize.width
+        let previousContentOffset = contentOffset.x
         reloadContentSize()
 
-        if configManager.shouldScrollToEnd || isEnd {
+        if configManager.shouldAdjustScrollPosition {
+            // 调整滚动位置以补偿新增的数据
+            let newContentOffset = previousContentOffset + configManager.scrollPositionAdjustment
+            reloadContentOffset(newContentOffset, false)
+        } else if configManager.shouldScrollToEnd || isEnd {
             let toEndContentOffset = contentSize.width - bounds.size.width
             let distance = abs(contentOffset.x - toEndContentOffset)
             let animated = distance <= configManager.itemWidth

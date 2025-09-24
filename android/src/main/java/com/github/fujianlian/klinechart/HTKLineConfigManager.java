@@ -23,6 +23,10 @@ public class HTKLineConfigManager {
 
 	public Boolean shouldScrollToEnd = true;
 
+	public int scrollPositionAdjustment = 0;
+
+	public Boolean shouldAdjustScrollPosition = false;
+
 
 	public int shotBackgroundColor = Color.RED;
 
@@ -319,6 +323,16 @@ public class HTKLineConfigManager {
         Boolean shouldScrollToEnd = (Boolean)optionList.get("shouldScrollToEnd");
         if (shouldScrollToEnd != null) {
             this.shouldScrollToEnd = shouldScrollToEnd;
+        }
+
+        // 处理滚动位置调整
+        Number scrollPositionAdjustment = (Number)optionList.get("scrollPositionAdjustment");
+        if (scrollPositionAdjustment != null) {
+            this.scrollPositionAdjustment = scrollPositionAdjustment.intValue();
+            this.shouldAdjustScrollPosition = true;
+        } else {
+            this.shouldAdjustScrollPosition = false;
+            this.scrollPositionAdjustment = 0;
         }
 
         if (shouldReloadDrawItemIndex >= HTDrawState.showPencil) {

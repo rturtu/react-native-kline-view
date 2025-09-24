@@ -71,6 +71,10 @@ class HTKLineConfigManager: NSObject {
 
     var shouldScrollToEnd = true
 
+    var scrollPositionAdjustment: CGFloat = 0
+
+    var shouldAdjustScrollPosition = false
+
     var maList = [HTKLineItemModel]()
 
     var maVolumeList = [HTKLineItemModel]()
@@ -386,6 +390,16 @@ class HTKLineConfigManager: NSObject {
         if let shouldScrollToEnd = optionList["shouldScrollToEnd"] as? Bool {
             self.shouldScrollToEnd = shouldScrollToEnd
         }
+
+        // 处理滚动位置调整
+        if let scrollPositionAdjustment = optionList["scrollPositionAdjustment"] as? NSNumber {
+            self.scrollPositionAdjustment = CGFloat(scrollPositionAdjustment.floatValue)
+            self.shouldAdjustScrollPosition = true
+        } else {
+            self.shouldAdjustScrollPosition = false
+            self.scrollPositionAdjustment = 0
+        }
+
         if shouldReloadDrawItemIndex >= HTDrawState.showPencil.rawValue {
             self.shouldScrollToEnd = false
         }
