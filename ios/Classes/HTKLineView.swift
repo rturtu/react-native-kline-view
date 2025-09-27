@@ -211,20 +211,23 @@ class HTKLineView: UIScrollView {
         self.mainBaseY = configManager.paddingTop - textHeight
         self.mainHeight = allHeight * volumeRange.lowerBound - mainBaseY - textHeight
 
-        self.volumeMinMaxRange = volumeDraw.minMaxRange(visibleModelArray, configManager)
-        self.volumeBaseY =
-            allHeight * volumeRange.lowerBound + configManager.headerHeight + textHeight
-        self.volumeHeight =
-            allHeight * (volumeRange.upperBound - volumeRange.lowerBound)
-            - configManager.headerHeight - textHeight
+        if configManager.volumeFlex > 0 {
+            self.volumeMinMaxRange = volumeDraw.minMaxRange(visibleModelArray, configManager)
+            self.volumeBaseY = allHeight * volumeRange.lowerBound + configManager.headerHeight + textHeight
+            self.volumeHeight = allHeight * (volumeRange.upperBound - volumeRange.lowerBound) - configManager.headerHeight - textHeight
 
-        self.childMinMaxRange =
-            childDraw?.minMaxRange(visibleModelArray, configManager)
-            ?? Range<CGFloat>.init(uncheckedBounds: (lower: 0, upper: 0))
-        self.childBaseY =
-            allHeight * volumeRange.upperBound + configManager.headerHeight + textHeight
-        self.childHeight =
-            allHeight * (1 - volumeRange.upperBound) - configManager.headerHeight - textHeight
+            self.childMinMaxRange = childDraw?.minMaxRange(visibleModelArray, configManager) ?? Range<CGFloat>.init(uncheckedBounds: (lower: 0, upper: 0))
+            self.childBaseY = allHeight * volumeRange.upperBound + configManager.headerHeight + textHeight
+            self.childHeight = allHeight * (1 - volumeRange.upperBound) - configManager.headerHeight - textHeight
+        } else {
+            self.volumeMinMaxRange = Range<CGFloat>.init(uncheckedBounds: (lower: 0, upper: 0))
+            self.volumeBaseY = 0
+            self.volumeHeight = 0
+
+            self.childMinMaxRange = childDraw?.minMaxRange(visibleModelArray, configManager) ?? Range<CGFloat>.init(uncheckedBounds: (lower: 0, upper: 0))
+            self.childBaseY = allHeight * volumeRange.lowerBound + configManager.headerHeight + textHeight
+            self.childHeight = allHeight * (1 - volumeRange.lowerBound) - configManager.headerHeight - textHeight
+        }
 
     }
 
@@ -280,27 +283,19 @@ class HTKLineView: UIScrollView {
         }
 
         for (i, model) in visibleModelArray.enumerated() {
-            mainDraw.drawCandle(
-                model, i, mainMinMaxRange.upperBound, mainMinMaxRange.lowerBound, mainBaseY,
-                mainHeight, context, configManager)
-            volumeDraw.drawCandle(
-                model, i, volumeMinMaxRange.upperBound, volumeMinMaxRange.lowerBound, volumeBaseY,
-                volumeHeight, context, configManager)
-            childDraw?.drawCandle(
-                model, i, childMinMaxRange.upperBound, childMinMaxRange.lowerBound, childBaseY,
-                childHeight, context, configManager)
+            mainDraw.drawCandle(model, i, mainMinMaxRange.upperBound, mainMinMaxRange.lowerBound, mainBaseY, mainHeight, context, configManager)
+            if configManager.volumeFlex > 0 {
+                volumeDraw.drawCandle(model, i, volumeMinMaxRange.upperBound, volumeMinMaxRange.lowerBound, volumeBaseY, volumeHeight, context, configManager)
+            }
+            childDraw?.drawCandle(model, i, childMinMaxRange.upperBound, childMinMaxRange.lowerBound, childBaseY, childHeight, context, configManager)
 
             let lastIndex = i == 0 ? i : i - 1
             let lastModel = visibleModelArray[lastIndex]
-            mainDraw.drawLine(
-                model, lastModel, mainMinMaxRange.upperBound, mainMinMaxRange.lowerBound, mainBaseY,
-                mainHeight, i, lastIndex, context, configManager)
-            volumeDraw.drawLine(
-                model, lastModel, volumeMinMaxRange.upperBound, volumeMinMaxRange.lowerBound,
-                volumeBaseY, volumeHeight, i, lastIndex, context, configManager)
-            childDraw?.drawLine(
-                model, lastModel, childMinMaxRange.upperBound, childMinMaxRange.lowerBound,
-                childBaseY, childHeight, i, lastIndex, context, configManager)
+            mainDraw.drawLine(model, lastModel, mainMinMaxRange.upperBound, mainMinMaxRange.lowerBound, mainBaseY, mainHeight, i, lastIndex, context, configManager)
+            if configManager.volumeFlex > 0 {
+                volumeDraw.drawLine(model, lastModel, volumeMinMaxRange.upperBound, volumeMinMaxRange.lowerBound, volumeBaseY, volumeHeight, i, lastIndex, context, configManager)
+            }
+            childDraw?.drawLine(model, lastModel, childMinMaxRange.upperBound, childMinMaxRange.lowerBound, childBaseY, childHeight, i, lastIndex, context, configManager)
         }
     }
 
@@ -312,24 +307,20 @@ class HTKLineView: UIScrollView {
         if let model = model {
             let baseX: CGFloat = 5
             mainDraw.drawText(model, baseX, 10, context, configManager)
-            volumeDraw.drawText(
-                model, baseX, volumeBaseY - configManager.headerHeight, context, configManager)
-            childDraw?.drawText(
-                model, baseX, childBaseY - configManager.headerHeight, context, configManager)
+            if configManager.volumeFlex > 0 {
+                volumeDraw.drawText(model, baseX, volumeBaseY - configManager.headerHeight, context, configManager)
+            }
+            childDraw?.drawText(model, baseX, childBaseY - configManager.headerHeight, context, configManager)
         }
     }
 
     func drawValue(_ context: CGContext) {
         let baseX = self.allWidth
-        mainDraw.drawValue(
-            mainMinMaxRange.upperBound, mainMinMaxRange.lowerBound, baseX, mainBaseY, mainHeight,
-            context, configManager)
-        volumeDraw.drawValue(
-            volumeMinMaxRange.upperBound, volumeMinMaxRange.lowerBound, baseX, volumeBaseY,
-            volumeHeight, context, configManager)
-        childDraw?.drawValue(
-            childMinMaxRange.upperBound, childMinMaxRange.lowerBound, baseX, childBaseY,
-            childHeight, context, configManager)
+        mainDraw.drawValue(mainMinMaxRange.upperBound, mainMinMaxRange.lowerBound, baseX, mainBaseY, mainHeight, context, configManager)
+        if configManager.volumeFlex > 0 {
+            volumeDraw.drawValue(volumeMinMaxRange.upperBound, volumeMinMaxRange.lowerBound, baseX, volumeBaseY, volumeHeight, context, configManager)
+        }
+        childDraw?.drawValue(childMinMaxRange.upperBound, childMinMaxRange.lowerBound, baseX, childBaseY, childHeight, context, configManager)
 
     }
 

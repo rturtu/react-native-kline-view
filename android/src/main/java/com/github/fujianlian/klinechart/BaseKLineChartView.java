@@ -249,11 +249,25 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
         int mVolHeight = (int) (allHeight * configManager.volumeFlex);
         int mChildHeight = (int) (allHeight * (1 - configManager.mainFlex - configManager.volumeFlex));
         mMainRect = new Rect(0, mTopPadding - textHeight, mWidth, mMainHeight - textHeight);
-        mVolRect = new Rect(0, mMainRect.bottom + textHeight + mChildPadding, mWidth, mMainRect.bottom + textHeight + mVolHeight);
-        mChildRect = new Rect(0, mVolRect.bottom + mChildPadding, mWidth, mVolRect.bottom + mChildHeight);
+
+        if (configManager.volumeFlex > 0) {
+            mVolRect = new Rect(0, mMainRect.bottom + textHeight + mChildPadding, mWidth, mMainRect.bottom + textHeight + mVolHeight);
+            mChildRect = new Rect(0, mVolRect.bottom + mChildPadding, mWidth, mVolRect.bottom + mChildHeight);
+        } else {
+            mVolRect = new Rect(0, 0, 0, 0); // Empty rect when volumeFlex is 0
+            // When volumeFlex is 0, child section should extend to the bottom of the view
+            mChildRect = new Rect(0, mMainRect.bottom + mChildPadding, mWidth, allHeight);
+        }
+
         if (!isShowChild) {
-            mChildRect.top = mVolRect.bottom;
-            mChildRect.bottom = mVolRect.bottom;
+            if (configManager.volumeFlex > 0) {
+                mChildRect.top = mVolRect.bottom;
+                mChildRect.bottom = mVolRect.bottom;
+            } else {
+                // When volumeFlex is 0 and child is not shown, position at bottom for time bar
+                mChildRect.top = allHeight;
+                mChildRect.bottom = allHeight;
+            }
         }
         
     }
@@ -491,7 +505,7 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
             if (mMainDraw != null) {
                 mMainDraw.drawTranslated(lastPoint, currentPoint, lastX, currentPointX, canvas, this, i);
             }
-            if (mVolDraw != null) {
+            if (mVolDraw != null && configManager.volumeFlex > 0) {
                 mVolDraw.drawTranslated(lastPoint, currentPoint, lastX, currentPointX, canvas, this, i);
             }
             if (mChildDraw != null) {
@@ -548,7 +562,7 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
             }
         }
         //--------------画中间子图的值-------------
-        if (mVolDraw != null) {
+        if (mVolDraw != null && configManager.volumeFlex > 0) {
             IValueFormatter formatter = mVolDraw.getValueFormatter();
             if (formatter instanceof ValueFormatter) {
                 ValueFormatter valueFormatter = (ValueFormatter)formatter;
@@ -768,7 +782,7 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
                 float y = textHeight + 15;
                 mMainDraw.drawText(canvas, this, position, x, y);
             }
-            if (mVolDraw != null) {
+            if (mVolDraw != null && configManager.volumeFlex > 0) {
                 float y = mVolRect.top - mChildPadding + textHeight;
                 mVolDraw.drawText(canvas, this, position, x, y);
             }
@@ -916,7 +930,7 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
                     mMainMinIndex = i;
                 }
             }
-            if (mVolDraw != null) {
+            if (mVolDraw != null && configManager.volumeFlex > 0) {
                 mVolMaxValue = Math.max(mVolMaxValue, mVolDraw.getMaxValue(point));
                 mVolMinValue = Math.min(mVolMinValue, mVolDraw.getMinValue(point));
                 // 成交量最小应该是 0 或者比最小成交量大一点点
@@ -980,7 +994,11 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
                 mChildMinValue = -10.00f;
         }
         mMainScaleY = mMainRect.height() * 1f / (mMainMaxValue - mMainMinValue);
-        mVolScaleY = mVolRect.height() * 1f / (mVolMaxValue - mVolMinValue);
+        if (configManager.volumeFlex > 0) {
+            mVolScaleY = mVolRect.height() * 1f / (mVolMaxValue - mVolMinValue);
+        } else {
+            mVolScaleY = 0;
+        }
         if (mChildRect != null)
             mChildScaleY = mChildRect.height() * 1f / (mChildMaxValue - mChildMinValue);
         if (mAnimator.isRunning()) {

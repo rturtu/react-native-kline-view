@@ -392,8 +392,8 @@ class App extends Component {
 		this.state = {
 			isDarkTheme: false,
 			selectedTimeType: 2, // 对应 1 分钟
-			selectedMainIndicator: 1, // 对应MA
-			selectedSubIndicator: isHorizontalScreen ? 0 : 3, // 对应MACD
+			selectedMainIndicator: 0, // 对应MA
+			selectedSubIndicator: 0, // 对应MACD
 			selectedDrawTool: DrawTypeConstants.none,
 			showIndicatorSelector: false,
 			showTimeSelector: false,
@@ -403,7 +403,8 @@ class App extends Component {
 			optionList: null,
 			isLoadingNewData: false,
 			lastDataLength: 0,
-			currentScrollPosition: 0
+			currentScrollPosition: 0,
+			showVolumeChart: true
 		}
 	}
 
@@ -697,15 +698,17 @@ class App extends Component {
 				processColor(COLOR(1, 1, 1, 0)),
 			],
 			panelGradientLocationList: [0, 0.25, 0.5, 0.75, 1],
-			mainFlex: this.state.selectedSubIndicator === 0 ? (isHorizontalScreen ? 0.75 : 0.85) : 0.6,
-			volumeFlex: isHorizontalScreen ? 0.25 : 0.15,
+			mainFlex: this.state.showVolumeChart
+				? (this.state.selectedSubIndicator === 0 ? (isHorizontalScreen ? 0.75 : 0.85) : 0.6)
+				: (this.state.selectedSubIndicator === 0 ? 1.0 : 0.75),
+			volumeFlex: this.state.showVolumeChart ? (isHorizontalScreen ? 0.25 : 0.15) : 0,
 			paddingTop: 20 * pixelRatio,
 			paddingBottom: 20 * pixelRatio,
 			paddingRight: 50 * pixelRatio,
 			itemWidth: 8 * pixelRatio,
 			candleWidth: 6 * pixelRatio,
-			minuteVolumeCandleColor: processColor(COLOR(0.0941176, 0.509804, 0.831373, 0.501961)),
-			minuteVolumeCandleWidth: 2 * pixelRatio,
+			minuteVolumeCandleColor: processColor(this.state.showVolumeChart ? COLOR(0.0941176, 0.509804, 0.831373, 0.501961) : 'transparent'),
+			minuteVolumeCandleWidth: this.state.showVolumeChart ? 2 * pixelRatio : 0,
 			macdCandleWidth: 1 * pixelRatio,
 			headerTextFontSize: 10 * pixelRatio,
 			rightTextFontSize: 10 * pixelRatio,
@@ -775,8 +778,8 @@ class App extends Component {
 				{ title: '20', selected: this.isMASelected(), index: 2 },
 			],
 			maVolumeList: [
-				{ title: '5', selected: true, index: 0 },
-				{ title: '10', selected: true, index: 1 },
+				{ title: '5', selected: this.state.showVolumeChart, index: 0 },
+				{ title: '10', selected: this.state.showVolumeChart, index: 1 },
 			],
 			bollN: '20',
 			bollP: '2',
@@ -814,8 +817,8 @@ class App extends Component {
 		const selectedVolumeMAPeriods = targetList.maVolumeList
 			.filter(item => item.selected)
 			.map(item => ({ period: parseInt(item.title, 10), index: item.index }))
-		
-		if (selectedVolumeMAPeriods.length > 0) {
+
+		if (selectedVolumeMAPeriods.length > 0 && this.state.showVolumeChart) {
 			processedData = this.calculateVolumeMAWithConfig(processedData, selectedVolumeMAPeriods)
 		}
 		
@@ -1247,12 +1250,23 @@ class App extends Component {
 					</Text>
 				</TouchableOpacity>
 
-				<TouchableOpacity 
+				<TouchableOpacity
 					style={styles.controlButton}
 					onPress={this.clearDrawings}
 				>
 					<Text style={styles.controlButtonText}>
 						清除
+					</Text>
+				</TouchableOpacity>
+
+				<TouchableOpacity
+					style={[styles.controlButton, this.state.showVolumeChart && styles.activeButton]}
+					onPress={() => this.setState({ showVolumeChart: !this.state.showVolumeChart }, () => {
+						this.reloadKLineData()
+					})}
+				>
+					<Text style={[styles.controlButtonText, this.state.showVolumeChart && styles.activeButtonText]}>
+						成交量
 					</Text>
 				</TouchableOpacity>
 			</View>
