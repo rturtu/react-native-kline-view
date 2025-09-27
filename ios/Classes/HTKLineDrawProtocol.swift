@@ -30,9 +30,20 @@ extension HTKLineDrawProtocol {
         let paddingHorizontal = (itemWidth - width) / 2.0
         let x = CGFloat(index) * itemWidth + paddingHorizontal
         let y = baseY + (maxValue - high) / scale
-        let height = (high - (!verticalAlignBottom ? low : minValue)) / scale
+        let candleHeight = (high - (!verticalAlignBottom ? low : minValue)) / scale
+
         context.setFillColor(color.cgColor)
-        context.fill(CGRect.init(x: x, y: y, width: width, height: height))
+
+        if configManager.candleCornerRadius > 0 {
+            // Draw rounded rectangle
+            let rect = CGRect(x: x, y: y, width: width, height: candleHeight)
+            let path = UIBezierPath(roundedRect: rect, cornerRadius: configManager.candleCornerRadius)
+            context.addPath(path.cgPath)
+            context.fillPath()
+        } else {
+            // Draw regular rectangle (original behavior)
+            context.fill(CGRect.init(x: x, y: y, width: width, height: candleHeight))
+        }
     }
 
     func createLinePath(value: CGFloat, lastValue: CGFloat, maxValue: CGFloat, minValue: CGFloat, baseY: CGFloat, height: CGFloat, index: Int, lastIndex: Int, isBezier: Bool, existPath: UIBezierPath?, context: CGContext, configManager: HTKLineConfigManager) -> UIBezierPath {

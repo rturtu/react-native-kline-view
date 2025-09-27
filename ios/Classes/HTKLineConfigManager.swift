@@ -130,6 +130,8 @@ class HTKLineConfigManager: NSObject {
 
     var _candleWidth: CGFloat = 7
 
+    var candleCornerRadius: CGFloat = 0
+
     var minuteVolumeCandleWidth: CGFloat = 0
 
     var _minuteVolumeCandleWidth: CGFloat = 0
@@ -419,6 +421,7 @@ class HTKLineConfigManager: NSObject {
         _candleWidth = configList["candleWidth"] as? CGFloat ?? 0
         _minuteVolumeCandleWidth = configList["minuteVolumeCandleWidth"] as? CGFloat ?? 0
         _macdCandleWidth = configList["macdCandleWidth"] as? CGFloat ?? 0
+        candleCornerRadius = configList["candleCornerRadius"] as? CGFloat ?? 0
         reloadScrollViewScale(1)
         paddingTop = configList["paddingTop"] as? CGFloat ?? 0
         paddingRight = configList["paddingRight"] as? CGFloat ?? 0

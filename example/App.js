@@ -404,7 +404,8 @@ class App extends Component {
 			isLoadingNewData: false,
 			lastDataLength: 0,
 			currentScrollPosition: 0,
-			showVolumeChart: true
+			showVolumeChart: true,
+			candleCornerRadius: 0
 		}
 	}
 
@@ -707,6 +708,7 @@ class App extends Component {
 			paddingRight: 50 * pixelRatio,
 			itemWidth: 8 * pixelRatio,
 			candleWidth: 6 * pixelRatio,
+			candleCornerRadius: this.state.candleCornerRadius * pixelRatio,
 			minuteVolumeCandleColor: processColor(this.state.showVolumeChart ? COLOR(0.0941176, 0.509804, 0.831373, 0.501961) : 'transparent'),
 			minuteVolumeCandleWidth: this.state.showVolumeChart ? 2 * pixelRatio : 0,
 			macdCandleWidth: 1 * pixelRatio,
@@ -1267,6 +1269,17 @@ class App extends Component {
 				>
 					<Text style={[styles.controlButtonText, this.state.showVolumeChart && styles.activeButtonText]}>
 						成交量
+					</Text>
+				</TouchableOpacity>
+
+				<TouchableOpacity
+					style={[styles.controlButton, this.state.candleCornerRadius > 0 && styles.activeButton]}
+					onPress={() => this.setState({ candleCornerRadius: this.state.candleCornerRadius > 0 ? 0 : 1 }, () => {
+						this.reloadKLineData()
+					})}
+				>
+					<Text style={[styles.controlButtonText, this.state.candleCornerRadius > 0 && styles.activeButtonText]}>
+						圆角
 					</Text>
 				</TouchableOpacity>
 			</View>

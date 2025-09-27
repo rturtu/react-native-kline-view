@@ -254,10 +254,19 @@ public class MainDraw implements IChartDraw<ICandle> {
         close = view.yFromValue(close);
         float r = mCandleWidth / 2;
         float lineR = mCandleLineWidth / 2;
+        float cornerRadius = view.configManager.candleCornerRadius;
+
         if (open > close) {
             //实心
             if (mCandleSolid) {
-                canvas.drawRect(x - r, close, x + r, open, mRedPaint);
+                if (cornerRadius > 0) {
+                    // Draw rounded rectangle for candle body
+                    RectF rectF = new RectF(x - r, close, x + r, open);
+                    canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, mRedPaint);
+                } else {
+                    // Draw regular rectangle (original behavior)
+                    canvas.drawRect(x - r, close, x + r, open, mRedPaint);
+                }
                 canvas.drawRect(x - lineR, high, x + lineR, low, mRedPaint);
             } else {
                 mRedPaint.setStrokeWidth(mCandleLineWidth);
@@ -271,10 +280,24 @@ public class MainDraw implements IChartDraw<ICandle> {
             }
 
         } else if (open < close) {
-            canvas.drawRect(x - r, open, x + r, close, mGreenPaint);
+            if (cornerRadius > 0) {
+                // Draw rounded rectangle for candle body
+                RectF rectF = new RectF(x - r, open, x + r, close);
+                canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, mGreenPaint);
+            } else {
+                // Draw regular rectangle (original behavior)
+                canvas.drawRect(x - r, open, x + r, close, mGreenPaint);
+            }
             canvas.drawRect(x - lineR, high, x + lineR, low, mGreenPaint);
         } else {
-            canvas.drawRect(x - r, open, x + r, close + 1, mRedPaint);
+            if (cornerRadius > 0) {
+                // Draw rounded rectangle for candle body
+                RectF rectF = new RectF(x - r, open, x + r, close + 1);
+                canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, mRedPaint);
+            } else {
+                // Draw regular rectangle (original behavior)
+                canvas.drawRect(x - r, open, x + r, close + 1, mRedPaint);
+            }
             canvas.drawRect(x - lineR, high, x + lineR, low, mRedPaint);
         }
     }
