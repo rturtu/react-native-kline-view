@@ -47,8 +47,10 @@ class HTMainDraw: NSObject, HTKLineDrawProtocol {
         if (configManager.isMinute) {
 
         } else {
-            drawCandle(high: findValue(true), low: findValue(false), maxValue: maxValue, minValue: minValue, baseY: baseY, height: height, index: index, width: configManager.candleWidth, color: color, verticalAlignBottom: false, context: context, configManager: configManager)
+            // Draw wick first (behind body)
             drawCandle(high: model.high, low: model.low, maxValue: maxValue, minValue: minValue, baseY: baseY, height: height, index: index, width: configManager.candleLineWidth, color: wickColor, verticalAlignBottom: false, context: context, configManager: configManager)
+            // Draw body second (on top)
+            drawCandle(high: findValue(true), low: findValue(false), maxValue: maxValue, minValue: minValue, baseY: baseY, height: height, index: index, width: configManager.candleWidth, color: color, verticalAlignBottom: false, context: context, configManager: configManager)
         }
     }
 

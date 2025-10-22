@@ -263,6 +263,8 @@ public class MainDraw implements IChartDraw<ICandle> {
         if (open > close) {
             //实心
             if (mCandleSolid) {
+                // Draw wick first (behind body)
+                canvas.drawRect(x - lineR, high, x + lineR, low, mRedWickPaint);
                 if (cornerRadius > 0) {
                     // Draw rounded rectangle for candle body
                     RectF rectF = new RectF(x - r, close, x + r, open);
@@ -271,7 +273,6 @@ public class MainDraw implements IChartDraw<ICandle> {
                     // Draw regular rectangle (original behavior)
                     canvas.drawRect(x - r, close, x + r, open, mRedPaint);
                 }
-                canvas.drawRect(x - lineR, high, x + lineR, low, mRedWickPaint);
             } else {
                 mRedWickPaint.setStrokeWidth(mCandleLineWidth);
                 canvas.drawLine(x, high, x, close, mRedWickPaint);
@@ -284,6 +285,8 @@ public class MainDraw implements IChartDraw<ICandle> {
             }
 
         } else if (open < close) {
+            // Draw wick first (behind body)
+            canvas.drawRect(x - lineR, high, x + lineR, low, mGreenWickPaint);
             if (cornerRadius > 0) {
                 // Draw rounded rectangle for candle body
                 RectF rectF = new RectF(x - r, open, x + r, close);
@@ -292,8 +295,9 @@ public class MainDraw implements IChartDraw<ICandle> {
                 // Draw regular rectangle (original behavior)
                 canvas.drawRect(x - r, open, x + r, close, mGreenPaint);
             }
-            canvas.drawRect(x - lineR, high, x + lineR, low, mGreenWickPaint);
         } else {
+            // Draw wick first (behind body)
+            canvas.drawRect(x - lineR, high, x + lineR, low, mRedWickPaint);
             if (cornerRadius > 0) {
                 // Draw rounded rectangle for candle body
                 RectF rectF = new RectF(x - r, open, x + r, close + 1);
@@ -302,7 +306,6 @@ public class MainDraw implements IChartDraw<ICandle> {
                 // Draw regular rectangle (original behavior)
                 canvas.drawRect(x - r, open, x + r, close + 1, mRedPaint);
             }
-            canvas.drawRect(x - lineR, high, x + lineR, low, mRedWickPaint);
         }
     }
 
