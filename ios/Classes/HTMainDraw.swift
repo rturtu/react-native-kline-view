@@ -36,6 +36,7 @@ class HTMainDraw: NSObject, HTKLineDrawProtocol {
 
     func drawCandle(_ model: HTKLineModel, _ index: Int, _ maxValue: CGFloat, _ minValue: CGFloat, _ baseY: CGFloat, _ height: CGFloat, _ context: CGContext, _ configManager: HTKLineConfigManager) {
         let color = model.increment ? configManager.increaseColor : configManager.decreaseColor
+        let wickColor = model.increment ? configManager.increaseWickColor : configManager.decreaseWickColor
         let findValue: (Bool) -> CGFloat = { (isHighValue: Bool) in
             var findCloseValue = model.increment
             if (!isHighValue) {
@@ -47,7 +48,7 @@ class HTMainDraw: NSObject, HTKLineDrawProtocol {
 
         } else {
             drawCandle(high: findValue(true), low: findValue(false), maxValue: maxValue, minValue: minValue, baseY: baseY, height: height, index: index, width: configManager.candleWidth, color: color, verticalAlignBottom: false, context: context, configManager: configManager)
-            drawCandle(high: model.high, low: model.low, maxValue: maxValue, minValue: minValue, baseY: baseY, height: height, index: index, width: configManager.candleLineWidth, color: color, verticalAlignBottom: false, context: context, configManager: configManager)
+            drawCandle(high: model.high, low: model.low, maxValue: maxValue, minValue: minValue, baseY: baseY, height: height, index: index, width: configManager.candleLineWidth, color: wickColor, verticalAlignBottom: false, context: context, configManager: configManager)
         }
     }
 

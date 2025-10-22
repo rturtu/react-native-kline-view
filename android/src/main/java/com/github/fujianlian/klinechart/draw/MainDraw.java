@@ -29,6 +29,8 @@ public class MainDraw implements IChartDraw<ICandle> {
     private Paint mLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mRedPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mGreenPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private Paint mRedWickPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private Paint mGreenWickPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint ma5Paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint ma10Paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint ma30Paint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -65,6 +67,8 @@ public class MainDraw implements IChartDraw<ICandle> {
     public void reloadColor(BaseKLineChartView view) {
         mRedPaint.setColor(view.configManager.increaseColor);
         mGreenPaint.setColor(view.configManager.decreaseColor);
+        mRedWickPaint.setColor(view.configManager.increaseWickColor);
+        mGreenWickPaint.setColor(view.configManager.decreaseWickColor);
         mLinePaint.setColor(view.configManager.minuteLineColor);
     }
 
@@ -267,11 +271,11 @@ public class MainDraw implements IChartDraw<ICandle> {
                     // Draw regular rectangle (original behavior)
                     canvas.drawRect(x - r, close, x + r, open, mRedPaint);
                 }
-                canvas.drawRect(x - lineR, high, x + lineR, low, mRedPaint);
+                canvas.drawRect(x - lineR, high, x + lineR, low, mRedWickPaint);
             } else {
-                mRedPaint.setStrokeWidth(mCandleLineWidth);
-                canvas.drawLine(x, high, x, close, mRedPaint);
-                canvas.drawLine(x, open, x, low, mRedPaint);
+                mRedWickPaint.setStrokeWidth(mCandleLineWidth);
+                canvas.drawLine(x, high, x, close, mRedWickPaint);
+                canvas.drawLine(x, open, x, low, mRedWickPaint);
                 canvas.drawLine(x - r + lineR, open, x - r + lineR, close, mRedPaint);
                 canvas.drawLine(x + r - lineR, open, x + r - lineR, close, mRedPaint);
                 mRedPaint.setStrokeWidth(mCandleLineWidth * view.getScaleX());
@@ -288,7 +292,7 @@ public class MainDraw implements IChartDraw<ICandle> {
                 // Draw regular rectangle (original behavior)
                 canvas.drawRect(x - r, open, x + r, close, mGreenPaint);
             }
-            canvas.drawRect(x - lineR, high, x + lineR, low, mGreenPaint);
+            canvas.drawRect(x - lineR, high, x + lineR, low, mGreenWickPaint);
         } else {
             if (cornerRadius > 0) {
                 // Draw rounded rectangle for candle body
@@ -298,7 +302,7 @@ public class MainDraw implements IChartDraw<ICandle> {
                 // Draw regular rectangle (original behavior)
                 canvas.drawRect(x - r, open, x + r, close + 1, mRedPaint);
             }
-            canvas.drawRect(x - lineR, high, x + lineR, low, mRedPaint);
+            canvas.drawRect(x - lineR, high, x + lineR, low, mRedWickPaint);
         }
     }
 
@@ -476,6 +480,8 @@ public class MainDraw implements IChartDraw<ICandle> {
         mLinePaint.setTypeface(typeface);
         mRedPaint.setTypeface(typeface);
         mGreenPaint.setTypeface(typeface);
+        mRedWickPaint.setTypeface(typeface);
+        mGreenWickPaint.setTypeface(typeface);
         ma5Paint.setTypeface(typeface);
         ma10Paint.setTypeface(typeface);
         ma30Paint.setTypeface(typeface);

@@ -181,6 +181,10 @@ class HTKLineConfigManager: NSObject {
 
     var decreaseColor = UIColor.green
 
+    var increaseWickColor = UIColor.red
+
+    var decreaseWickColor = UIColor.green
+
     var minuteLineColor = UIColor.blue
 
     var minuteVolumeCandleColor = UIColor.blue
@@ -432,6 +436,10 @@ class HTKLineConfigManager: NSObject {
         let colorList = configList["colorList"] as? [String: Any] ?? [String: Any]()
         increaseColor = RCTConvert.uiColor(colorList["increaseColor"])
         decreaseColor = RCTConvert.uiColor(colorList["decreaseColor"])
+
+        // Set wick colors, defaulting to body colors if not specified
+        increaseWickColor = RCTConvert.uiColor(colorList["increaseWickColor"]) ?? increaseColor
+        decreaseWickColor = RCTConvert.uiColor(colorList["decreaseWickColor"]) ?? decreaseColor
         minuteLineColor = RCTConvert.uiColor(configList["minuteLineColor"])
         targetColorList = type(of: self).packColorList(configList["targetColorList"])
         minuteGradientColorList = type(of: self).packColorList(configList["minuteGradientColorList"])

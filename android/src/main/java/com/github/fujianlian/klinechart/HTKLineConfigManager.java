@@ -77,6 +77,10 @@ public class HTKLineConfigManager {
 
     public int decreaseColor = Color.GREEN;
 
+    public int increaseWickColor = Color.RED;
+
+    public int decreaseWickColor = Color.GREEN;
+
     public int minuteLineColor = Color.BLUE;
 
     public int[] minuteGradientColorList = { Color.BLUE, Color.BLUE };
@@ -395,6 +399,13 @@ public class HTKLineConfigManager {
     	Map colorList = (Map)configList.get("colorList");
         this.increaseColor = ((Number) colorList.get("increaseColor")).intValue();
         this.decreaseColor = ((Number) colorList.get("decreaseColor")).intValue();
+
+        // Set wick colors, defaulting to body colors if not specified
+        Number increaseWickColorValue = (Number) colorList.get("increaseWickColor");
+        this.increaseWickColor = increaseWickColorValue != null ? increaseWickColorValue.intValue() : this.increaseColor;
+
+        Number decreaseWickColorValue = (Number) colorList.get("decreaseWickColor");
+        this.decreaseWickColor = decreaseWickColorValue != null ? decreaseWickColorValue.intValue() : this.decreaseColor;
 
         this.mainFlex = ((Number)configList.get("mainFlex")).floatValue();
         this.volumeFlex = ((Number)configList.get("volumeFlex")).floatValue();
