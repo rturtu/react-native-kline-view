@@ -135,6 +135,11 @@ public class HTKLineContainerView extends RelativeLayout {
                 float y = (float) args[1];
                 boolean isOnClosePriceLabel = (boolean) args[2];
 
+                // If touched on close price label, trigger smooth scroll to end
+                if (isOnClosePriceLabel) {
+                    klineView.smoothScrollToEnd();
+                }
+
                 WritableMap map = Arguments.createMap();
                 map.putDouble("x", x);
                 map.putDouble("y", y);

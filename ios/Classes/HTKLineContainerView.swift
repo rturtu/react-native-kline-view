@@ -110,6 +110,12 @@ class HTKLineContainerView: UIView {
         }
         configManager.onChartTouch = { [weak self] (location, isOnClosePriceLabel) in
             guard let self = self else { return }
+
+            // If touched on close price label, trigger smooth scroll to end
+            if isOnClosePriceLabel {
+                self.klineView.smoothScrollToEnd()
+            }
+
             self.onChartTouch?([
                 "x": location.x,
                 "y": location.y,

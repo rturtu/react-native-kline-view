@@ -1562,4 +1562,18 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
         return true;
     }
 
+    public void smoothScrollToEnd() {
+        int endScrollX = getMaxScrollX();
+        int currentScrollX = getScrollOffset();
+        int distance = endScrollX - currentScrollX;
+
+        if (distance != 0) {
+            // Use the OverScroller from parent class for smooth animation
+            if (mScroller != null) {
+                mScroller.startScroll(currentScrollX, 0, distance, 0, 500); // 500ms duration
+                invalidate(); // Trigger redraw which will call computeScroll()
+            }
+        }
+    }
+
 }

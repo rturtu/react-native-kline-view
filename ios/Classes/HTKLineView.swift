@@ -158,6 +158,11 @@ class HTKLineView: UIScrollView {
         setContentOffset(CGPoint.init(x: offsetX, y: 0), animated: animated)
     }
 
+    func smoothScrollToEnd() {
+        let endOffsetX = contentSize.width - bounds.size.width
+        reloadContentOffset(endOffsetX, true)
+    }
+
     func contextTranslate(_ context: CGContext, _ x: CGFloat, _ block: (CGContext) -> Void) {
         context.saveGState()
         context.translateBy(x: x, y: 0)
