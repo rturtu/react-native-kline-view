@@ -14,7 +14,9 @@ class HTKLineContainerView: UIView {
     @objc var onDrawItemDidTouch: RCTBubblingEventBlock?
 
     @objc var onScrollLeft: RCTBubblingEventBlock?
-    
+
+    @objc var onChartTouch: RCTBubblingEventBlock?
+
     @objc var onDrawItemComplete: RCTBubblingEventBlock?
     
     @objc var onDrawPointComplete: RCTBubblingEventBlock?
@@ -104,6 +106,12 @@ class HTKLineContainerView: UIView {
         configManager.onScrollLeft = { [weak self] (timestamp) in
             self?.onScrollLeft?([
                 "timestamp": timestamp,
+            ])
+        }
+        configManager.onChartTouch = { [weak self] (location) in
+            self?.onChartTouch?([
+                "x": location.x,
+                "y": location.y,
             ])
         }
         configManager.onDrawItemComplete = { [weak self] (drawItem, drawItemIndex) in

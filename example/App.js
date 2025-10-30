@@ -1047,6 +1047,12 @@ class App extends Component {
 		console.log('绘图项被触摸:', nativeEvent)
 	}
 
+	// 图表触摸事件
+	onChartTouch = (event) => {
+		const { nativeEvent } = event
+		console.log('图表被触摸:', nativeEvent)
+	}
+
 	// 绘图项完成事件
 	onDrawItemComplete = (event) => {
 		const { nativeEvent } = event
@@ -1189,12 +1195,13 @@ class App extends Component {
 
 	renderKLineChart = (styles, theme) => {
     const directRender = (
-      <RNKLineView 
+      <RNKLineView
         ref={ref => { this.kLineViewRef = ref }}
         style={styles.chart}
         optionList={this.state.optionList}
         onDrawItemDidTouch={this.onDrawItemDidTouch}
 				onScrollLeft={this.handleScrollLeft}
+        onChartTouch={this.onChartTouch}
         onDrawItemComplete={this.onDrawItemComplete}
         onDrawPointComplete={this.onDrawPointComplete}
       />

@@ -8,6 +8,8 @@ RCT_EXPORT_VIEW_PROPERTY(onDrawItemDidTouch, RCTBubblingEventBlock)
 
 RCT_EXPORT_VIEW_PROPERTY(onScrollLeft, RCTBubblingEventBlock)
 
+RCT_EXPORT_VIEW_PROPERTY(onChartTouch, RCTBubblingEventBlock)
+
 RCT_EXPORT_VIEW_PROPERTY(onDrawItemComplete, RCTBubblingEventBlock)
 
 RCT_EXPORT_VIEW_PROPERTY(onDrawPointComplete, RCTBubblingEventBlock)

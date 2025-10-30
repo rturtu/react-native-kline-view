@@ -733,6 +733,11 @@ extension HTKLineView: UIScrollViewDelegate {
 
     @objc
     func tapSelector(_ gesture: UITapGestureRecognizer) {
+        let tapLocation = gesture.location(in: self)
+
+        // Trigger the chart touch callback
+        configManager.onChartTouch?(tapLocation)
+
         selectedIndex = -1
         self.setNeedsDisplay()
     }
