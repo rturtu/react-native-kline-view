@@ -438,8 +438,15 @@ class HTKLineView: UIScrollView {
             x: x - rectWidth / 2, y: y - height / 2 - paddingVertical, width: rectWidth,
             height: rectHeight)
 
-        closePriceLabelFrame = rect
-        print("HTKLineView: Set closePriceLabelFrame (center): \(rect)")
+        // Adjust frame to account for content offset since drawing happens in translated context
+        let adjustedRect = CGRect.init(
+            x: rect.origin.x + contentOffset.x,
+            y: rect.origin.y,
+            width: rect.size.width,
+            height: rect.size.height)
+
+        closePriceLabelFrame = adjustedRect
+        print("HTKLineView: Set closePriceLabelFrame (center): \(rect) -> adjusted: \(adjustedRect)")
 
         context.saveGState()
         context.setLineDash(phase: 0, lengths: [4, 4])
@@ -494,8 +501,16 @@ class HTKLineView: UIScrollView {
         let height = mainDraw.textHeight(font: font)
 
         let rect = CGRect.init(x: allWidth - width, y: y - height / 2, width: width, height: height)
-        closePriceLabelFrame = rect
-        print("HTKLineView: Set closePriceLabelFrame (right): \(rect)")
+
+        // Adjust frame to account for content offset since drawing happens in translated context
+        let adjustedRect = CGRect.init(
+            x: rect.origin.x + contentOffset.x,
+            y: rect.origin.y,
+            width: rect.size.width,
+            height: rect.size.height)
+
+        closePriceLabelFrame = adjustedRect
+        print("HTKLineView: Set closePriceLabelFrame (right): \(rect) -> adjusted: \(adjustedRect)")
 
         context.setFillColor(configManager.closePriceRightBackgroundColor.cgColor)
         context.fill(rect)
