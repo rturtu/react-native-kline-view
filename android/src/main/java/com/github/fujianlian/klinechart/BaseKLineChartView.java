@@ -113,6 +113,8 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
 
     private Paint mClosePriceRightTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
+    protected RectF mClosePriceLabelFrame = new RectF();
+
     private LottieDrawable lottieDrawable = new LottieDrawable();
 
     private String lastLoadLottieSource = "";
@@ -444,6 +446,9 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
             float textX = mWidth - paddingRight - containerWidth / 2 + paddingX;
 
             RectF rect = new RectF(textX - paddingX, y - height / 2 - paddingY, mWidth - marginRight, y + height / 2 + paddingY);
+            mClosePriceLabelFrame.set(rect);
+            android.util.Log.d("BaseKLineChartView", "Set closePriceLabelFrame (center): " + rect);
+
             canvas.drawLine(0, y, mWidth, y, mClosePriceLinePaint);
             float radius = (paddingY * 2 + height) / 2;
             mClosePricePointPaint.setColor(configManager.closePriceCenterBackgroundColor);
@@ -466,8 +471,12 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
             mClosePricePointPaint.setStyle(Paint.Style.FILL);
             mClosePriceRightTextPaint.setColor(configManager.closePriceRightSeparatorColor);
 
+            RectF rightRect = new RectF(mWidth - width, y - height / 2, mWidth, y + height / 2);
+            mClosePriceLabelFrame.set(rightRect);
+            android.util.Log.d("BaseKLineChartView", "Set closePriceLabelFrame (right): " + rightRect);
+
             canvas.drawLine(x, y, mWidth, y, mClosePriceLinePaint);
-            canvas.drawRect(mWidth - width, y - height / 2, mWidth, y + height / 2, mClosePricePointPaint);
+            canvas.drawRect(rightRect, mClosePricePointPaint);
             canvas.drawText(text, mWidth - width, fixTextY1(y), mClosePriceRightTextPaint);
 
             if (isMinute) {
@@ -1531,6 +1540,26 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
 
     public Paint getBackgroundPaint() {
         return mBackgroundPaint;
+    }
+
+    @Override
+    public boolean onSingleTapUp(MotionEvent e) {
+        float x = e.getX();
+        float y = e.getY();
+
+        // Check if touch is on close price label
+        boolean isOnClosePriceLabel = mClosePriceLabelFrame.contains(x, y);
+
+        android.util.Log.d("BaseKLineChartView", "tapLocation: (" + x + ", " + y + ")");
+        android.util.Log.d("BaseKLineChartView", "closePriceLabelFrame: " + mClosePriceLabelFrame);
+        android.util.Log.d("BaseKLineChartView", "isOnClosePriceLabel: " + isOnClosePriceLabel);
+
+        // Trigger the chart touch callback
+        if (configManager.onChartTouch != null) {
+            configManager.onChartTouch.invoke(x, y, isOnClosePriceLabel);
+        }
+
+        return true;
     }
 
 }

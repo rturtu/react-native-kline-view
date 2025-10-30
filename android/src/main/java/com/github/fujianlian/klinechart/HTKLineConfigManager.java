@@ -61,6 +61,8 @@ public class HTKLineConfigManager {
 
     public Callback onScrollLeft;
 
+    public Callback onChartTouch;
+
     public Callback onDrawPointComplete;
 
 

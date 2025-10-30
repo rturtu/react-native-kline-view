@@ -128,6 +128,33 @@ public class HTKLineContainerView extends RelativeLayout {
                 );
             }
         };
+        configManager.onChartTouch = new Callback() {
+            @Override
+            public void invoke(Object... args) {
+                float x = (float) args[0];
+                float y = (float) args[1];
+                boolean isOnClosePriceLabel = (boolean) args[2];
+
+                WritableMap map = Arguments.createMap();
+                map.putDouble("x", x);
+                map.putDouble("y", y);
+                map.putBoolean("isOnClosePriceLabel", isOnClosePriceLabel);
+
+                // Add close price frame for debugging
+                WritableMap closePriceFrame = Arguments.createMap();
+                closePriceFrame.putDouble("x", klineView.mClosePriceLabelFrame.left);
+                closePriceFrame.putDouble("y", klineView.mClosePriceLabelFrame.top);
+                closePriceFrame.putDouble("width", klineView.mClosePriceLabelFrame.width());
+                closePriceFrame.putDouble("height", klineView.mClosePriceLabelFrame.height());
+                map.putMap("closePriceFrame", closePriceFrame);
+
+                reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(
+                        id,
+                        RNKLineView.onChartTouchKey,
+                        map
+                );
+            }
+        };
         configManager.onDrawItemComplete = new Callback() {
             @Override
             public void invoke(Object... args) {
