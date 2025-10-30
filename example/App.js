@@ -1051,6 +1051,16 @@ class App extends Component {
 	onChartTouch = (event) => {
 		const { nativeEvent } = event
 		console.log('图表被触摸:', nativeEvent)
+
+		if (nativeEvent.isOnClosePriceLabel) {
+			console.log('🎯 触摸到了收盘价标签! 滚动到最新位置')
+			this.scrollToPresent()
+		}
+	}
+
+	// 滚动到最新位置
+	scrollToPresent = () => {
+		this.reloadKLineData(true)
 	}
 
 	// 绘图项完成事件

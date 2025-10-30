@@ -108,10 +108,18 @@ class HTKLineContainerView: UIView {
                 "timestamp": timestamp,
             ])
         }
-        configManager.onChartTouch = { [weak self] (location) in
-            self?.onChartTouch?([
+        configManager.onChartTouch = { [weak self] (location, isOnClosePriceLabel) in
+            guard let self = self else { return }
+            self.onChartTouch?([
                 "x": location.x,
                 "y": location.y,
+                "isOnClosePriceLabel": isOnClosePriceLabel,
+                "closePriceFrame": [
+                    "x": self.klineView.closePriceLabelFrame.origin.x,
+                    "y": self.klineView.closePriceLabelFrame.origin.y,
+                    "width": self.klineView.closePriceLabelFrame.size.width,
+                    "height": self.klineView.closePriceLabelFrame.size.height,
+                ],
             ])
         }
         configManager.onDrawItemComplete = { [weak self] (drawItem, drawItemIndex) in

@@ -44,6 +44,8 @@ class HTKLineView: UIScrollView {
 
     private var hasTriggeredScrollLeft = false
 
+    var closePriceLabelFrame: CGRect = .zero
+
     // 计算属性
     var visibleModelArray = [HTKLineModel]()
     var volumeRange: ClosedRange<CGFloat> = 0...0
@@ -436,6 +438,9 @@ class HTKLineView: UIScrollView {
             x: x - rectWidth / 2, y: y - height / 2 - paddingVertical, width: rectWidth,
             height: rectHeight)
 
+        closePriceLabelFrame = rect
+        print("HTKLineView: Set closePriceLabelFrame (center): \(rect)")
+
         context.saveGState()
         context.setLineDash(phase: 0, lengths: [4, 4])
         context.setStrokeColor(configManager.closePriceCenterSeparatorColor.cgColor)
@@ -489,6 +494,9 @@ class HTKLineView: UIScrollView {
         let height = mainDraw.textHeight(font: font)
 
         let rect = CGRect.init(x: allWidth - width, y: y - height / 2, width: width, height: height)
+        closePriceLabelFrame = rect
+        print("HTKLineView: Set closePriceLabelFrame (right): \(rect)")
+
         context.setFillColor(configManager.closePriceRightBackgroundColor.cgColor)
         context.fill(rect)
         mainDraw.drawText(
@@ -735,8 +743,15 @@ extension HTKLineView: UIScrollViewDelegate {
     func tapSelector(_ gesture: UITapGestureRecognizer) {
         let tapLocation = gesture.location(in: self)
 
-        // Trigger the chart touch callback
-        configManager.onChartTouch?(tapLocation)
+        // Check if touch is on close price label
+        let isOnClosePriceLabel = closePriceLabelFrame.contains(tapLocation)
+
+        print("HTKLineView: tapLocation: \(tapLocation)")
+        print("HTKLineView: closePriceLabelFrame: \(closePriceLabelFrame)")
+        print("HTKLineView: isOnClosePriceLabel: \(isOnClosePriceLabel)")
+
+        // Trigger the chart touch callback with close price detection
+        configManager.onChartTouch?(tapLocation, isOnClosePriceLabel)
 
         selectedIndex = -1
         self.setNeedsDisplay()

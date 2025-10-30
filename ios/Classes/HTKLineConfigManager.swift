@@ -267,7 +267,7 @@ class HTKLineConfigManager: NSObject {
 
     var onScrollLeft: HTKLineScrollBlock?
 
-    var onChartTouch: ((CGPoint) -> Void)?
+    var onChartTouch: ((CGPoint, Bool) -> Void)?
 
     var onDrawItemComplete: HTKLineDrawItemBlock?
     
