@@ -1,6 +1,6 @@
 /**
- * K线图表示例应用
- * 支持指标、手指绘图、主题切换等功能
+ * K-line Chart Example Application
+ * Supports indicators, finger drawing, theme switching and other features
  */
 
 import React, { Component } from 'react'
@@ -19,7 +19,7 @@ import {
 } from 'react-native'
 import RNKLineView from 'react-native-kline-view'
 
-// 辅助函数
+// Helper functions
 const fixRound = (value, precision, showSign = false, showGrouping = false) => {
 	if (value === null || value === undefined || isNaN(value)) {
 		return '--'
@@ -28,7 +28,7 @@ const fixRound = (value, precision, showSign = false, showGrouping = false) => {
 	let result = Number(value).toFixed(precision)
 	
 	if (showGrouping) {
-		// 添加千分位分隔符
+		// Add thousands separator
 		result = result.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 	}
 	
@@ -39,10 +39,10 @@ const fixRound = (value, precision, showSign = false, showGrouping = false) => {
 	return result
 }
 
-// FORMAT辅助函数
+// FORMAT helper function
 const FORMAT = (text) => text
 
-// 时间格式化函数，替代moment
+// Time formatting function, replaces moment
 const formatTime = (timestamp, format = 'MM-DD HH:mm') => {
 	const date = new Date(timestamp)
 	
@@ -52,7 +52,7 @@ const formatTime = (timestamp, format = 'MM-DD HH:mm') => {
 	const minutes = String(date.getMinutes()).padStart(2, '0')
 	const seconds = String(date.getSeconds()).padStart(2, '0')
 	
-	// 支持常用的格式化模式
+	// Support common formatting patterns
 	return format
 		.replace('MM', month)
 		.replace('DD', day)
@@ -61,9 +61,9 @@ const formatTime = (timestamp, format = 'MM-DD HH:mm') => {
 		.replace('ss', seconds)
 }
 
-// 技术指标计算函数 - 原来的版本已被配置版本替代，移除以下函数
+// Technical indicator calculation functions - original version replaced by configuration version
 
-// 仍然需要的基础技术指标计算函数
+// Basic technical indicator calculation functions still needed
 const calculateBOLL = (data, n = 20, p = 2) => {
 	return data.map((item, index) => {
 		if (index < n - 1) {
@@ -74,15 +74,15 @@ const calculateBOLL = (data, n = 20, p = 2) => {
 				bollDn: item.close
 			}
 		}
-		
-		// 计算MA
+
+		// Calculate MA
 		let sum = 0
 		for (let i = index - n + 1; i <= index; i++) {
 			sum += data[i].close
 		}
 		const ma = sum / n
 		
-		// 计算标准差
+		// Calculate standard deviation
 		let variance = 0
 		for (let i = index - n + 1; i <= index; i++) {
 			variance += Math.pow(data[i].close - ma, 2)
@@ -113,7 +113,7 @@ const calculateMACD = (data, s = 12, l = 26, m = 9) => {
 			}
 		}
 		
-		// 计算EMA
+		// Calculate EMA
 		ema12 = (2 * item.close + (s - 1) * ema12) / (s + 1)
 		ema26 = (2 * item.close + (l - 1) * ema26) / (l + 1)
 		
@@ -144,7 +144,7 @@ const calculateKDJ = (data, n = 9, m1 = 3, m2 = 3) => {
 			}
 		}
 		
-		// 找到n周期内的最高价和最低价
+		// Find highest and lowest prices within n periods
 		const startIndex = Math.max(0, index - n + 1)
 		let highest = -Infinity
 		let lowest = Infinity
@@ -168,11 +168,11 @@ const calculateKDJ = (data, n = 9, m1 = 3, m2 = 3) => {
 	})
 }
 
-// 获取屏幕宽度
+// Get screen dimensions
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window')
 const isHorizontalScreen = screenWidth > screenHeight
 
-// 辅助函数：将0-1范围的RGB值转换为0-255范围
+// Helper function: Convert RGB values from 0-1 range to 0-255 range
 const COLOR = (r, g, b, a = 1) => {
 	if (a === 1) {
 		return `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})`
@@ -181,17 +181,17 @@ const COLOR = (r, g, b, a = 1) => {
 	}
 }
 
-// 主题配置
+// Theme configuration
 class ThemeManager {
 	static themes = {
 		light: {
-			// 基础颜色
+			// Base colors
 			backgroundColor: 'white',
 			titleColor: COLOR(0.08, 0.09, 0.12),
 			detailColor: COLOR(0.55, 0.62, 0.68),
 			textColor7724: COLOR(0.77, 0.81, 0.84),
-			
-			// 特殊背景色
+
+			// Special background colors
 			headerColor: COLOR(0.97, 0.97, 0.98),
 			tabBarBackgroundColor: 'white',
 			backgroundColor9103: COLOR(0.91, 0.92, 0.93),
@@ -203,33 +203,33 @@ class ThemeManager {
 			backgroundColor9607: COLOR(0.96, 0.97, 0.99),
 			backgroundColor9609: 'white',
 			backgroundColor9509: COLOR(0.95, 0.97, 0.99),
-			
-			// 功能颜色
+
+			// Functional colors
 			backgroundColorBlue: COLOR(0, 0.4, 0.93),
 			buttonColor: COLOR(0, 0.4, 0.93),
 			borderColor: COLOR(0.91, 0.92, 0.93),
 			backgroundOpacity: COLOR(0, 0, 0, 0.5),
 			
-			// K线相关颜色
-			increaseColor: COLOR(0.0, 0.78, 0.32), // 涨色：绿色
-			decreaseColor: COLOR(1.0, 0.27, 0.27), // 跌色：红色
+			// K-line related colors
+			increaseColor: COLOR(0.0, 0.78, 0.32), // Rise color: Green
+			decreaseColor: COLOR(1.0, 0.27, 0.27), // Fall color: Red
 			minuteLineColor: COLOR(0, 0.4, 0.93),
-			
-			// 网格和边框
+
+			// Grid and borders
 			gridColor: COLOR(0.91, 0.92, 0.93),
 			separatorColor: COLOR(0.91, 0.92, 0.93),
-			
-			// 文字颜色
+
+			// Text colors
 			textColor: COLOR(0.08, 0.09, 0.12),
 		},
 		dark: {
-			// 基础颜色
+			// Base colors
 			backgroundColor: COLOR(0.07, 0.12, 0.19),
 			titleColor: COLOR(0.81, 0.83, 0.91),
 			detailColor: COLOR(0.43, 0.53, 0.66),
 			textColor7724: COLOR(0.24, 0.33, 0.42),
-			
-			// 特殊背景色
+
+			// Special background colors
 			headerColor: COLOR(0.09, 0.16, 0.25),
 			tabBarBackgroundColor: COLOR(0.09, 0.16, 0.25),
 			backgroundColor9103: COLOR(0.03, 0.09, 0.14),
@@ -241,23 +241,23 @@ class ThemeManager {
 			backgroundColor9607: COLOR(0.07, 0.15, 0.23),
 			backgroundColor9609: COLOR(0.09, 0.15, 0.23),
 			backgroundColor9509: COLOR(0.09, 0.16, 0.25),
-			
-			// 功能颜色
+
+			// Functional colors
 			backgroundColorBlue: COLOR(0.14, 0.51, 1),
 			buttonColor: COLOR(0.14, 0.51, 1),
 			borderColor: COLOR(0.13, 0.2, 0.29),
 			backgroundOpacity: COLOR(0, 0, 0, 0.8),
 			
-			// K线相关颜色
-			increaseColor: COLOR(0.0, 1.0, 0.53), // 涨色：亮绿色
-			decreaseColor: COLOR(1.0, 0.4, 0.4), // 跌色：亮红色
+			// K-line related colors
+			increaseColor: COLOR(0.0, 1.0, 0.53), // Rise color: Bright green
+			decreaseColor: COLOR(1.0, 0.4, 0.4), // Fall color: Bright red
 			minuteLineColor: COLOR(0.14, 0.51, 1),
-			
-			// 网格和边框
+
+			// Grid and borders
 			gridColor: COLOR(0.13, 0.2, 0.29),
 			separatorColor: COLOR(0.13, 0.2, 0.29),
-			
-			// 文字颜色
+
+			// Text colors
 			textColor: COLOR(0.81, 0.83, 0.91),
 		}
 	}
@@ -267,7 +267,7 @@ class ThemeManager {
 	}
 }
 
-// 时间周期常量
+// Time period constants
 const TimeConstants = {
 	oneMinute: 1,
 	threeMinute: 2,
@@ -280,26 +280,26 @@ const TimeConstants = {
 	oneDay: 9,
 	oneWeek: 10,
 	oneMonth: 11,
-	minuteHour: -1  // 分时
+	minuteHour: -1  // Minute chart
 }
 
-// 时间周期类型 - 使用常量值
+// Time period types - using constant values
 const TimeTypes = {
-	1: { label: '分时', value: TimeConstants.minuteHour },
-	2: { label: '1分钟', value: TimeConstants.oneMinute },
-	3: { label: '3分钟', value: TimeConstants.threeMinute },
-	4: { label: '5分钟', value: TimeConstants.fiveMinute },
-	5: { label: '15分钟', value: TimeConstants.fifteenMinute },
-	6: { label: '30分钟', value: TimeConstants.thirtyMinute },
-	7: { label: '1小时', value: TimeConstants.oneHour },
-	8: { label: '4小时', value: TimeConstants.fourHour },
-	9: { label: '6小时', value: TimeConstants.sixHour },
-	10: { label: '1天', value: TimeConstants.oneDay },
-	11: { label: '1周', value: TimeConstants.oneWeek },
-	12: { label: '1月', value: TimeConstants.oneMonth }
+	1: { label: 'Minute', value: TimeConstants.minuteHour },
+	2: { label: '1min', value: TimeConstants.oneMinute },
+	3: { label: '3min', value: TimeConstants.threeMinute },
+	4: { label: '5min', value: TimeConstants.fiveMinute },
+	5: { label: '15min', value: TimeConstants.fifteenMinute },
+	6: { label: '30min', value: TimeConstants.thirtyMinute },
+	7: { label: '1h', value: TimeConstants.oneHour },
+	8: { label: '4h', value: TimeConstants.fourHour },
+	9: { label: '6h', value: TimeConstants.sixHour },
+	10: { label: '1d', value: TimeConstants.oneDay },
+	11: { label: '1w', value: TimeConstants.oneWeek },
+	12: { label: '1M', value: TimeConstants.oneMonth }
 }
 
-// 指标类型 - 副图指标索引改为3-6
+// Indicator types - sub-chart indicator indices changed to 3-6
 const IndicatorTypes = {
 	main: {
 		1: { label: 'MA', value: 'ma' },
@@ -315,7 +315,7 @@ const IndicatorTypes = {
 	}
 }
 
-// 绘图类型常量
+// Drawing type constants
 const DrawTypeConstants = {
 	none: 0,
   show: -1,
@@ -328,43 +328,43 @@ const DrawTypeConstants = {
 	parallelogram: 102
 }
 
-// 绘图状态常量
+// Drawing state constants
 const DrawStateConstants = {
 	none: -3,
 	showPencil: -2,
 	showContext: -1
 }
 
-// 绘图工具类型 - 使用数字常量
+// Drawing tool types - using numeric constants
 const DrawToolTypes = {
-	[DrawTypeConstants.none]: { label: '关闭绘图', value: DrawTypeConstants.none },
-	[DrawTypeConstants.line]: { label: '线段', value: DrawTypeConstants.line },
-	[DrawTypeConstants.horizontalLine]: { label: '水平线', value: DrawTypeConstants.horizontalLine },
-	[DrawTypeConstants.verticalLine]: { label: '垂直线', value: DrawTypeConstants.verticalLine },
-	[DrawTypeConstants.halfLine]: { label: '射线', value: DrawTypeConstants.halfLine },
-	[DrawTypeConstants.parallelLine]: { label: '平行通道', value: DrawTypeConstants.parallelLine },
-	[DrawTypeConstants.rectangle]: { label: '矩形', value: DrawTypeConstants.rectangle },
-	[DrawTypeConstants.parallelogram]: { label: '平行四边形', value: DrawTypeConstants.parallelogram }
+	[DrawTypeConstants.none]: { label: 'Disable Drawing', value: DrawTypeConstants.none },
+	[DrawTypeConstants.line]: { label: 'Line', value: DrawTypeConstants.line },
+	[DrawTypeConstants.horizontalLine]: { label: 'Horizontal Line', value: DrawTypeConstants.horizontalLine },
+	[DrawTypeConstants.verticalLine]: { label: 'Vertical Line', value: DrawTypeConstants.verticalLine },
+	[DrawTypeConstants.halfLine]: { label: 'Ray', value: DrawTypeConstants.halfLine },
+	[DrawTypeConstants.parallelLine]: { label: 'Parallel Channel', value: DrawTypeConstants.parallelLine },
+	[DrawTypeConstants.rectangle]: { label: 'Rectangle', value: DrawTypeConstants.rectangle },
+	[DrawTypeConstants.parallelogram]: { label: 'Parallelogram', value: DrawTypeConstants.parallelogram }
 }
 
-// 绘图工具辅助方法
+// Drawing tool helper methods
 const DrawToolHelper = {
 	name: (type) => {
 		switch(type) {
 			case DrawTypeConstants.line:
-				return FORMAT('线段')
+				return FORMAT('Line')
 			case DrawTypeConstants.horizontalLine:
-				return FORMAT('水平线')
+				return FORMAT('Horizontal Line')
 			case DrawTypeConstants.verticalLine:
-				return FORMAT('垂直线')
+				return FORMAT('Vertical Line')
 			case DrawTypeConstants.halfLine:
-				return FORMAT('射线')
+				return FORMAT('Ray')
 			case DrawTypeConstants.parallelLine:
-				return FORMAT('平行通道')
+				return FORMAT('Parallel Channel')
 			case DrawTypeConstants.rectangle:
-				return FORMAT('矩形')
+				return FORMAT('Rectangle')
 			case DrawTypeConstants.parallelogram:
-				return FORMAT('平行四边形')
+				return FORMAT('Parallelogram')
 		}
 		return ''
 	},
@@ -391,9 +391,9 @@ class App extends Component {
 		
 		this.state = {
 			isDarkTheme: false,
-			selectedTimeType: 2, // 对应 1 分钟
-			selectedMainIndicator: 0, // 对应MA
-			selectedSubIndicator: 0, // 对应MACD
+			selectedTimeType: 2, // Corresponds to 1 minute
+			selectedMainIndicator: 0, // Corresponds to MA
+			selectedSubIndicator: 0, // Corresponds to MACD
 			selectedDrawTool: DrawTypeConstants.none,
 			showIndicatorSelector: false,
 			showTimeSelector: false,
@@ -411,7 +411,7 @@ class App extends Component {
 
 	componentDidMount() {
 		this.updateStatusBar()
-		// 初始化加载K线数据
+		// Initialize loading K-line data
 		this.setState({ lastDataLength: this.state.klineData.length }, () => {
 			this.reloadKLineData()
 		})
@@ -430,30 +430,30 @@ class App extends Component {
 		)
 	}
 
-	// 生成模拟K线数据
+	// Generate mock K-line data
 	generateMockData = () => {
 		const data = []
 		let lastClose = 50000
 		const now = Date.now()
 		
 		for (let i = 0; i < 200; i++) {
-			const time = now - (200 - i) * 1 * 60 * 1000 // 15分钟间隔
+			const time = now - (200 - i) * 1 * 60 * 1000 // 15-minute interval
 			
-			// 下一个open等于上一个close，保证连续性
+			// Next open equals previous close, ensuring continuity
 			const open = lastClose
 			
-			// 生成合理的高低价
-			const volatility = 0.02 // 2%的波动率
+			// Generate reasonable high and low prices
+			const volatility = 0.02 // 2% volatility
 			const change = (Math.random() - 0.5) * open * volatility
-			const close = Math.max(open + change, open * 0.95) // 最大跌幅5%
+			const close = Math.max(open + change, open * 0.95) // Maximum decline 5%
 			
-			// 确保high >= max(open, close), low <= min(open, close)
+			// Ensure high >= max(open, close), low <= min(open, close)
 			const maxPrice = Math.max(open, close)
 			const minPrice = Math.min(open, close)
-			const high = maxPrice + Math.random() * open * 0.01 // 最多高1%
-			const low = minPrice - Math.random() * open * 0.01 // 最多低1%
+			const high = maxPrice + Math.random() * open * 0.01 // Max 1% higher
+			const low = minPrice - Math.random() * open * 0.01 // Max 1% lower
 			
-			const volume = (0.5 + Math.random()) * 1000000 // 50万到150万的成交量
+			const volume = (0.5 + Math.random()) * 1000000 // Volume from 500K to 1.5M
 			
 			data.push({
 				time: time,
@@ -470,29 +470,29 @@ class App extends Component {
 		return data
 	}
 
-	// 切换主题
+	// Toggle theme
 	toggleTheme = () => {
 		this.setState({ isDarkTheme: !this.state.isDarkTheme }, () => {
-			// 主题切换后重新加载数据以应用新颜色
+			// Reload data after theme switch to apply new colors
 			this.reloadKLineData()
 		})
 	}
 
-	// 选择时间周期
+	// Select time period
 	selectTimeType = (timeType) => {
 		this.setState({ 
 			selectedTimeType: timeType,
 			showTimeSelector: false
 		}, () => {
-			// 重新生成数据并重新加载
+			// Regenerate data and reload
 			this.setState({ klineData: this.generateMockData() }, () => {
 				this.reloadKLineData()
 			})
 		})
-		console.log('切换时间周期:', TimeTypes[timeType].label)
+		console.log('Switch time period:', TimeTypes[timeType].label)
 	}
 
-	// 选择指标
+	// Select indicator
 	selectIndicator = (type, indicator) => {
 		if (type === 'main') {
 			this.setState({ selectedMainIndicator: indicator }, () => {
@@ -506,7 +506,7 @@ class App extends Component {
 		this.setState({ showIndicatorSelector: false })
 	}
 
-	// 选择绘图工具
+	// Select drawing tool
 	selectDrawTool = (tool) => {
 		this.setState({ 
 			selectedDrawTool: tool,
@@ -522,7 +522,7 @@ class App extends Component {
     })
 	}
 
-	// 清除绘图
+	// Clear drawings
 	clearDrawings = () => {
 		this.setState({
       selectedDrawTool: DrawTypeConstants.none,
@@ -536,7 +536,7 @@ class App extends Component {
       })
 	}
 
-	// 重新加载K线数据
+	// Reload K-line data
 	reloadKLineData = (shouldScrollToEnd = true) => {
 		if (!this.kLineViewRef) {
 			setTimeout(() => this.reloadKLineData(shouldScrollToEnd), 100)
@@ -548,7 +548,7 @@ class App extends Component {
 		this.setOptionList(optionList)
 	}
 
-	// 重新加载K线数据并调整滚动位置以保持当前视图
+	// Reload K-line data and adjust scroll position to maintain current view
 	reloadKLineDataWithScrollAdjustment = (addedDataCount) => {
 		if (!this.kLineViewRef) {
 			setTimeout(() => this.reloadKLineDataWithScrollAdjustment(addedDataCount), 100)
@@ -558,36 +558,36 @@ class App extends Component {
 		const processedData = this.processKLineData(this.state.klineData)
 		const optionList = this.packOptionList(processedData, false)
 
-		// 计算需要调整的滚动距离（基于项目宽度）
+		// Calculate scroll distance adjustment needed (based on item width)
 		const pixelRatio = Platform.select({
 			android: PixelRatio.get(),
 			ios: 1,
 		})
-		const itemWidth = 8 * pixelRatio // 这与configList中的itemWidth相匹配
+		const itemWidth = 8 * pixelRatio // This matches itemWidth in configList
 		const scrollAdjustment = addedDataCount * itemWidth
 
-		// 设置滚动位置调整参数
+		// Set scroll position adjustment parameters
 		optionList.scrollPositionAdjustment = scrollAdjustment
 
-		console.log(`调整滚动位置: ${addedDataCount} 个数据点, 滚动距离: ${scrollAdjustment}px`)
+		console.log(`Adjust scroll position: ${addedDataCount} data points, scroll distance: ${scrollAdjustment}px`)
 
 		this.setOptionList(optionList)
 	}
 
-	// 处理K线数据，添加技术指标计算
+	// Process K-line data, add technical indicator calculations
 	processKLineData = (rawData) => {
-		// 模拟symbol配置
+		// Simulate symbol configuration
 		const symbol = {
-			price: 2, // 价格精度
-			volume: 0 // 成交量精度
+			price: 2, // Price precision
+			volume: 0 // Volume precision
 		}
 		const priceCount = symbol.price
 		const volumeCount = symbol.volume
 		
-		// 获取目标配置
+		// Get target configuration
 		const targetList = this.getTargetList()
 		
-		// 计算所有技术指标
+		// Calculate all technical indicators
 		let processedData = rawData.map(item => ({
 			...item,
 			id: item.time,
@@ -598,14 +598,14 @@ class App extends Component {
 			vol: item.volume,
 		}))
 		
-		// 根据targetList配置计算技术指标
+		// Calculate technical indicators based on targetList configuration
 		processedData = this.calculateIndicatorsFromTargetList(processedData, targetList)
 		
 		return processedData.map((item, index) => {
-			// 时间格式化
+			// Time formatting
 			let time = formatTime(item.id, 'MM-DD HH:mm')
 			
-			// 计算涨跌额和涨跌幅
+			// Calculate price change amount and percentage
 			let appendValue = item.close - item.open
 			let appendPercent = appendValue / item.open * 100
 			let isAppend = appendValue >= 0
@@ -613,35 +613,35 @@ class App extends Component {
 			let appendValueString = prefixString + fixRound(Math.abs(appendValue), priceCount, true, false)
 			let appendPercentString = prefixString + fixRound(Math.abs(appendPercent), 2, true, false) + '%'
 			
-			// 颜色配置
+			// Color configuration
 			const theme = ThemeManager.getCurrentTheme(this.state.isDarkTheme)
 			let color = isAppend ? processColor(theme.increaseColor) : processColor(theme.decreaseColor)
 			
-			// 添加格式化字段
+			// Add formatted fields
 			item.dateString = `${time}`
 			item.selectedItemList = [
-				{ title: FORMAT('时间'), detail: `${time}` },
-				{ title: FORMAT('开'), detail: fixRound(item.open, priceCount, true, false) },
-				{ title: FORMAT('高'), detail: fixRound(item.high, priceCount, true, false) },
-				{ title: FORMAT('低'), detail: fixRound(item.low, priceCount, true, false) },
-				{ title: FORMAT('收'), detail: fixRound(item.close, priceCount, true, false) },
-				{ title: FORMAT('涨跌额'), detail: appendValueString, color },
-				{ title: FORMAT('涨跌幅'), detail: appendPercentString, color },
-				{ title: FORMAT('成交量'), detail: fixRound(item.vol, volumeCount, true, false) }
+					{ title: FORMAT('Time'), detail: `${time}` },
+					{ title: FORMAT('Open'), detail: fixRound(item.open, priceCount, true, false) },
+					{ title: FORMAT('High'), detail: fixRound(item.high, priceCount, true, false) },
+					{ title: FORMAT('Low'), detail: fixRound(item.low, priceCount, true, false) },
+					{ title: FORMAT('Close'), detail: fixRound(item.close, priceCount, true, false) },
+					{ title: FORMAT('Change'), detail: appendValueString, color },
+					{ title: FORMAT('Change %'), detail: appendPercentString, color },
+					{ title: FORMAT('Volume'), detail: fixRound(item.vol, volumeCount, true, false) }
 			]
 			
-			// 添加技术指标显示信息到selectedItemList
+			// Add technical indicator display info to selectedItemList
 			this.addIndicatorToSelectedList(item, targetList, priceCount)
 			
 			return item
 		})
 	}
 
-	// 打包选项列表
+	// Pack option list
 	packOptionList = (modelArray, shouldScrollToEnd = true) => {
 		const theme = ThemeManager.getCurrentTheme(this.state.isDarkTheme)
 		
-		// 基本配置
+		// Basic configuration
 		const pixelRatio = Platform.select({
 			android: PixelRatio.get(),
 			ios: 1,
@@ -662,17 +662,17 @@ class App extends Component {
 			],
 			minuteLineColor: processColor(theme.minuteLineColor),
 			minuteGradientColorList: [
-				processColor(COLOR(0.094117647, 0.341176471, 0.831372549, 0.149019608)), // 15% 透明度蓝色
-				processColor(COLOR(0.266666667, 0.501960784, 0.972549020, 0.149019608)), // 26% 透明度蓝色
-				processColor(COLOR(0.074509804, 0.121568627, 0.188235294, 0)), // 完全透明
-				processColor(COLOR(0.074509804, 0.121568627, 0.188235294, 0)), // 完全透明
+				processColor(COLOR(0.094117647, 0.341176471, 0.831372549, 0.149019608)), // 15% transparent blue
+				processColor(COLOR(0.266666667, 0.501960784, 0.972549020, 0.149019608)), // 26% transparent blue
+				processColor(COLOR(0.074509804, 0.121568627, 0.188235294, 0)), // Fully transparent
+				processColor(COLOR(0.074509804, 0.121568627, 0.188235294, 0)), // Fully transparent
 			],
 			minuteGradientLocationList: [0, 0.3, 0.6, 1],
 			backgroundColor: processColor(theme.backgroundColor),
 			textColor: processColor(theme.detailColor),
 			gridColor: processColor(theme.gridColor),
 			candleTextColor: processColor(theme.titleColor),
-			panelBackgroundColor: processColor(this.state.isDarkTheme ? COLOR(0.03, 0.09, 0.14, 0.9) : COLOR(1, 1, 1, 0.95)), // 95% 透明度
+			panelBackgroundColor: processColor(this.state.isDarkTheme ? COLOR(0.03, 0.09, 0.14, 0.9) : COLOR(1, 1, 1, 0.95)), // 95% transparency
 			panelBorderColor: processColor(theme.detailColor),
 			panelTextColor: processColor(theme.titleColor),
 			selectedPointContainerColor: processColor('transparent'),
@@ -724,12 +724,12 @@ class App extends Component {
       closePriceRightLightLottieSource: '',
 		}
 
-		// 使用统一的目标配置
+		// Use unified target configuration
 		const targetList = this.getTargetList()
 
 		let drawList = {
 			'shotBackgroundColor': processColor(theme.backgroundColor),
-			// 基础绘图配置
+			// Basic drawing configuration
 			'drawType': this.state.selectedDrawTool,
 			'shouldReloadDrawItemIndex': DrawStateConstants.none,
 			'drawShouldContinue': this.state.drawShouldContinue,
@@ -746,8 +746,8 @@ class App extends Component {
 			modelArray: modelArray,
 			shouldScrollToEnd: shouldScrollToEnd,
 			targetList: targetList,
-			price: 2, // 价格精度
-			volume: 0, // 成交量精度
+			price: 2, // Price precision
+			volume: 0, // Volume precision
 			primary: this.state.selectedMainIndicator,
 			second: this.state.selectedSubIndicator,
 			time: TimeTypes[this.state.selectedTimeType].value,
@@ -756,14 +756,14 @@ class App extends Component {
 		}
 	}
 
-	// 设置optionList属性
+	// Set optionList property
 	setOptionList = (optionList) => {
 		this.setState({
 			optionList: JSON.stringify(optionList)
 		})
 	}
 
-	// 指标判断辅助方法
+	// Indicator judgment helper methods
 	isMASelected = () => this.state.selectedMainIndicator === 1
 	isBOLLSelected = () => this.state.selectedMainIndicator === 2
 	isMACDSelected = () => this.state.selectedSubIndicator === 3
@@ -771,7 +771,7 @@ class App extends Component {
 	isRSISelected = () => this.state.selectedSubIndicator === 5
 	isWRSelected = () => this.state.selectedSubIndicator === 6
 
-	// 获取目标配置列表
+	// Get target configuration list
 	getTargetList = () => {
 		return {
 			maList: [
@@ -802,11 +802,11 @@ class App extends Component {
 		}
 	}
 
-	// 根据目标配置计算技术指标
+	// Calculate technical indicators based on target configuration
 	calculateIndicatorsFromTargetList = (data, targetList) => {
 		let processedData = [...data]
 		
-		// 计算MA指标
+		// Calculate MA indicator
 		const selectedMAPeriods = targetList.maList
 			.filter(item => item.selected)
 			.map(item => ({ period: parseInt(item.title, 10), index: item.index }))
@@ -815,7 +815,7 @@ class App extends Component {
 			processedData = this.calculateMAWithConfig(processedData, selectedMAPeriods)
 		}
 		
-		// 计算成交量MA指标
+		// Calculate volume MA indicator
 		const selectedVolumeMAPeriods = targetList.maVolumeList
 			.filter(item => item.selected)
 			.map(item => ({ period: parseInt(item.title, 10), index: item.index }))
@@ -824,12 +824,12 @@ class App extends Component {
 			processedData = this.calculateVolumeMAWithConfig(processedData, selectedVolumeMAPeriods)
 		}
 		
-		// 计算BOLL指标
+		// Calculate BOLL indicator
 		if (this.isBOLLSelected()) {
 			processedData = calculateBOLL(processedData, parseInt(targetList.bollN, 10), parseInt(targetList.bollP, 10))
 		}
 		
-		// 计算MACD指标
+		// Calculate MACD indicator
 		if (this.isMACDSelected()) {
 			processedData = calculateMACD(processedData, 
 				parseInt(targetList.macdS, 10), 
@@ -837,7 +837,7 @@ class App extends Component {
 				parseInt(targetList.macdM, 10))
 		}
 		
-		// 计算KDJ指标
+		// Calculate KDJ indicator
 		if (this.isKDJSelected()) {
 			processedData = calculateKDJ(processedData, 
 				parseInt(targetList.kdjN, 10), 
@@ -845,7 +845,7 @@ class App extends Component {
 				parseInt(targetList.kdjM2, 10))
 		}
 		
-		// 计算RSI指标
+		// Calculate RSI indicator
 		const selectedRSIPeriods = targetList.rsiList
 			.filter(item => item.selected)
 			.map(item => ({ period: parseInt(item.title, 10), index: item.index }))
@@ -854,7 +854,7 @@ class App extends Component {
 			processedData = this.calculateRSIWithConfig(processedData, selectedRSIPeriods)
 		}
 		
-		// 计算WR指标
+		// Calculate WR indicator
 		const selectedWRPeriods = targetList.wrList
 			.filter(item => item.selected)
 			.map(item => ({ period: parseInt(item.title, 10), index: item.index }))
@@ -866,10 +866,10 @@ class App extends Component {
 		return processedData
 	}
 
-	// 根据配置计算MA指标
+	// Calculate MA indicator based on configuration
 	calculateMAWithConfig = (data, periodConfigs) => {
 		return data.map((item, index) => {
-			const maList = new Array(3) // 固定3个位置
+			const maList = new Array(3) // Fixed 3 positions
 			
 			periodConfigs.forEach(config => {
 				if (index < config.period - 1) {
@@ -887,10 +887,10 @@ class App extends Component {
 		})
 	}
 
-	// 根据配置计算成交量MA指标
+	// Calculate volume MA indicator based on configuration
 	calculateVolumeMAWithConfig = (data, periodConfigs) => {
 		return data.map((item, index) => {
-			const maVolumeList = new Array(2) // 固定2个位置
+			const maVolumeList = new Array(2) // Fixed 2 positions
 			
 			periodConfigs.forEach(config => {
 				if (index < config.period - 1) {
@@ -908,18 +908,18 @@ class App extends Component {
 		})
 	}
 
-	// 根据配置计算RSI指标
+	// Calculate RSI indicator based on configuration
 	calculateRSIWithConfig = (data, periodConfigs) => {
 		return data.map((item, index) => {
 			if (index === 0) {
-				const rsiList = new Array(3) // 固定3个位置
+				const rsiList = new Array(3) // Fixed 3 positions
 				periodConfigs.forEach(config => {
 					rsiList[config.index] = { value: 50, index: config.index, title: `${config.period}` }
 				})
 				return { ...item, rsiList }
 			}
 			
-			const rsiList = new Array(3) // 固定3个位置
+			const rsiList = new Array(3) // Fixed 3 positions
 			periodConfigs.forEach(config => {
 				if (index < config.period) {
 					rsiList[config.index] = { value: 50, index: config.index, title: `${config.period}` }
@@ -947,10 +947,10 @@ class App extends Component {
 		})
 	}
 
-	// 根据配置计算WR指标
+	// Calculate WR indicator based on configuration
 	calculateWRWithConfig = (data, periodConfigs) => {
 		return data.map((item, index) => {
-			const wrList = new Array(1) // 固定1个位置
+			const wrList = new Array(1) // Fixed 1 position
 			
 			periodConfigs.forEach(config => {
 				if (index < config.period - 1) {
@@ -958,7 +958,7 @@ class App extends Component {
 					return
 				}
 				
-				// 找到period周期内的最高价和最低价
+				// Find highest and lowest prices within period cycles
 				let highest = -Infinity
 				let lowest = Infinity
 				
@@ -975,9 +975,9 @@ class App extends Component {
 		})
 	}
 
-	// 添加技术指标到选中项列表
+	// Add technical indicators to selected item list
 	addIndicatorToSelectedList = (item, targetList, priceCount) => {
-		// 添加MA指标显示
+		// Add MA indicator display
 		if (this.isMASelected() && item.maList) {
 			item.maList.forEach((maItem, index) => {
 				if (maItem && maItem.title) {
@@ -989,16 +989,16 @@ class App extends Component {
 			})
 		}
 		
-		// 添加BOLL指标显示
+		// Add BOLL indicator display
 		if (this.isBOLLSelected() && item.bollMb !== undefined) {
 			item.selectedItemList.push(
-				{ title: 'BOLL上', detail: fixRound(item.bollUp, priceCount, false, false) },
-				{ title: 'BOLL中', detail: fixRound(item.bollMb, priceCount, false, false) },
-				{ title: 'BOLL下', detail: fixRound(item.bollDn, priceCount, false, false) }
+				{ title: 'BOLL Upper', detail: fixRound(item.bollUp, priceCount, false, false) },
+				{ title: 'BOLL Mid', detail: fixRound(item.bollMb, priceCount, false, false) },
+				{ title: 'BOLL Lower', detail: fixRound(item.bollDn, priceCount, false, false) }
 			)
 		}
 		
-		// 添加MACD指标显示
+		// Add MACD indicator display
 		if (this.isMACDSelected() && (item.macdDif !== undefined)) {
 			item.selectedItemList.push(
 				{ title: 'DIF', detail: fixRound(item.macdDif, 4, false, false) },
@@ -1007,7 +1007,7 @@ class App extends Component {
 			)
 		}
 		
-		// 添加KDJ指标显示
+		// Add KDJ indicator display
 		if (this.isKDJSelected() && item.kdjK !== undefined) {
 			item.selectedItemList.push(
 				{ title: 'K', detail: fixRound(item.kdjK, 2, false, false) },
@@ -1016,7 +1016,7 @@ class App extends Component {
 			)
 		}
 		
-		// 添加RSI指标显示
+		// Add RSI indicator display
 		if (this.isRSISelected() && item.rsiList) {
 			item.rsiList.forEach((rsiItem, index) => {
 				if (rsiItem && rsiItem.title) {
@@ -1028,7 +1028,7 @@ class App extends Component {
 			})
 		}
 		
-		// 添加WR指标显示
+		// Add WR indicator display
 		if (this.isWRSelected() && item.wrList) {
 			item.wrList.forEach((wrItem, index) => {
 				if (wrItem && wrItem.title) {
@@ -1041,78 +1041,78 @@ class App extends Component {
 		}
 	}
 
-	// 绘图项触摸事件
+	// Drawing item touch event
 	onDrawItemDidTouch = (event) => {
 		const { nativeEvent } = event
-		console.log('绘图项被触摸:', nativeEvent)
+		console.log('Drawing item touched:', nativeEvent)
 	}
 
-	// 图表触摸事件
+	// Chart touch event
 	onChartTouch = (event) => {
 		const { nativeEvent } = event
-		console.log('图表被触摸:', nativeEvent)
+		console.log('Chart touched:', nativeEvent)
 
 		if (nativeEvent.isOnClosePriceLabel) {
-			console.log('🎯 触摸到了收盘价标签! 滚动到最新位置')
+			console.log('🎯 Touched close price label! Scroll to latest position')
 			this.scrollToPresent()
 		}
 	}
 
-	// 滚动到最新位置
+	// Scroll to latest position
 	scrollToPresent = () => {
 		this.reloadKLineData(true)
 	}
 
-	// 绘图项完成事件
+	// Drawing item complete event
 	onDrawItemComplete = (event) => {
 		const { nativeEvent } = event
-		console.log('绘图项完成:', nativeEvent)
+		console.log('Drawing item complete:', nativeEvent)
 		
-		// 绘图完成后的处理
+		// Processing after drawing completion
 		if (!this.state.drawShouldContinue) {
 			this.selectDrawTool(DrawTypeConstants.none)
 		}
 	}
 
-	// 绘图点完成事件
+	// Drawing point complete event
 	onDrawPointComplete = (event) => {
 		const { nativeEvent } = event
-		console.log('绘图点完成:', nativeEvent.pointCount)
+		console.log('Drawing point complete:', nativeEvent.pointCount)
 
-		// 可以在这里显示当前绘图进度
+		// Can display current drawing progress here
 		const currentTool = this.state.selectedDrawTool
 		const totalPoints = DrawToolHelper.count(currentTool)
 
 		if (totalPoints > 0) {
 			const progress = `${nativeEvent.pointCount}/${totalPoints}`
-			console.log(`绘图进度: ${progress}`)
+			console.log(`Drawing progress: ${progress}`)
 		}
 	}
 
-	// 处理左滑触发的新数据加载
+	// Handle new data loading triggered by left swipe
 	handleScrollLeft = (event) => {
 		console.log('onScrollLeft triggered - less than 100 candlesticks to the left, timestamp:', event.nativeEvent.timestamp)
 
 		if (this.state.isLoadingNewData) {
-			return // 防止重复加载
+			return // Prevent duplicate loading
 		}
 
 		this.setState({ isLoadingNewData: true })
 
-		// 模拟异步数据加载
+		// Simulate asynchronous data loading
 		setTimeout(() => {
 			this.loadMoreHistoricalData()
 		}, 500)
 	}
 
-	// 生成更多历史数据
+	// Generate more historical data
 	generateMoreHistoricalData = (existingData, count = 200) => {
 		const newData = []
 		const firstItem = existingData[0]
 		let lastClose = firstItem.open
 
 		for (let i = count; i > 0; i--) {
-			const time = firstItem.time - i * 1 * 60 * 1000 // 15分钟间隔，向前推
+			const time = firstItem.time - i * 1 * 60 * 1000 // 15-minute interval, pushing backward
 
 			const open = lastClose
 			const volatility = 0.02
@@ -1141,16 +1141,16 @@ class App extends Component {
 		return newData
 	}
 
-	// 加载更多历史数据
+	// Load more historical data
 	loadMoreHistoricalData = () => {
 		console.log("loadMoreHistoricalData called")
 		const currentData = this.state.klineData
 		const newHistoricalData = this.generateMoreHistoricalData(currentData, 200)
 		const combinedData = [...newHistoricalData, ...currentData]
 
-		console.log(`加载了 ${newHistoricalData.length} 个新的历史K线数据点`)
+		console.log(`Loaded ${newHistoricalData.length} new historical K-line data points`)
 
-		// 计算需要调整的scroll offset来保持当前视图
+		// Calculate scroll offset adjustment needed to maintain current view
 		const addedDataCount = newHistoricalData.length
 
 		this.setState({
@@ -1158,7 +1158,7 @@ class App extends Component {
 			lastDataLength: currentData.length,
 			isLoadingNewData: false
 		}, () => {
-			// 重新加载数据并保持当前视图位置
+			// Reload data and maintain current view position
 			this.reloadKLineDataWithScrollAdjustment(addedDataCount)
 		})
 	}
@@ -1169,16 +1169,16 @@ class App extends Component {
 
 		return (
 			<View style={styles.container}>
-				{/* 顶部工具栏 */}
+				{/* Top toolbar */}
 				{this.renderToolbar(styles, theme)}
 				
-				{/* K线图表 */}
+				{/* K-line chart */}
 				{this.renderKLineChart(styles, theme)}
 				
-				{/* 底部控制栏 */}
+				{/* Bottom control bar */}
 				{this.renderControlBar(styles, theme)}
 				
-				{/* 选择器弹窗 */}
+				{/* Selector popup */}
 				{this.renderSelectors(styles, theme)}
 			</View>
 		)
@@ -1187,10 +1187,10 @@ class App extends Component {
 	renderToolbar = (styles, theme) => {
 		return (
 			<View style={styles.toolbar}>
-				<Text style={styles.title}>K线图表</Text>
+				<Text style={styles.title}>K-line Chart</Text>
 				<View style={styles.toolbarRight}>
 					<Text style={styles.themeLabel}>
-						{this.state.isDarkTheme ? '夜间' : '日间'}
+						{this.state.isDarkTheme ? 'Night' : 'Day'}
 					</Text>
 					<Switch
 						value={this.state.isDarkTheme}
@@ -1264,7 +1264,7 @@ class App extends Component {
 					]}>
 						{this.state.selectedDrawTool !== DrawTypeConstants.none 
 							? DrawToolHelper.name(this.state.selectedDrawTool)
-							: '绘图'
+							: 'Draw'
 						}
 					</Text>
 				</TouchableOpacity>
@@ -1274,7 +1274,7 @@ class App extends Component {
 					onPress={this.clearDrawings}
 				>
 					<Text style={styles.controlButtonText}>
-						清除
+						Clear
 					</Text>
 				</TouchableOpacity>
 
@@ -1285,7 +1285,7 @@ class App extends Component {
 					})}
 				>
 					<Text style={[styles.controlButtonText, this.state.showVolumeChart && styles.activeButtonText]}>
-						成交量
+						Volume
 					</Text>
 				</TouchableOpacity>
 
@@ -1296,7 +1296,7 @@ class App extends Component {
 					})}
 				>
 					<Text style={[styles.controlButtonText, this.state.candleCornerRadius > 0 && styles.activeButtonText]}>
-						圆角
+						Rounded
 					</Text>
 				</TouchableOpacity>
 			</View>
@@ -1306,11 +1306,11 @@ class App extends Component {
 	renderSelectors = (styles, theme) => {
 		return (
 			<>
-				{/* 时间选择器 */}
+				{/* Time selector */}
 				{this.state.showTimeSelector && (
 					<View style={styles.selectorOverlay}>
 						<View style={styles.selectorModal}>
-							<Text style={styles.selectorTitle}>选择时间周期</Text>
+							<Text style={styles.selectorTitle}>Select Time Period</Text>
 							<ScrollView style={styles.selectorList}>
 								{Object.keys(TimeTypes).map((timeTypeKey) => {
 									const timeType = parseInt(timeTypeKey, 10)
@@ -1337,22 +1337,22 @@ class App extends Component {
 								style={styles.closeButton}
 								onPress={() => this.setState({ showTimeSelector: false })}
 							>
-								<Text style={styles.closeButtonText}>关闭</Text>
+								<Text style={styles.closeButtonText}>Close</Text>
 							</TouchableOpacity>
 						</View>
 					</View>
 				)}
 
-				{/* 指标选择器 */}
+				{/* Indicator selector */}
 				{this.state.showIndicatorSelector && (
 					<View style={styles.selectorOverlay}>
 						<View style={styles.selectorModal}>
-							<Text style={styles.selectorTitle}>选择指标</Text>
+							<Text style={styles.selectorTitle}>Select Indicator</Text>
 							<ScrollView style={styles.selectorList}>
 								{Object.keys(IndicatorTypes).map((type) => (
 									<View key={type}>
 										<Text style={styles.selectorSectionTitle}>
-											{type === 'main' ? '主图' : '副图'}
+											{type === 'main' ? 'Main Chart' : 'Sub Chart'}
 										</Text>
 										{Object.keys(IndicatorTypes[type]).map((indicatorKey) => {
 											const indicator = parseInt(indicatorKey, 10)
@@ -1383,13 +1383,13 @@ class App extends Component {
 								style={styles.closeButton}
 								onPress={() => this.setState({ showIndicatorSelector: false })}
 							>
-								<Text style={styles.closeButtonText}>关闭</Text>
+								<Text style={styles.closeButtonText}>Close</Text>
 							</TouchableOpacity>
 						</View>
 					</View>
 				)}
 
-				{/* 绘图工具选择器 */}
+				{/* Drawing tool selector */}
 				{this.state.showDrawToolSelector && (
 					<View style={styles.selectorContainer}>
 						{Object.keys(DrawToolTypes).map(toolKey => (
@@ -1408,7 +1408,7 @@ class App extends Component {
 								</Text>
 							</TouchableOpacity>
 						))}
-            <Text style={styles.selectorItemText}>是否连续绘图: </Text><Switch value={this.state.drawShouldContinue} onValueChange={(value) => {
+            <Text style={styles.selectorItemText}>Continuous Drawing: </Text><Switch value={this.state.drawShouldContinue} onValueChange={(value) => {
               this.setState({ drawShouldContinue: value })
             }} />
 					</View>
