@@ -29,8 +29,7 @@ import {
 	processKLineData,
 	packOptionList
 } from './utils/businessLogic'
-
-
+import { generateMockData, generateMoreHistoricalData } from './utils/generateData'
 
 
 class App extends Component {
@@ -46,7 +45,7 @@ class App extends Component {
 			showIndicatorSelector: false,
 			showTimeSelector: false,
 			showDrawToolSelector: false,
-			klineData: this.generateMockData(),
+			klineData: generateMockData(),
 			drawShouldContinue: true,
 			optionList: null,
 			isLoadingNewData: false,
@@ -78,46 +77,6 @@ class App extends Component {
 		)
 	}
 
-	// Generate mock K-line data
-	generateMockData = () => {
-		const data = []
-		let lastClose = 50000
-		const now = Date.now()
-		
-		for (let i = 0; i < 200; i++) {
-			const time = now - (200 - i) * 1 * 60 * 1000 // 15-minute interval
-			
-			// Next open equals previous close, ensuring continuity
-			const open = lastClose
-			
-			// Generate reasonable high and low prices
-			const volatility = 0.02 // 2% volatility
-			const change = (Math.random() - 0.5) * open * volatility
-			const close = Math.max(open + change, open * 0.95) // Maximum decline 5%
-			
-			// Ensure high >= max(open, close), low <= min(open, close)
-			const maxPrice = Math.max(open, close)
-			const minPrice = Math.min(open, close)
-			const high = maxPrice + Math.random() * open * 0.01 // Max 1% higher
-			const low = minPrice - Math.random() * open * 0.01 // Max 1% lower
-			
-			const volume = (0.5 + Math.random()) * 1000000 // Volume from 500K to 1.5M
-			
-			data.push({
-				time: time,
-				open: parseFloat(open.toFixed(2)),
-				high: parseFloat(high.toFixed(2)),
-				low: parseFloat(low.toFixed(2)),
-				close: parseFloat(close.toFixed(2)),
-				volume: parseFloat(volume.toFixed(2))
-			})
-			
-			lastClose = close
-		}
-		
-		return data
-	}
-
 	// Toggle theme
 	toggleTheme = () => {
 		this.setState({ isDarkTheme: !this.state.isDarkTheme }, () => {
@@ -133,7 +92,7 @@ class App extends Component {
 			showTimeSelector: false
 		}, () => {
 			// Regenerate data and reload
-			this.setState({ klineData: this.generateMockData() }, () => {
+			this.setState({ klineData: generateMockData() }, () => {
 				this.reloadKLineData()
 			})
 		})
@@ -230,16 +189,12 @@ class App extends Component {
 		this.setOptionList(optionList)
 	}
 
-
-
 	// Set optionList property
 	setOptionList = (optionList) => {
 		this.setState({
 			optionList: JSON.stringify(optionList)
 		})
 	}
-
-
 
 	// Drawing item touch event
 	onDrawItemDidTouch = (event) => {
@@ -305,47 +260,11 @@ class App extends Component {
 		}, 500)
 	}
 
-	// Generate more historical data
-	generateMoreHistoricalData = (existingData, count = 200) => {
-		const newData = []
-		const firstItem = existingData[0]
-		let lastClose = firstItem.open
-
-		for (let i = count; i > 0; i--) {
-			const time = firstItem.time - i * 1 * 60 * 1000 // 15-minute interval, pushing backward
-
-			const open = lastClose
-			const volatility = 0.02
-			const change = (Math.random() - 0.5) * open * volatility
-			const close = Math.max(open + change, open * 0.95)
-
-			const maxPrice = Math.max(open, close)
-			const minPrice = Math.min(open, close)
-			const high = maxPrice + Math.random() * open * 0.01
-			const low = minPrice - Math.random() * open * 0.01
-
-			const volume = (0.5 + Math.random()) * 1000000
-
-			newData.push({
-				time: time,
-				open: parseFloat(open.toFixed(2)),
-				high: parseFloat(high.toFixed(2)),
-				low: parseFloat(low.toFixed(2)),
-				close: parseFloat(close.toFixed(2)),
-				volume: parseFloat(volume.toFixed(2))
-			})
-
-			lastClose = close
-		}
-
-		return newData
-	}
-
 	// Load more historical data
 	loadMoreHistoricalData = () => {
 		console.log("loadMoreHistoricalData called")
 		const currentData = this.state.klineData
-		const newHistoricalData = this.generateMoreHistoricalData(currentData, 200)
+		const newHistoricalData = generateMoreHistoricalData(currentData, 200)
 		const combinedData = [...newHistoricalData, ...currentData]
 
 		console.log(`Loaded ${newHistoricalData.length} new historical K-line data points`)
@@ -426,7 +345,6 @@ class App extends Component {
 		)
 	}
 
-
 	renderKLineChart = (styles, theme) => {
     const directRender = (
       <RNKLineView
@@ -453,8 +371,6 @@ class App extends Component {
       </View>
     )
 	}
-
-
 
 	getStyles = (theme) => {
 		return StyleSheet.create({
