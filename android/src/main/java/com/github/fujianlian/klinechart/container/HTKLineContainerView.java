@@ -147,10 +147,10 @@ public class HTKLineContainerView extends RelativeLayout {
 
                 // Add close price frame for debugging
                 WritableMap closePriceFrame = Arguments.createMap();
-                closePriceFrame.putDouble("x", klineView.mClosePriceLabelFrame.left);
-                closePriceFrame.putDouble("y", klineView.mClosePriceLabelFrame.top);
-                closePriceFrame.putDouble("width", klineView.mClosePriceLabelFrame.width());
-                closePriceFrame.putDouble("height", klineView.mClosePriceLabelFrame.height());
+                closePriceFrame.putDouble("x", klineView.getClosePriceLabelFrameLeft());
+                closePriceFrame.putDouble("y", klineView.getClosePriceLabelFrameTop());
+                closePriceFrame.putDouble("width", klineView.getClosePriceLabelFrameWidth());
+                closePriceFrame.putDouble("height", klineView.getClosePriceLabelFrameHeight());
                 map.putMap("closePriceFrame", closePriceFrame);
 
                 reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(

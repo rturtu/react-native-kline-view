@@ -22,7 +22,7 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
 
     protected boolean isLongPress = false;
 
-    private OverScroller mScroller;
+    protected OverScroller mScroller;
 
     protected boolean touch = false;
 

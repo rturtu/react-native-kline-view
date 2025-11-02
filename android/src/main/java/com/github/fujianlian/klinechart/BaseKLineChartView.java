@@ -1576,4 +1576,21 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
         }
     }
 
+    // Public getter methods for accessing protected fields
+    public float getClosePriceLabelFrameLeft() {
+        return mClosePriceLabelFrame.left;
+    }
+
+    public float getClosePriceLabelFrameTop() {
+        return mClosePriceLabelFrame.top;
+    }
+
+    public float getClosePriceLabelFrameWidth() {
+        return mClosePriceLabelFrame.width();
+    }
+
+    public float getClosePriceLabelFrameHeight() {
+        return mClosePriceLabelFrame.height();
+    }
+
 }
