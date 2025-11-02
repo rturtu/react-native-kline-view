@@ -4,15 +4,10 @@
  */
 
 import React, { Component } from 'react'
-import { 
-	View, 
-	Text, 
-	StyleSheet, 
-	TouchableOpacity, 
-	ScrollView,
+import {
+	View,
+	StyleSheet,
 	StatusBar,
-	Dimensions,
-	Switch,
 	processColor,
 	Platform,
 	PixelRatio
@@ -29,22 +24,20 @@ import {
 } from './utils/indicators'
 import { ThemeManager, COLOR } from './utils/themes'
 import {
-	TimeConstants,
 	TimeTypes,
-	IndicatorTypes,
 	DrawTypeConstants,
 	DrawStateConstants,
-	DrawToolTypes,
 	DrawToolHelper,
 	FORMAT
 } from './utils/constants'
 import {
 	fixRound,
 	formatTime,
-	isHorizontalScreen,
-	screenWidth,
-	screenHeight
+	isHorizontalScreen
 } from './utils/helpers'
+import Toolbar from './components/Toolbar'
+import ControlBar from './components/ControlBar'
+import Selectors from './components/Selectors'
 
 
 
@@ -726,38 +719,62 @@ class App extends Component {
 		return (
 			<View style={styles.container}>
 				{/* Top toolbar */}
-				{this.renderToolbar(styles, theme)}
-				
+				<Toolbar
+					theme={theme}
+					isDarkTheme={this.state.isDarkTheme}
+					onToggleTheme={this.toggleTheme}
+				/>
+
 				{/* K-line chart */}
 				{this.renderKLineChart(styles, theme)}
-				
+
 				{/* Bottom control bar */}
-				{this.renderControlBar(styles, theme)}
-				
+				<ControlBar
+					theme={theme}
+					selectedTimeType={this.state.selectedTimeType}
+					selectedMainIndicator={this.state.selectedMainIndicator}
+					selectedSubIndicator={this.state.selectedSubIndicator}
+					selectedDrawTool={this.state.selectedDrawTool}
+					showVolumeChart={this.state.showVolumeChart}
+					candleCornerRadius={this.state.candleCornerRadius}
+					onShowTimeSelector={() => this.setState({ showTimeSelector: true })}
+					onShowIndicatorSelector={() => this.setState({ showIndicatorSelector: true })}
+					onToggleDrawToolSelector={() => this.setState({
+						showDrawToolSelector: !this.state.showDrawToolSelector,
+						showIndicatorSelector: false,
+						showTimeSelector: false
+					})}
+					onClearDrawings={this.clearDrawings}
+					onToggleVolume={() => this.setState({ showVolumeChart: !this.state.showVolumeChart }, () => {
+						this.reloadKLineData()
+					})}
+					onToggleRounded={() => this.setState({ candleCornerRadius: this.state.candleCornerRadius > 0 ? 0 : 1 }, () => {
+						this.reloadKLineData()
+					})}
+				/>
+
 				{/* Selector popup */}
-				{this.renderSelectors(styles, theme)}
+				<Selectors
+					theme={theme}
+					showTimeSelector={this.state.showTimeSelector}
+					showIndicatorSelector={this.state.showIndicatorSelector}
+					showDrawToolSelector={this.state.showDrawToolSelector}
+					selectedTimeType={this.state.selectedTimeType}
+					selectedMainIndicator={this.state.selectedMainIndicator}
+					selectedSubIndicator={this.state.selectedSubIndicator}
+					selectedDrawTool={this.state.selectedDrawTool}
+					drawShouldContinue={this.state.drawShouldContinue}
+					onSelectTimeType={this.selectTimeType}
+					onSelectIndicator={this.selectIndicator}
+					onSelectDrawTool={this.selectDrawTool}
+					onCloseTimeSelector={() => this.setState({ showTimeSelector: false })}
+					onCloseIndicatorSelector={() => this.setState({ showIndicatorSelector: false })}
+					onToggleDrawShouldContinue={(value) => this.setState({ drawShouldContinue: value })}
+				/>
 			</View>
 		)
 	}
 
-	renderToolbar = (styles, theme) => {
-		return (
-			<View style={styles.toolbar}>
-				<Text style={styles.title}>K-line Chart</Text>
-				<View style={styles.toolbarRight}>
-					<Text style={styles.themeLabel}>
-						{this.state.isDarkTheme ? 'Night' : 'Day'}
-					</Text>
-					<Switch
-						value={this.state.isDarkTheme}
-						onValueChange={this.toggleTheme}
-						trackColor={{ false: '#E0E0E0', true: theme.buttonColor }}
-						thumbColor={this.state.isDarkTheme ? '#FFFFFF' : '#F4F3F4'}
-					/>
-				</View>
-			</View>
-		)
-	}
 
 	renderKLineChart = (styles, theme) => {
     const directRender = (
@@ -786,192 +803,7 @@ class App extends Component {
     )
 	}
 
-	renderControlBar = (styles, theme) => {
-		return (
-			<View style={styles.controlBar}>
-				<TouchableOpacity 
-					style={styles.controlButton}
-					onPress={() => this.setState({ showTimeSelector: true })}
-				>
-					<Text style={styles.controlButtonText}>
-						{TimeTypes[this.state.selectedTimeType].label}
-					</Text>
-				</TouchableOpacity>
 
-				<TouchableOpacity 
-					style={styles.controlButton}
-					onPress={() => this.setState({ showIndicatorSelector: true })}
-				>
-					<Text style={styles.controlButtonText}>
-						{IndicatorTypes.main[this.state.selectedMainIndicator].label}/{IndicatorTypes.sub[this.state.selectedSubIndicator].label}
-					</Text>
-				</TouchableOpacity>
-
-				<TouchableOpacity
-					style={[styles.toolbarButton, this.state.selectedDrawTool !== DrawTypeConstants.none && styles.activeButton]}
-					onPress={() => this.setState({ 
-						showDrawToolSelector: !this.state.showDrawToolSelector,
-						showIndicatorSelector: false,
-						showTimeSelector: false
-					})}>
-					<Text style={[
-						styles.buttonText, 
-						this.state.selectedDrawTool !== DrawTypeConstants.none && styles.activeButtonText
-					]}>
-						{this.state.selectedDrawTool !== DrawTypeConstants.none 
-							? DrawToolHelper.name(this.state.selectedDrawTool)
-							: 'Draw'
-						}
-					</Text>
-				</TouchableOpacity>
-
-				<TouchableOpacity
-					style={styles.controlButton}
-					onPress={this.clearDrawings}
-				>
-					<Text style={styles.controlButtonText}>
-						Clear
-					</Text>
-				</TouchableOpacity>
-
-				<TouchableOpacity
-					style={[styles.controlButton, this.state.showVolumeChart && styles.activeButton]}
-					onPress={() => this.setState({ showVolumeChart: !this.state.showVolumeChart }, () => {
-						this.reloadKLineData()
-					})}
-				>
-					<Text style={[styles.controlButtonText, this.state.showVolumeChart && styles.activeButtonText]}>
-						Volume
-					</Text>
-				</TouchableOpacity>
-
-				<TouchableOpacity
-					style={[styles.controlButton, this.state.candleCornerRadius > 0 && styles.activeButton]}
-					onPress={() => this.setState({ candleCornerRadius: this.state.candleCornerRadius > 0 ? 0 : 1 }, () => {
-						this.reloadKLineData()
-					})}
-				>
-					<Text style={[styles.controlButtonText, this.state.candleCornerRadius > 0 && styles.activeButtonText]}>
-						Rounded
-					</Text>
-				</TouchableOpacity>
-			</View>
-		)
-	}
-
-	renderSelectors = (styles, theme) => {
-		return (
-			<>
-				{/* Time selector */}
-				{this.state.showTimeSelector && (
-					<View style={styles.selectorOverlay}>
-						<View style={styles.selectorModal}>
-							<Text style={styles.selectorTitle}>Select Time Period</Text>
-							<ScrollView style={styles.selectorList}>
-								{Object.keys(TimeTypes).map((timeTypeKey) => {
-									const timeType = parseInt(timeTypeKey, 10)
-									return (
-										<TouchableOpacity
-											key={timeType}
-											style={[
-												styles.selectorItem,
-												this.state.selectedTimeType === timeType && styles.selectedItem
-											]}
-											onPress={() => this.selectTimeType(timeType)}
-										>
-											<Text style={[
-												styles.selectorItemText,
-												this.state.selectedTimeType === timeType && styles.selectedItemText
-											]}>
-												{TimeTypes[timeType].label}
-											</Text>
-										</TouchableOpacity>
-									)
-								})}
-							</ScrollView>
-							<TouchableOpacity
-								style={styles.closeButton}
-								onPress={() => this.setState({ showTimeSelector: false })}
-							>
-								<Text style={styles.closeButtonText}>Close</Text>
-							</TouchableOpacity>
-						</View>
-					</View>
-				)}
-
-				{/* Indicator selector */}
-				{this.state.showIndicatorSelector && (
-					<View style={styles.selectorOverlay}>
-						<View style={styles.selectorModal}>
-							<Text style={styles.selectorTitle}>Select Indicator</Text>
-							<ScrollView style={styles.selectorList}>
-								{Object.keys(IndicatorTypes).map((type) => (
-									<View key={type}>
-										<Text style={styles.selectorSectionTitle}>
-											{type === 'main' ? 'Main Chart' : 'Sub Chart'}
-										</Text>
-										{Object.keys(IndicatorTypes[type]).map((indicatorKey) => {
-											const indicator = parseInt(indicatorKey, 10)
-											return (
-												<TouchableOpacity
-													key={indicator}
-													style={[
-														styles.selectorItem,
-														((type === 'main' && this.state.selectedMainIndicator === indicator) ||
-														 (type === 'sub' && this.state.selectedSubIndicator === indicator)) && styles.selectedItem
-													]}
-													onPress={() => this.selectIndicator(type, indicator)}
-												>
-													<Text style={[
-														styles.selectorItemText,
-														((type === 'main' && this.state.selectedMainIndicator === indicator) ||
-														 (type === 'sub' && this.state.selectedSubIndicator === indicator)) && styles.selectedItemText
-													]}>
-														{IndicatorTypes[type][indicator].label}
-													</Text>
-												</TouchableOpacity>
-											)
-										})}
-									</View>
-								))}
-							</ScrollView>
-							<TouchableOpacity
-								style={styles.closeButton}
-								onPress={() => this.setState({ showIndicatorSelector: false })}
-							>
-								<Text style={styles.closeButtonText}>Close</Text>
-							</TouchableOpacity>
-						</View>
-					</View>
-				)}
-
-				{/* Drawing tool selector */}
-				{this.state.showDrawToolSelector && (
-					<View style={styles.selectorContainer}>
-						{Object.keys(DrawToolTypes).map(toolKey => (
-							<TouchableOpacity
-								key={toolKey}
-								style={[
-									styles.selectorItem,
-									this.state.selectedDrawTool === parseInt(toolKey, 10) && styles.selectedItem
-								]}
-								onPress={() => this.selectDrawTool(parseInt(toolKey, 10))}>
-								<Text style={[
-									styles.selectorItemText,
-									this.state.selectedDrawTool === parseInt(toolKey, 10) && styles.selectedItemText
-								]}>
-									{DrawToolTypes[toolKey].label}
-								</Text>
-							</TouchableOpacity>
-						))}
-            <Text style={styles.selectorItemText}>Continuous Drawing: </Text><Switch value={this.state.drawShouldContinue} onValueChange={(value) => {
-              this.setState({ drawShouldContinue: value })
-            }} />
-					</View>
-				)}
-			</>
-		)
-	}
 
 	getStyles = (theme) => {
 		return StyleSheet.create({
@@ -979,31 +811,7 @@ class App extends Component {
 				flex: 1,
 				backgroundColor: theme.backgroundColor,
 				paddingTop: isHorizontalScreen ? 10 : 50,
-        paddingBottom: isHorizontalScreen ? 20 : 100,
-			},
-			toolbar: {
-				flexDirection: 'row',
-				justifyContent: 'space-between',
-				alignItems: 'center',
-				paddingHorizontal: 16,
-				paddingVertical: 12,
-				backgroundColor: theme.headerColor,
-				borderBottomWidth: 1,
-				borderBottomColor: theme.gridColor,
-			},
-			title: {
-				fontSize: 18,
-				fontWeight: 'bold',
-				color: theme.textColor,
-			},
-			toolbarRight: {
-				flexDirection: 'row',
-				alignItems: 'center',
-			},
-			themeLabel: {
-				fontSize: 14,
-				color: theme.textColor,
-				marginRight: 8,
+				paddingBottom: isHorizontalScreen ? 20 : 100,
 			},
 			chartContainer: {
 				flex: 1,
@@ -1016,114 +824,6 @@ class App extends Component {
 			chart: {
 				flex: 1,
 				backgroundColor: 'transparent',
-			},
-			controlBar: {
-				flexDirection: 'row',
-				justifyContent: 'space-around',
-				flexWrap: 'wrap',
-				alignItems: 'center',
-				paddingHorizontal: 16,
-				paddingVertical: 12,
-				backgroundColor: theme.headerColor,
-				borderTopWidth: 1,
-				borderTopColor: theme.gridColor,
-			},
-			controlButton: {
-				paddingHorizontal: 16,
-				paddingVertical: 8,
-				borderRadius: 20,
-				backgroundColor: theme.buttonColor,
-			},
-			activeButton: {
-				backgroundColor: theme.increaseColor,
-			},
-			controlButtonText: {
-				fontSize: 14,
-				color: '#FFFFFF',
-				fontWeight: '500',
-			},
-			activeButtonText: {
-				color: '#FFFFFF',
-			},
-			selectorOverlay: {
-				position: 'absolute',
-				top: 0,
-				left: 0,
-				right: 0,
-				bottom: 0,
-				backgroundColor: 'rgba(0, 0, 0, 0.5)',
-				justifyContent: 'center',
-				alignItems: 'center',
-			},
-			selectorModal: {
-				width: screenWidth * 0.8,
-				maxHeight: screenHeight * 0.6,
-				backgroundColor: theme.backgroundColor,
-				borderRadius: 12,
-				padding: 16,
-			},
-			selectorTitle: {
-				fontSize: 18,
-				fontWeight: 'bold',
-				color: theme.textColor,
-				textAlign: 'center',
-				marginBottom: 16,
-			},
-			selectorList: {
-				maxHeight: screenHeight * 0.4,
-			},
-			selectorSectionTitle: {
-				fontSize: 16,
-				fontWeight: '600',
-				color: theme.textColor,
-				marginTop: 12,
-				marginBottom: 8,
-				paddingHorizontal: 12,
-			},
-			selectorItem: {
-				paddingHorizontal: 16,
-				paddingVertical: 12,
-				borderRadius: 8,
-				marginVertical: 2,
-			},
-			selectedItem: {
-				backgroundColor: theme.buttonColor,
-			},
-			selectorItemText: {
-				fontSize: 16,
-				color: theme.textColor,
-			},
-			selectedItemText: {
-				color: '#FFFFFF',
-				fontWeight: '500',
-			},
-			closeButton: {
-				marginTop: 16,
-				paddingVertical: 12,
-				backgroundColor: theme.buttonColor,
-				borderRadius: 8,
-				alignItems: 'center',
-			},
-			closeButtonText: {
-				fontSize: 16,
-				color: '#FFFFFF',
-				fontWeight: '500',
-			},
-			selectorContainer: {
-				flexDirection: 'row',
-				flexWrap: 'wrap',
-				padding: 16,
-			},
-			toolbarButton: {
-				paddingHorizontal: 16,
-				paddingVertical: 8,
-				borderRadius: 20,
-				backgroundColor: theme.buttonColor,
-			},
-			buttonText: {
-				fontSize: 14,
-				color: '#FFFFFF',
-				fontWeight: '500',
 			},
 		})
 	}
