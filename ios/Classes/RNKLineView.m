@@ -16,5 +16,8 @@ RCT_EXPORT_VIEW_PROPERTY(onDrawPointComplete, RCTBubblingEventBlock)
 
 RCT_EXPORT_VIEW_PROPERTY(optionList, NSString)
 
+RCT_EXTERN_METHOD(updateLastCandlestick:(nonnull NSNumber *)node
+                  candlestick:(nonnull NSDictionary *)candlestick)
+
 @end
 

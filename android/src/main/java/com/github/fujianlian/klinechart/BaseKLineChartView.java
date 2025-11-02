@@ -239,68 +239,105 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
 
 
     private void initRect() {
-        mTopPadding = (int) configManager.paddingTop;
-        mChildPadding = 50;
-        mBottomPadding = (int) configManager.paddingBottom;
-        Paint.FontMetrics fm = mTextPaint.getFontMetrics();
-        int textHeight = (int)((fm.descent - fm.ascent) / 2.0);
+        android.util.Log.d("BaseKLineChartView", "initRect() START");
+        try {
+            mTopPadding = (int) configManager.paddingTop;
+            mChildPadding = 50;
+            mBottomPadding = (int) configManager.paddingBottom;
+            android.util.Log.d("BaseKLineChartView", "Padding values - Top: " + mTopPadding + ", Child: " + mChildPadding + ", Bottom: " + mBottomPadding);
 
+            Paint.FontMetrics fm = mTextPaint.getFontMetrics();
+            int textHeight = (int)((fm.descent - fm.ascent) / 2.0);
+            android.util.Log.d("BaseKLineChartView", "TextHeight: " + textHeight);
 
-        int allHeight = this.getHeight() - mBottomPadding;
-        int mMainHeight = (int) (allHeight * configManager.mainFlex);
-        int mVolHeight = (int) (allHeight * configManager.volumeFlex);
-        int mChildHeight = (int) (allHeight * (1 - configManager.mainFlex - configManager.volumeFlex));
-        mMainRect = new Rect(0, mTopPadding - textHeight, mWidth, mMainHeight - textHeight);
+            int allHeight = this.getHeight() - mBottomPadding;
+            int mMainHeight = (int) (allHeight * configManager.mainFlex);
+            int mVolHeight = (int) (allHeight * configManager.volumeFlex);
+            int mChildHeight = (int) (allHeight * (1 - configManager.mainFlex - configManager.volumeFlex));
+            android.util.Log.d("BaseKLineChartView", "Heights - All: " + allHeight + ", Main: " + mMainHeight + ", Vol: " + mVolHeight + ", Child: " + mChildHeight);
+            android.util.Log.d("BaseKLineChartView", "Flex values - Main: " + configManager.mainFlex + ", Volume: " + configManager.volumeFlex);
 
-        if (configManager.volumeFlex > 0) {
-            mVolRect = new Rect(0, mMainRect.bottom + textHeight + mChildPadding, mWidth, mMainRect.bottom + textHeight + mVolHeight);
-            mChildRect = new Rect(0, mVolRect.bottom + mChildPadding, mWidth, mVolRect.bottom + mChildHeight);
-        } else {
-            mVolRect = new Rect(0, 0, 0, 0); // Empty rect when volumeFlex is 0
-            // When volumeFlex is 0, child section should extend to the bottom of the view
-            mChildRect = new Rect(0, mMainRect.bottom + mChildPadding, mWidth, allHeight);
-        }
+            mMainRect = new Rect(0, mTopPadding - textHeight, mWidth, mMainHeight - textHeight);
+            android.util.Log.d("BaseKLineChartView", "mMainRect: " + mMainRect);
 
-        if (!isShowChild) {
             if (configManager.volumeFlex > 0) {
-                mChildRect.top = mVolRect.bottom;
-                mChildRect.bottom = mVolRect.bottom;
+                mVolRect = new Rect(0, mMainRect.bottom + textHeight + mChildPadding, mWidth, mMainRect.bottom + textHeight + mVolHeight);
+                mChildRect = new Rect(0, mVolRect.bottom + mChildPadding, mWidth, mVolRect.bottom + mChildHeight);
+                android.util.Log.d("BaseKLineChartView", "With volume - mVolRect: " + mVolRect + ", mChildRect: " + mChildRect);
             } else {
-                // When volumeFlex is 0 and child is not shown, position at bottom for time bar
-                mChildRect.top = allHeight;
-                mChildRect.bottom = allHeight;
+                mVolRect = new Rect(0, 0, 0, 0); // Empty rect when volumeFlex is 0
+                // When volumeFlex is 0, child section should extend to the bottom of the view
+                mChildRect = new Rect(0, mMainRect.bottom + mChildPadding, mWidth, allHeight);
+                android.util.Log.d("BaseKLineChartView", "Without volume - mVolRect: " + mVolRect + ", mChildRect: " + mChildRect);
             }
+
+            if (!isShowChild) {
+                android.util.Log.d("BaseKLineChartView", "Child not shown, adjusting rects");
+                if (configManager.volumeFlex > 0) {
+                    mChildRect.top = mVolRect.bottom;
+                    mChildRect.bottom = mVolRect.bottom;
+                } else {
+                    // When volumeFlex is 0 and child is not shown, position at bottom for time bar
+                    mChildRect.top = allHeight;
+                    mChildRect.bottom = allHeight;
+                }
+                android.util.Log.d("BaseKLineChartView", "Final mChildRect after adjustment: " + mChildRect);
+            }
+
+            calculateValue();
+            android.util.Log.d("BaseKLineChartView", "initRect() COMPLETED");
+        } catch (Exception e) {
+            android.util.Log.e("BaseKLineChartView", "ERROR in initRect()", e);
+            throw e;
         }
-        
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
+        android.util.Log.d("BaseKLineChartView", "onDraw() START");
+        try {
+            super.onDraw(canvas);
 //        canvas.drawColor(mBackgroundPaint.getColor());
 
-        if (mWidth == 0 || mMainRect.height() == 0) {
-            return;
-        }
-        calculateValue();
-        canvas.save();
-        canvas.scale(1, 1);
-        drawGird(canvas);
-        if (mItemCount > 0) {
-            drawK(canvas);
-            drawText(canvas);
-            drawMaxAndMin(canvas);
-            drawValue(canvas, isLongPress ? mSelectedIndex : mStopIndex);
-            drawClosePriceLine(canvas);
-            drawSelector(canvas);
-        }
-        canvas.restore();
+            android.util.Log.d("BaseKLineChartView", "Checking dimensions: mWidth=" + mWidth + ", mMainRect.height()=" + mMainRect.height());
+            if (mWidth == 0 || mMainRect.height() == 0) {
+                android.util.Log.w("BaseKLineChartView", "Invalid dimensions, skipping draw");
+                return;
+            }
 
+            android.util.Log.d("BaseKLineChartView", "Calling calculateValue() from onDraw");
+            calculateValue();
 
-//        Path path = new Path();
-//        path.addRect(0, mMainRect.top, getMaxScrollX() + getWidth(), mMainRect.bottom, Path.Direction.CW);
-//        canvas.clipPath(path);
-        drawContext.onDraw(canvas);
+            android.util.Log.d("BaseKLineChartView", "Starting canvas operations");
+            canvas.save();
+            canvas.scale(1, 1);
+
+            android.util.Log.d("BaseKLineChartView", "Drawing grid");
+            drawGird(canvas);
+
+            if (mItemCount > 0) {
+                android.util.Log.d("BaseKLineChartView", "Drawing chart elements for " + mItemCount + " items");
+                drawK(canvas);
+                drawText(canvas);
+                drawMaxAndMin(canvas);
+                drawValue(canvas, isLongPress ? mSelectedIndex : mStopIndex);
+                drawClosePriceLine(canvas);
+                drawSelector(canvas);
+                android.util.Log.d("BaseKLineChartView", "Chart elements drawn successfully");
+            } else {
+                android.util.Log.w("BaseKLineChartView", "No items to draw (mItemCount = 0)");
+            }
+
+            canvas.restore();
+            android.util.Log.d("BaseKLineChartView", "Canvas operations completed");
+
+            android.util.Log.d("BaseKLineChartView", "Drawing context overlay");
+            drawContext.onDraw(canvas);
+            android.util.Log.d("BaseKLineChartView", "onDraw() COMPLETED SUCCESSFULLY");
+        } catch (Exception e) {
+            android.util.Log.e("BaseKLineChartView", "ERROR in onDraw()", e);
+            throw e;
+        }
     }
 
     public float yFromValue(float value) {
@@ -826,22 +863,49 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
      * 重新计算并刷新线条
      */
     public void notifyChanged() {
-        mItemCount = configManager.modelArray.size();
-        mDataLen = mItemCount * mPointWidth;
-        if (isShowChild && mChildDrawPosition == -1) {
-            mChildDraw = mChildDraws.get(0);
-            mChildDrawPosition = 0;
-        }
-        if (mItemCount != 0) {
+        android.util.Log.d("BaseKLineChartView", "notifyChanged() START");
+        try {
+            android.util.Log.d("BaseKLineChartView", "Setting mItemCount from configManager.modelArray.size(): " + configManager.modelArray.size());
+            mItemCount = configManager.modelArray.size();
             mDataLen = mItemCount * mPointWidth;
-            checkAndFixScrollX();
+            android.util.Log.d("BaseKLineChartView", "mItemCount: " + mItemCount + ", mDataLen: " + mDataLen + ", mPointWidth: " + mPointWidth);
+
+            if (isShowChild && mChildDrawPosition == -1) {
+                android.util.Log.d("BaseKLineChartView", "Setting up child draw");
+                mChildDraw = mChildDraws.get(0);
+                mChildDrawPosition = 0;
+            }
+
+            if (mItemCount != 0) {
+                android.util.Log.d("BaseKLineChartView", "Recalculating mDataLen and checking scroll");
+                mDataLen = mItemCount * mPointWidth;
+                android.util.Log.d("BaseKLineChartView", "Calling checkAndFixScrollX()");
+                checkAndFixScrollX();
+                android.util.Log.d("BaseKLineChartView", "checkAndFixScrollX() completed");
+            }
+
+            if (mSelectedIndex >= mItemCount) {
+                android.util.Log.d("BaseKLineChartView", "Resetting long press: mSelectedIndex(" + mSelectedIndex + ") >= mItemCount(" + mItemCount + ")");
+                isLongPress = false;
+            }
+
+            android.util.Log.d("BaseKLineChartView", "Calling initRect()");
+            initRect();
+            android.util.Log.d("BaseKLineChartView", "initRect() completed");
+
+            android.util.Log.d("BaseKLineChartView", "Calling initLottieView()");
+            initLottieView();
+            android.util.Log.d("BaseKLineChartView", "initLottieView() completed");
+
+            android.util.Log.d("BaseKLineChartView", "Calling invalidate()");
+            invalidate();
+            android.util.Log.d("BaseKLineChartView", "invalidate() completed");
+
+            android.util.Log.d("BaseKLineChartView", "notifyChanged() COMPLETED SUCCESSFULLY");
+        } catch (Exception e) {
+            android.util.Log.e("BaseKLineChartView", "ERROR in notifyChanged()", e);
+            throw e;
         }
-        if (mSelectedIndex >= mItemCount) {
-            isLongPress = false;
-        }
-        initRect();
-        initLottieView();
-        invalidate();
     }
 
     /**
@@ -879,11 +943,13 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
 
     @Override
     protected void onScrollChanged(int l, int t, int oldl, int oldt) {
+        android.util.Log.d("BaseKLineChartView", "onScrollChanged() - l=" + l + ", t=" + t + ", oldl=" + oldl + ", oldt=" + oldt);
         super.onScrollChanged(l, t, oldl, oldt);
     }
 
     @Override
     protected void onScaleChanged(float scale, float oldScale) {
+        android.util.Log.d("BaseKLineChartView", "onScaleChanged() - scale=" + scale + ", oldScale=" + oldScale);
         checkAndFixScrollX();
         super.onScaleChanged(scale, oldScale);
     }
@@ -907,26 +973,41 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
      * 计算当前的显示区域
      */
     private void calculateValue() {
-        if (!isLongPress()) {
-            mSelectedIndex = -1;
-        }
-        mMainMaxValue = Float.MIN_VALUE;
-        mMainMinValue = Float.MAX_VALUE;
-        mVolMaxValue = Float.MIN_VALUE;
-        mVolMinValue = Float.MAX_VALUE;
-        mChildMaxValue = Float.MIN_VALUE;
-        mChildMinValue = Float.MAX_VALUE;
-        mStartIndex = Math.min(Math.max(0, indexFromScrollX(viewXToScrollX(0))), mItemCount - 1);
-        mStopIndex = Math.max(0, Math.min(indexFromScrollX(viewXToScrollX(mWidth)), mItemCount - 1));
-        mMainMaxIndex = mStartIndex;
-        mMainMinIndex = mStartIndex;
-        mMainHighMaxValue = Float.MIN_VALUE;
-        mMainLowMinValue = Float.MAX_VALUE;
-        for (int i = mStartIndex; i <= mStopIndex; i++) {
-            if (i < 0 || i >= configManager.modelArray.size()) {
-                continue;
+        android.util.Log.d("BaseKLineChartView", "calculateValue() START");
+        try {
+            android.util.Log.d("BaseKLineChartView", "isLongPress: " + isLongPress() + ", mSelectedIndex: " + mSelectedIndex);
+            if (!isLongPress()) {
+                mSelectedIndex = -1;
             }
-            IKLine point = (IKLine) getItem(i);
+
+            android.util.Log.d("BaseKLineChartView", "Resetting min/max values");
+            mMainMaxValue = Float.MIN_VALUE;
+            mMainMinValue = Float.MAX_VALUE;
+            mVolMaxValue = Float.MIN_VALUE;
+            mVolMinValue = Float.MAX_VALUE;
+            mChildMaxValue = Float.MIN_VALUE;
+            mChildMinValue = Float.MAX_VALUE;
+
+            android.util.Log.d("BaseKLineChartView", "Calculating visible range: mWidth=" + mWidth + ", mItemCount=" + mItemCount);
+            mStartIndex = Math.min(Math.max(0, indexFromScrollX(viewXToScrollX(0))), mItemCount - 1);
+            mStopIndex = Math.max(0, Math.min(indexFromScrollX(viewXToScrollX(mWidth)), mItemCount - 1));
+            android.util.Log.d("BaseKLineChartView", "Visible range: mStartIndex=" + mStartIndex + ", mStopIndex=" + mStopIndex);
+            mMainMaxIndex = mStartIndex;
+            mMainMinIndex = mStartIndex;
+            mMainHighMaxValue = Float.MIN_VALUE;
+            mMainLowMinValue = Float.MAX_VALUE;
+
+            android.util.Log.d("BaseKLineChartView", "Starting data loop for range " + mStartIndex + " to " + mStopIndex);
+            for (int i = mStartIndex; i <= mStopIndex; i++) {
+                if (i < 0 || i >= configManager.modelArray.size()) {
+                    android.util.Log.w("BaseKLineChartView", "Skipping invalid index: " + i + " (size: " + configManager.modelArray.size() + ")");
+                    continue;
+                }
+                IKLine point = (IKLine) getItem(i);
+                if (point == null) {
+                    android.util.Log.w("BaseKLineChartView", "getItem(" + i + ") returned null");
+                    continue;
+                }
             if (mMainDraw != null) {
                 mMainMaxValue = Math.max(mMainMaxValue, mMainDraw.getMaxValue(point));
                 mMainMinValue = Math.min(mMainMinValue, mMainDraw.getMinValue(point));
@@ -950,6 +1031,12 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
                 mChildMaxValue = Math.max(mChildMaxValue, mChildDraw.getMaxValue(point));
                 mChildMinValue = Math.min(mChildMinValue, mChildDraw.getMinValue(point));
             }
+        }
+        android.util.Log.d("BaseKLineChartView", "Data loop completed. Final values - MainMax: " + mMainMaxValue + ", MainMin: " + mMainMinValue + ", VolMax: " + mVolMaxValue + ", VolMin: " + mVolMinValue);
+        android.util.Log.d("BaseKLineChartView", "calculateValue() COMPLETED");
+        } catch (Exception e) {
+            android.util.Log.e("BaseKLineChartView", "ERROR in calculateValue()", e);
+            throw e;
         }
 //        if (mItemCount > 0) {
 //            int i = mItemCount - 1;
@@ -1070,7 +1157,20 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
      * @return
      */
     public KLineEntity getItem(int position) {
-    	return configManager.modelArray.get(position);
+        try {
+            if (position < 0 || position >= configManager.modelArray.size()) {
+                android.util.Log.w("BaseKLineChartView", "getItem() - Invalid position: " + position + " (size: " + configManager.modelArray.size() + ")");
+                return null;
+            }
+            KLineEntity item = configManager.modelArray.get(position);
+            if (item == null) {
+                android.util.Log.w("BaseKLineChartView", "getItem() - Item at position " + position + " is null");
+            }
+            return item;
+        } catch (Exception e) {
+            android.util.Log.e("BaseKLineChartView", "ERROR in getItem(" + position + ")", e);
+            return null;
+        }
     }
 
     /**

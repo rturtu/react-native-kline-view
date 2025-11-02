@@ -87,13 +87,40 @@ class HTKLineModel: NSObject {
 
     static func packModel(_ dictionary: [String: Any]) -> HTKLineModel {
         let model = HTKLineModel()
-        model.id = dictionary["id"] as? CGFloat ?? 0
-        model.dateString = dictionary["dateString"] as? String ?? ""
+
+        // Handle id with fallback to time if id is missing
+        if let id = dictionary["id"] as? CGFloat {
+            model.id = id
+        } else if let time = dictionary["time"] as? CGFloat {
+            model.id = time
+        } else {
+            model.id = 0
+        }
+
+        // Handle dateString with fallback
+        if let dateString = dictionary["dateString"] as? String {
+            model.dateString = dateString
+        } else if let time = dictionary["time"] as? CGFloat {
+            let date = Date(timeIntervalSince1970: time / 1000) // Assuming time is in milliseconds
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+            formatter.timeZone = TimeZone(abbreviation: "UTC")
+            model.dateString = formatter.string(from: date)
+        } else {
+            model.dateString = ""
+        }
+
         model.open = dictionary["open"] as? CGFloat ?? 0
         model.high = dictionary["high"] as? CGFloat ?? 0
         model.low = dictionary["low"] as? CGFloat ?? 0
         model.close = dictionary["close"] as? CGFloat ?? 0
-        model.volume = dictionary["vol"] as? CGFloat ?? 0
+
+        // Handle volume with special case for NaN
+        if let vol = dictionary["vol"] as? CGFloat, !vol.isNaN && !vol.isInfinite {
+            model.volume = vol
+        } else {
+            model.volume = 0
+        }
         model.maList = HTKLineItemModel.packModelArray(dictionary["maList"] as? [[String: Any]] ?? [])
         model.maVolumeList = HTKLineItemModel.packModelArray(dictionary["maVolumeList"] as? [[String: Any]] ?? [])
         model.rsiList = HTKLineItemModel.packModelArray(dictionary["rsiList"] as? [[String: Any]] ?? [])

@@ -1,11 +1,12 @@
 import React from 'react'
-import { View, Text, Switch } from 'react-native'
+import { View, Text, Switch, TouchableOpacity } from 'react-native'
 import { createToolbarStyles } from './Toolbar.styles'
 
 const Toolbar = ({
 	theme,
 	isDarkTheme,
-	onToggleTheme
+	onToggleTheme,
+	onTestUpdate
 }) => {
 	const styles = createToolbarStyles(theme)
 
@@ -13,6 +14,14 @@ const Toolbar = ({
 		<View style={styles.toolbar}>
 			<Text style={styles.title}>K-line Chart</Text>
 			<View style={styles.toolbarRight}>
+				{onTestUpdate && (
+					<TouchableOpacity
+						style={styles.testButton}
+						onPress={onTestUpdate}
+					>
+						<Text style={styles.testButtonText}>Update Last</Text>
+					</TouchableOpacity>
+				)}
 				<Text style={styles.themeLabel}>
 					{isDarkTheme ? 'Night' : 'Day'}
 				</Text>

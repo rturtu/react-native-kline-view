@@ -8,8 +8,10 @@ import android.widget.ScrollView;
 import com.facebook.react.bridge.*;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
+import java.util.Map;
 import com.github.fujianlian.klinechart.HTKLineConfigManager;
 import com.github.fujianlian.klinechart.KLineChartView;
+import com.github.fujianlian.klinechart.KLineEntity;
 import com.github.fujianlian.klinechart.RNKLineView;
 import com.github.fujianlian.klinechart.formatter.DateFormatter;
 
@@ -279,6 +281,89 @@ public class HTKLineContainerView extends RelativeLayout {
         } else {
             shotView.setPoint(new HTPoint(event.getX(), event.getY()));
         }
+    }
+
+    public void updateLastCandlestick(Map<String, Object> candlestickData) {
+        android.util.Log.d("HTKLineContainerView", "updateLastCandlestick called with data: " + candlestickData);
+
+        if (klineView == null || configManager.modelArray == null ||
+            configManager.modelArray.isEmpty()) {
+            android.util.Log.w("HTKLineContainerView", "updateLastCandlestick: Null check failed");
+            return;
+        }
+
+        // Test 2: Don't touch the view at all, just log
+        android.util.Log.d("HTKLineContainerView", "Test 2: No view operations, just updating data");
+
+        try {
+            // Get the existing last candlestick to preserve indicator data
+            int lastIndex = configManager.modelArray.size() - 1;
+            if (lastIndex < 0) {
+                android.util.Log.w("HTKLineContainerView", "No items in modelArray");
+                return;
+            }
+
+            KLineEntity existingEntity = configManager.modelArray.get(lastIndex);
+            if (existingEntity == null) {
+                android.util.Log.w("HTKLineContainerView", "Existing entity is null");
+                return;
+            }
+
+            // Create a new entity but preserve indicator lists from the existing entity
+            KLineEntity newEntity = configManager.packModel(candlestickData);
+            android.util.Log.d("HTKLineContainerView", "Created new entity: " + newEntity.Close);
+
+            // Validate the new entity
+            if (Float.isNaN(newEntity.Close) || Float.isInfinite(newEntity.Close)) {
+                android.util.Log.w("HTKLineContainerView", "Invalid close price, skipping update");
+                return;
+            }
+
+            // Preserve the indicator lists from the existing entity to avoid IndexOutOfBounds
+            android.util.Log.d("HTKLineContainerView", "Preserving indicator lists from existing entity");
+            newEntity.maList = existingEntity.maList;
+            newEntity.maVolumeList = existingEntity.maVolumeList;
+            newEntity.rsiList = existingEntity.rsiList;
+            newEntity.wrList = existingEntity.wrList;
+            newEntity.selectedItemList = existingEntity.selectedItemList;
+
+            // Update the last item in the data list with synchronization
+            synchronized (configManager.modelArray) {
+                if (lastIndex >= configManager.modelArray.size()) {
+                    android.util.Log.w("HTKLineContainerView", "Index out of bounds: " + lastIndex);
+                    return;
+                }
+
+                configManager.modelArray.set(lastIndex, newEntity);
+                android.util.Log.d("HTKLineContainerView", "Updated last candlestick at index: " + lastIndex);
+            }
+
+            android.util.Log.d("HTKLineContainerView", "Data update completed, now triggering safe redraw");
+
+            // Use postDelayed to ensure the data update is fully complete before triggering redraw
+            postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        // Call notifyChanged to properly recalculate the chart state
+                        android.util.Log.d("HTKLineContainerView", "Calling notifyChanged to recalculate chart state");
+                        klineView.notifyChanged();
+                        android.util.Log.d("HTKLineContainerView", "notifyChanged completed successfully");
+
+                        // Force immediate invalidation to ensure visual update
+                        android.util.Log.d("HTKLineContainerView", "Forcing view invalidation for immediate redraw");
+                        klineView.invalidate();
+                        android.util.Log.d("HTKLineContainerView", "View invalidation completed");
+                    } catch (Exception e) {
+                        android.util.Log.e("HTKLineContainerView", "Error in redraw operations", e);
+                    }
+                }
+            }, 50); // 50ms delay to ensure data is stable
+
+        } catch (Exception e) {
+            android.util.Log.e("HTKLineContainerView", "Error updating data", e);
+        }
+
     }
 
 }

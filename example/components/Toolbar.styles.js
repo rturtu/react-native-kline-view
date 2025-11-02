@@ -26,5 +26,17 @@ export const createToolbarStyles = (theme) => {
 			color: theme.textColor,
 			marginRight: 8,
 		},
+		testButton: {
+			backgroundColor: theme.buttonColor,
+			paddingHorizontal: 12,
+			paddingVertical: 6,
+			borderRadius: 4,
+			marginRight: 12,
+		},
+		testButtonText: {
+			fontSize: 12,
+			color: '#FFFFFF',
+			fontWeight: '600',
+		},
 	})
 }

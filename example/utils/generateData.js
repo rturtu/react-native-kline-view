@@ -43,7 +43,7 @@ export const generateMoreHistoricalData = (existingData, count = 200) => {
   let lastClose = firstItem.open
 
   for (let i = count; i > 0; i--) {
-    const time = firstItem.time - i * 1 * 60 * 1000 // 15-minute interval, pushing backward
+    const time = firstItem.time - (count-i+1) * 1 * 60 * 1000 // 15-minute interval, pushing backward
 
     const open = lastClose
     const volatility = 0.02
@@ -68,6 +68,8 @@ export const generateMoreHistoricalData = (existingData, count = 200) => {
 
     lastClose = close
   }
+
+  newData.reverse() // Ensure chronological order
 
   return newData
 }

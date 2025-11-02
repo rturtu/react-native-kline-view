@@ -214,13 +214,31 @@ public class HTKLineConfigManager {
 
     public KLineEntity packModel(Map<String, Object> keyValue) {
     	KLineEntity entity = new KLineEntity();
-    	entity.id = ((Number)keyValue.get("id")).intValue();
-        entity.Date = keyValue.get("dateString").toString();
-        entity.Open = ((Number)keyValue.get("open")).floatValue();
-        entity.High = ((Number)keyValue.get("high")).floatValue();
-        entity.Low = ((Number)keyValue.get("low")).floatValue();
-        entity.Close = ((Number)keyValue.get("close")).floatValue();
-        entity.Volume = ((Number)keyValue.get("vol")).floatValue();
+
+    	// Handle id with fallback to time if id is missing
+    	Object idValue = keyValue.get("id");
+    	if (idValue == null) {
+    	    idValue = keyValue.get("time");
+    	}
+    	entity.id = idValue != null ? ((Number)idValue).intValue() : 0;
+
+    	// Handle dateString with fallback
+    	Object dateValue = keyValue.get("dateString");
+    	entity.Date = dateValue != null ? dateValue.toString() : "";
+
+    	// Handle numeric values with null checks
+        entity.Open = ((Number)this.getOrDefault(keyValue, "open", 0.0)).floatValue();
+        entity.High = ((Number)this.getOrDefault(keyValue, "high", 0.0)).floatValue();
+        entity.Low = ((Number)this.getOrDefault(keyValue, "low", 0.0)).floatValue();
+        entity.Close = ((Number)this.getOrDefault(keyValue, "close", 0.0)).floatValue();
+
+        // Handle volume with special case for NaN
+        Object volValue = keyValue.get("vol");
+        if (volValue instanceof Number && !((Number)volValue).toString().equals("NaN")) {
+            entity.Volume = ((Number)volValue).floatValue();
+        } else {
+            entity.Volume = 0.0f;
+        }
         entity.selectedItemList = (List<Map<String, Object>>) keyValue.get("selectedItemList");
 
 

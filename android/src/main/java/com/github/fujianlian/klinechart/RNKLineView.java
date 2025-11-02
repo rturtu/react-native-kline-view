@@ -9,6 +9,7 @@ import com.facebook.react.common.MapBuilder;
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.annotations.ReactProp;
+import androidx.annotation.Nullable;
 import com.github.fujianlian.klinechart.container.HTKLineContainerView;
 import com.github.fujianlian.klinechart.draw.PrimaryStatus;
 import com.github.fujianlian.klinechart.draw.SecondStatus;
@@ -66,7 +67,7 @@ public class RNKLineView extends SimpleViewManager<HTKLineContainerView> {
         if (optionList == null) {
             return;
         }
-        
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -83,6 +84,37 @@ public class RNKLineView extends SimpleViewManager<HTKLineContainerView> {
         }).start();
     }
 
+    @Override
+    public Map<String, Integer> getCommandsMap() {
+        return MapBuilder.of(
+            "updateLastCandlestick", 1
+        );
+    }
 
+    @Override
+    public void receiveCommand(@Nonnull HTKLineContainerView containerView, String commandId, @Nullable ReadableArray args) {
+        android.util.Log.d("RNKLineView", "receiveCommand called with commandId: " + commandId);
+        switch (commandId) {
+            case "updateLastCandlestick":
+                android.util.Log.d("RNKLineView", "Processing updateLastCandlestick command");
+                if (args != null && args.size() > 0) {
+                    try {
+                        ReadableMap candlestickData = args.getMap(0);
+                        Map<String, Object> dataMap = candlestickData.toHashMap();
+                        android.util.Log.d("RNKLineView", "Calling containerView.updateLastCandlestick with data: " + dataMap);
+                        containerView.updateLastCandlestick(dataMap);
+                    } catch (Exception e) {
+                        android.util.Log.e("RNKLineView", "Error in receiveCommand", e);
+                        e.printStackTrace();
+                    }
+                } else {
+                    android.util.Log.w("RNKLineView", "updateLastCandlestick: args is null or empty");
+                }
+                break;
+            default:
+                android.util.Log.w("RNKLineView", "Unknown command: " + commandId);
+                break;
+        }
+    }
 
 }

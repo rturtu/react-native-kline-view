@@ -231,12 +231,39 @@ class HTKLineContainerView: UIView {
         var previousLocation = touched.first?.previousLocation(in: self) ?? location
         location = convertLocation(location)
         previousLocation = convertLocation(previousLocation)
-        
+
         let translation = CGPoint.init(x: location.x - previousLocation.x, y: location.y - previousLocation.y)
-        
+
         klineView.drawContext.touchesGesture(location, translation, state)
         shotView.shotPoint = state != .ended ? touched.first?.location(in: self) : nil
     }
-    
+
+    @objc func updateLastCandlestick(_ candlestick: NSDictionary) {
+        print("HTKLineContainerView: updateLastCandlestick called with data: \(candlestick)")
+
+        guard let candlestickDict = candlestick as? [String: Any],
+              configManager.modelArray.count > 0 else {
+            print("HTKLineContainerView: updateLastCandlestick - Null check failed or empty model array")
+            return
+        }
+
+        do {
+            // Update the last candlestick in the model array
+            let lastIndex = configManager.modelArray.count - 1
+            let updatedModel = HTKLineModel.packModel(candlestickDict)
+            configManager.modelArray[lastIndex] = updatedModel
+
+            print("HTKLineContainerView: Updated last candlestick at index \(lastIndex) with close: \(updatedModel.close)")
+
+            // Force redraw without reloading the entire configuration
+            DispatchQueue.main.async { [weak self] in
+                print("HTKLineContainerView: Triggering redraw")
+                self?.klineView.setNeedsDisplay()
+            }
+        } catch {
+            print("HTKLineContainerView: Error updating last candlestick: \(error)")
+        }
+    }
+
 }
 

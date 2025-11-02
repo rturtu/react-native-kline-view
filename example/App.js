@@ -298,7 +298,38 @@ const App = () => {
 		setTimeout(() => reloadKLineDataWithScrollAdjustment(addedDataCount), 0)
 	}, [klineData, reloadKLineDataWithScrollAdjustment])
 
-	const renderKLineChart = useCallback((styles, theme) => {
+	// Test function to update last candlestick
+	const testUpdateLastCandlestick = useCallback(() => {
+		if (!kLineViewRef.current || klineData.length === 0) {
+			console.warn('No chart ref or data available')
+			return
+		}
+
+		const lastCandle = klineData[klineData.length - 1]
+
+		// Create a modified version of the last candlestick with random price changes
+		const priceChange = (0.01 - Math.random() * 0.02) * lastCandle.close // Random change between -1 and 1
+		const volumeChange = Math.random() * 0.5 + 0.75 // Random multiplier between 0.75 and 1.25
+
+		const newClose = Math.max(0.01, lastCandle.close + priceChange)
+		const updatedCandle = {
+			...lastCandle,
+			close: newClose,
+			high: Math.max(lastCandle.high, newClose + Math.abs(priceChange) * 0.5),
+			low: Math.min(lastCandle.low, newClose - Math.abs(priceChange) * 0.5),
+			vol: Math.round(lastCandle.vol * volumeChange),
+			// Ensure required fields are present
+			id: lastCandle.id || lastCandle.time,
+			dateString: lastCandle.dateString || new Date(lastCandle.time).toISOString()
+		}
+
+		console.log('Updating last candlestick:', updatedCandle)
+
+		// Call the native method directly
+		kLineViewRef.current.updateLastCandlestick(updatedCandle)
+	}, [klineData])
+
+	const renderKLineChart = useCallback((styles) => {
 		const directRender = (
 			<RNKLineView
 				ref={kLineViewRef}
@@ -350,6 +381,7 @@ const App = () => {
 
 	const theme = ThemeManager.getCurrentTheme(isDarkTheme)
 	const styles = getStyles(theme)
+	console.log("App.js render", Platform.OS)
 
 	return (
 		<View style={styles.container}>
@@ -358,10 +390,11 @@ const App = () => {
 				theme={theme}
 				isDarkTheme={isDarkTheme}
 				onToggleTheme={toggleTheme}
+				onTestUpdate={testUpdateLastCandlestick}
 			/>
 
 			{/* K-line chart */}
-			{renderKLineChart(styles, theme)}
+			{renderKLineChart(styles)}
 
 			{/* Bottom control bar */}
 			<ControlBar
