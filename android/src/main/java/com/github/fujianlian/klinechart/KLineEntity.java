@@ -189,6 +189,10 @@ public class KLineEntity implements IKLine {
         float max = Float.MIN_VALUE;
         float min = Float.MAX_VALUE;
         for (HTKLineTargetItem item: itemList) {
+            // Skip NaN values to prevent them from breaking min/max calculations
+            if (Float.isNaN(item.value)) {
+                continue;
+            }
             if (isMax) {
                 max = Math.max(max, item.value);
             } else {
@@ -196,9 +200,11 @@ public class KLineEntity implements IKLine {
             }
         }
         if (isMax) {
-            return max;
+            // If no valid values were found, return 0 instead of Float.MIN_VALUE
+            return max == Float.MIN_VALUE ? 0f : max;
         }
-        return min;
+        // If no valid values were found, return 0 instead of Float.MAX_VALUE
+        return min == Float.MAX_VALUE ? 0f : min;
     }
 
 

@@ -317,7 +317,7 @@ const App = () => {
 			close: newClose,
 			high: Math.max(lastCandle.high, newClose + Math.abs(priceChange) * 0.5),
 			low: Math.min(lastCandle.low, newClose - Math.abs(priceChange) * 0.5),
-			volume: Math.round(lastCandle.vol * volumeChange),
+			vol: Math.round(lastCandle.vol * volumeChange),
 			// Ensure required fields are present
 			id: lastCandle.id || lastCandle.time,
 			dateString: lastCandle.dateString || new Date(lastCandle.time).toISOString()
@@ -339,7 +339,7 @@ const App = () => {
 		const lastCandle = klineData[klineData.length - 1]
 		const numberOfNewCandles = 1 // Add 1 new candlesticks
 
-		// Generate new candlesticks
+		// Generate new candlesticks with indicators
 		const newCandlesticks = []
 		for (let i = 1; i <= numberOfNewCandles; i++) {
 			const timeIncrement = 60000 * i // 1 minute intervals
@@ -352,18 +352,96 @@ const App = () => {
 			const low = Math.min(open, close) - Math.random() * basePrice * 0.005
 			const volume = Math.round(lastCandle.vol * (0.5 + Math.random()))
 
+			// Calculate MA indicators based on historical data
+			const tempAllData = [...klineData]
+			const currentIndex = tempAllData.length + i - 1
+
+			// Calculate MA5
+			let ma5 = close
+			if (currentIndex >= 4) {
+				let sum = close
+				for (let j = Math.max(0, tempAllData.length - 4 + i - 1); j < tempAllData.length; j++) {
+					sum += tempAllData[j].close
+				}
+				ma5 = sum / 5
+			}
+
+			// Calculate MA10
+			let ma10 = close
+			if (currentIndex >= 9) {
+				let sum = close
+				for (let j = Math.max(0, tempAllData.length - 9 + i - 1); j < tempAllData.length; j++) {
+					sum += tempAllData[j].close
+				}
+				ma10 = sum / 10
+			}
+
+			// Calculate MA20
+			let ma20 = close
+			if (currentIndex >= 19) {
+				let sum = close
+				for (let j = Math.max(0, tempAllData.length - 19 + i - 1); j < tempAllData.length; j++) {
+					sum += tempAllData[j].close
+				}
+				ma20 = sum / 20
+			}
+
+			// Helper function to safely get volume value
+			const getSafeVolume = (item) => {
+				const vol = item.vol || item.volume
+				return isNaN(vol) || !isFinite(vol) ? 100000 : vol
+			}
+
+			// Calculate Volume MA5
+			let volumeMa5 = volume
+			if (currentIndex >= 4) {
+				let sum = volume
+				for (let j = Math.max(0, tempAllData.length - 4 + i - 1); j < tempAllData.length; j++) {
+					sum += getSafeVolume(tempAllData[j])
+				}
+				volumeMa5 = sum / 5
+			}
+
+			// Calculate Volume MA10
+			let volumeMa10 = volume
+			if (currentIndex >= 9) {
+				let sum = volume
+				for (let j = Math.max(0, tempAllData.length - 9 + i - 1); j < tempAllData.length; j++) {
+					sum += getSafeVolume(tempAllData[j])
+				}
+				volumeMa10 = sum / 10
+			}
+
+			// Ensure all values are valid numbers
+			const safeValue = (val, fallback = 0) => isNaN(val) || !isFinite(val) ? fallback : val
+
 			const newCandle = {
 				time: lastCandle.time + timeIncrement,
 				open: parseFloat(open.toFixed(2)),
 				high: parseFloat(high.toFixed(2)),
 				low: parseFloat(low.toFixed(2)),
 				close: parseFloat(close.toFixed(2)),
-				volume: volume,
+				vol: safeValue(volume, 100000), // Fallback to reasonable volume
 				id: lastCandle.time + timeIncrement,
-				dateString: new Date(lastCandle.time + timeIncrement).toISOString()
+				dateString: new Date(lastCandle.time + timeIncrement).toISOString(),
+				// Add indicator lists
+				maList: [
+					{ title: '5', value: safeValue(ma5, close), selected: true, index: 0 },
+					{ title: '10', value: safeValue(ma10, close), selected: true, index: 1 },
+					{ title: '20', value: safeValue(ma20, close), selected: true, index: 2 }
+				],
+				maVolumeList: [
+					{ title: '5', value: safeValue(volumeMa5, 100000), selected: showVolumeChart, index: 0 },
+					{ title: '10', value: safeValue(volumeMa10, 100000), selected: showVolumeChart, index: 1 }
+				],
+				rsiList: lastCandle.rsiList || [],
+				wrList: lastCandle.wrList || [],
+				selectedItemList: lastCandle.selectedItemList || []
 			}
 
 			newCandlesticks.push(newCandle)
+			// Add to temp array for next iteration calculations
+			tempAllData.push(newCandle)
 		}
 
 		console.log('Adding', numberOfNewCandles, 'new candlesticks at the end:', newCandlesticks)

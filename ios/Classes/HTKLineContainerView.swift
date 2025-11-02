@@ -303,50 +303,10 @@ class HTKLineContainerView: UIView {
                 return
             }
 
-            // Initialize indicator lists for new models to prevent IndexOutOfBounds
+            // The indicator lists are now properly populated by packModelArray() from React Native data
+            // No need for manual calculation since the data already includes calculated indicators
             for newModel in newModels {
-                if let template = templateModel {
-                    print("HTKLineContainerView: Preserving indicator lists structure for new model")
-                    // Initialize with empty arrays matching the template structure
-                    newModel.maList = Array(repeating: HTKLineItemModel(), count: template.maList.count)
-                    newModel.maVolumeList = Array(repeating: HTKLineItemModel(), count: template.maVolumeList.count)
-                    newModel.rsiList = Array(repeating: HTKLineItemModel(), count: template.rsiList.count)
-                    newModel.wrList = Array(repeating: HTKLineItemModel(), count: template.wrList.count)
-                    newModel.selectedItemList = []
-
-                    // Set default values for indicator items
-                    for i in 0..<newModel.maList.count {
-                        newModel.maList[i].value = 0
-                        newModel.maList[i].title = template.maList[i].title
-                        newModel.maList[i].selected = template.maList[i].selected
-                        newModel.maList[i].index = template.maList[i].index
-                    }
-                    for i in 0..<newModel.maVolumeList.count {
-                        newModel.maVolumeList[i].value = 0
-                        newModel.maVolumeList[i].title = template.maVolumeList[i].title
-                        newModel.maVolumeList[i].selected = template.maVolumeList[i].selected
-                        newModel.maVolumeList[i].index = template.maVolumeList[i].index
-                    }
-                    for i in 0..<newModel.rsiList.count {
-                        newModel.rsiList[i].value = 0
-                        newModel.rsiList[i].title = template.rsiList[i].title
-                        newModel.rsiList[i].selected = template.rsiList[i].selected
-                        newModel.rsiList[i].index = template.rsiList[i].index
-                    }
-                    for i in 0..<newModel.wrList.count {
-                        newModel.wrList[i].value = 0
-                        newModel.wrList[i].title = template.wrList[i].title
-                        newModel.wrList[i].selected = template.wrList[i].selected
-                        newModel.wrList[i].index = template.wrList[i].index
-                    }
-                } else {
-                    print("HTKLineContainerView: No template model available, initializing empty indicator lists")
-                    newModel.maList = []
-                    newModel.maVolumeList = []
-                    newModel.rsiList = []
-                    newModel.wrList = []
-                    newModel.selectedItemList = []
-                }
+                print("HTKLineContainerView: Using indicator data from React Native - maList.count=\(newModel.maList.count), maVolumeList.count=\(newModel.maVolumeList.count)")
             }
 
             // Get the scroll position before adding data

@@ -86,7 +86,10 @@ public class VolumeDraw implements IChartDraw<IVolume> {
         if (formatter instanceof ValueFormatter) {
             ValueFormatter valueFormatter = (ValueFormatter)formatter;
             String space = "  ";
-            String text = "VOL:" + valueFormatter.formatVolume(point.getVolume()) + "  ";
+            // Handle NaN volume value to prevent formatting crashes
+            float volume = point.getVolume();
+            String volumeText = Float.isNaN(volume) ? "--" : valueFormatter.formatVolume(volume);
+            String text = "VOL:" + volumeText + "  ";
             primaryPaint.setColor(view.configManager.targetColorList[5]);
             canvas.drawText(text, x, y, primaryPaint);
             x += view.getTextPaint().measureText(text);
@@ -97,7 +100,15 @@ public class VolumeDraw implements IChartDraw<IVolume> {
                 stringBuilder.append("MA");
                 stringBuilder.append(targetItem.title);
                 stringBuilder.append(":");
-                stringBuilder.append(valueFormatter.formatVolume(targetItem.value));
+
+                // Handle NaN values to prevent formatting crashes
+                float value = targetItem.value;
+                if (Float.isNaN(value)) {
+                    stringBuilder.append("--");
+                } else {
+                    stringBuilder.append(valueFormatter.formatVolume(value));
+                }
+
                 stringBuilder.append(space);
                 text = stringBuilder.toString();
                 canvas.drawText(text, x, y, this.primaryPaint);
@@ -109,13 +120,27 @@ public class VolumeDraw implements IChartDraw<IVolume> {
     @Override
     public float getMaxValue(IVolume point) {
         KLineEntity item = (KLineEntity) point;
-        return Math.max(point.getVolume(), item.targetListISMax(item.maVolumeList, true));
+        float volume = point.getVolume();
+        float maMax = item.targetListISMax(item.maVolumeList, true);
+
+        // Handle NaN values to prevent crashes
+        if (Float.isNaN(volume)) volume = 0f;
+        if (Float.isNaN(maMax)) maMax = 0f;
+
+        return Math.max(volume, maMax);
     }
 
     @Override
     public float getMinValue(IVolume point) {
         KLineEntity item = (KLineEntity) point;
-        return Math.min(point.getVolume(), item.targetListISMax(item.maVolumeList, false));
+        float volume = point.getVolume();
+        float maMin = item.targetListISMax(item.maVolumeList, false);
+
+        // Handle NaN values to prevent crashes
+        if (Float.isNaN(volume)) volume = 0f;
+        if (Float.isNaN(maMin)) maMin = 0f;
+
+        return Math.min(volume, maMin);
     }
 
     @Override

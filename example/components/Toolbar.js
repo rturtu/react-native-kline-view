@@ -28,7 +28,7 @@ const Toolbar = ({
 						style={styles.testButton}
 						onPress={onTestAddCandles}
 					>
-						<Text style={styles.testButtonText}>Add 5 Candles</Text>
+						<Text style={styles.testButtonText}>Add 1 Candle</Text>
 					</TouchableOpacity>
 				)}
 				<Text style={styles.themeLabel}>

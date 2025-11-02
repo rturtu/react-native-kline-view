@@ -403,65 +403,9 @@ public class HTKLineContainerView extends RelativeLayout {
 
                     // Validate the entity
                     if (!Float.isNaN(entity.Close) && !Float.isInfinite(entity.Close)) {
-                        // Initialize indicator lists to prevent IndexOutOfBounds
-                        if (templateEntity != null) {
-                            android.util.Log.d("HTKLineContainerView", "Preserving indicator lists structure for new entity");
-                            // Initialize with empty lists matching the template structure
-                            entity.maList = new ArrayList<>(templateEntity.maList.size());
-                            entity.maVolumeList = new ArrayList<>(templateEntity.maVolumeList.size());
-                            entity.rsiList = new ArrayList<>(templateEntity.rsiList.size());
-                            entity.wrList = new ArrayList<>(templateEntity.wrList.size());
-                            entity.selectedItemList = new ArrayList<>();
-
-                            // Fill with default/zero values to maintain list size
-                            for (int j = 0; j < templateEntity.maList.size(); j++) {
-                                HTKLineTargetItem templateItem = templateEntity.maList.get(j);
-                                HTKLineTargetItem newItem = new HTKLineTargetItem(new HashMap<String, Object>() {{
-                                    put("title", templateItem.title);
-                                    put("value", 0.0f);
-                                    put("selected", true);
-                                    put("index", templateItem.index);
-                                }});
-                                entity.maList.add(newItem);
-                            }
-                            for (int j = 0; j < templateEntity.maVolumeList.size(); j++) {
-                                HTKLineTargetItem templateItem = templateEntity.maVolumeList.get(j);
-                                HTKLineTargetItem newItem = new HTKLineTargetItem(new HashMap<String, Object>() {{
-                                    put("title", templateItem.title);
-                                    put("value", 0.0f);
-                                    put("selected", true);
-                                    put("index", templateItem.index);
-                                }});
-                                entity.maVolumeList.add(newItem);
-                            }
-                            for (int j = 0; j < templateEntity.rsiList.size(); j++) {
-                                HTKLineTargetItem templateItem = templateEntity.rsiList.get(j);
-                                HTKLineTargetItem newItem = new HTKLineTargetItem(new HashMap<String, Object>() {{
-                                    put("title", templateItem.title);
-                                    put("value", 0.0f);
-                                    put("selected", true);
-                                    put("index", templateItem.index);
-                                }});
-                                entity.rsiList.add(newItem);
-                            }
-                            for (int j = 0; j < templateEntity.wrList.size(); j++) {
-                                HTKLineTargetItem templateItem = templateEntity.wrList.get(j);
-                                HTKLineTargetItem newItem = new HTKLineTargetItem(new HashMap<String, Object>() {{
-                                    put("title", templateItem.title);
-                                    put("value", 0.0f);
-                                    put("selected", true);
-                                    put("index", templateItem.index);
-                                }});
-                                entity.wrList.add(newItem);
-                            }
-                        } else {
-                            android.util.Log.d("HTKLineContainerView", "No template entity available, initializing empty indicator lists");
-                            entity.maList = new ArrayList<>();
-                            entity.maVolumeList = new ArrayList<>();
-                            entity.rsiList = new ArrayList<>();
-                            entity.wrList = new ArrayList<>();
-                            entity.selectedItemList = new ArrayList<>();
-                        }
+                        // The indicator lists are now properly populated by packModel() from React Native data
+                        // No need for manual calculation since the data already includes calculated indicators
+                        android.util.Log.d("HTKLineContainerView", "Using indicator data from React Native - maList.size=" + entity.maList.size() + ", maVolumeList.size=" + entity.maVolumeList.size());
 
                         newEntities.add(entity);
                     } else {
