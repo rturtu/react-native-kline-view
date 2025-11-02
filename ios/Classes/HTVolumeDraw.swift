@@ -43,6 +43,13 @@ class HTVolumeDraw: NSObject, HTKLineDrawProtocol {
 
         } else {
             for itemModel in configManager.maVolumeList {
+                // Safety check to prevent index out of bounds
+                guard itemModel.index < model.maVolumeList.count &&
+                      itemModel.index < lastModel.maVolumeList.count else {
+                    print("HTVolumeDraw: Index out of bounds - itemModel.index: \(itemModel.index), model.maVolumeList.count: \(model.maVolumeList.count), lastModel.maVolumeList.count: \(lastModel.maVolumeList.count)")
+                    continue
+                }
+
                 let color = configManager.targetColorList[itemModel.index]
                 drawLine(value: model.maVolumeList[itemModel.index].value, lastValue: lastModel.maVolumeList[itemModel.index].value, maxValue: maxValue, minValue: minValue, baseY: baseY, height: height, index: index, lastIndex: lastIndex, color: color, isBezier: false, context: context, configManager: configManager)
             }
@@ -55,6 +62,12 @@ class HTVolumeDraw: NSObject, HTKLineDrawProtocol {
         x += drawText(title: String(format: "VOL:%@", configManager.precision(model.volume, configManager.volume)), point: CGPoint.init(x: x, y: baseY), color: configManager.targetColorList[5], font: font, context: context, configManager: configManager)
         x += 5
         for itemModel in configManager.maVolumeList {
+            // Safety check to prevent index out of bounds
+            guard itemModel.index < model.maVolumeList.count else {
+                print("HTVolumeDraw: drawText - Index out of bounds - itemModel.index: \(itemModel.index), model.maVolumeList.count: \(model.maVolumeList.count)")
+                continue
+            }
+
             let item = model.maVolumeList[itemModel.index]
             let title = String(format: "MA%@:%@", item.title, configManager.precision(item.value, configManager.volume))
             let color = configManager.targetColorList[itemModel.index]

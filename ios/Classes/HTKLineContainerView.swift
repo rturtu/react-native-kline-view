@@ -248,12 +248,26 @@ class HTKLineContainerView: UIView {
         }
 
         do {
-            // Update the last candlestick in the model array
+            // Get the existing last candlestick to preserve indicator data
             let lastIndex = configManager.modelArray.count - 1
+            let existingModel = configManager.modelArray[lastIndex]
+
+            // Create updated model but preserve indicator lists from existing model
             let updatedModel = HTKLineModel.packModel(candlestickDict)
+
+            // Preserve the indicator lists from the existing model to avoid IndexOutOfBounds
+            print("HTKLineContainerView: Preserving indicator lists from existing model")
+            updatedModel.maList = existingModel.maList
+            updatedModel.maVolumeList = existingModel.maVolumeList
+            updatedModel.rsiList = existingModel.rsiList
+            updatedModel.wrList = existingModel.wrList
+            updatedModel.selectedItemList = existingModel.selectedItemList
+
+            // Update the model array
             configManager.modelArray[lastIndex] = updatedModel
 
             print("HTKLineContainerView: Updated last candlestick at index \(lastIndex) with close: \(updatedModel.close)")
+            print("HTKLineContainerView: Preserved maVolumeList count: \(updatedModel.maVolumeList.count)")
 
             // Force redraw without reloading the entire configuration
             DispatchQueue.main.async { [weak self] in
