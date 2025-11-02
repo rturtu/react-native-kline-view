@@ -3,7 +3,7 @@
  * Supports indicators, finger drawing, theme switching and other features
  */
 
-import React, { Component } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import {
 	View,
 	StyleSheet,
@@ -32,146 +32,166 @@ import {
 import { generateMockData, generateMoreHistoricalData } from './utils/generateData'
 
 
-class App extends Component {
-	constructor(props) {
-		super(props)
-		
-		this.state = {
-			isDarkTheme: false,
-			selectedTimeType: 2, // Corresponds to 1 minute
-			selectedMainIndicator: 0, // Corresponds to MA
-			selectedSubIndicator: 0, // Corresponds to MACD
-			selectedDrawTool: DrawTypeConstants.none,
-			showIndicatorSelector: false,
-			showTimeSelector: false,
-			showDrawToolSelector: false,
-			klineData: generateMockData(),
-			drawShouldContinue: true,
-			optionList: null,
-			isLoadingNewData: false,
-			lastDataLength: 0,
-			currentScrollPosition: 0,
-			showVolumeChart: true,
-			candleCornerRadius: 0
-		}
-	}
+const App = () => {
+	const [isDarkTheme, setIsDarkTheme] = useState(false)
+	const [selectedTimeType, setSelectedTimeType] = useState(2) // Corresponds to 1 minute
+	const [selectedMainIndicator, setSelectedMainIndicator] = useState(0) // Corresponds to MA
+	const [selectedSubIndicator, setSelectedSubIndicator] = useState(0) // Corresponds to MACD
+	const [selectedDrawTool, setSelectedDrawTool] = useState(DrawTypeConstants.none)
+	const [showIndicatorSelector, setShowIndicatorSelector] = useState(false)
+	const [showTimeSelector, setShowTimeSelector] = useState(false)
+	const [showDrawToolSelector, setShowDrawToolSelector] = useState(false)
+	const [klineData, setKlineData] = useState(generateMockData())
+	const [drawShouldContinue, setDrawShouldContinue] = useState(true)
+	const [optionList, setOptionList] = useState(null)
+	const [isLoadingNewData, setIsLoadingNewData] = useState(false)
+	const [lastDataLength, setLastDataLength] = useState(0)
+	const [currentScrollPosition, setCurrentScrollPosition] = useState(0)
+	const [showVolumeChart, setShowVolumeChart] = useState(true)
+	const [candleCornerRadius, setCandleCornerRadius] = useState(0)
 
-	componentDidMount() {
-		this.updateStatusBar()
-		// Initialize loading K-line data
-		this.setState({ lastDataLength: this.state.klineData.length }, () => {
-			this.reloadKLineData()
-		})
-	}
+	const kLineViewRef = useRef(null)
 
-	componentDidUpdate(prevProps, prevState) {
-		if (prevState.isDarkTheme !== this.state.isDarkTheme) {
-			this.updateStatusBar()
-		}
-	}
-
-	updateStatusBar = () => {
+	const updateStatusBar = useCallback(() => {
 		StatusBar.setBarStyle(
-			this.state.isDarkTheme ? 'light-content' : 'dark-content',
+			isDarkTheme ? 'light-content' : 'dark-content',
 			true
 		)
-	}
+	}, [isDarkTheme])
+
+	useEffect(() => {
+		updateStatusBar()
+	}, [updateStatusBar])
+
+	useEffect(() => {
+		updateStatusBar()
+		// Initialize loading K-line data
+		setLastDataLength(klineData.length)
+		setTimeout(() => reloadKLineData(), 0)
+	}, [])
+
+	useEffect(() => {
+		updateStatusBar()
+	}, [isDarkTheme, updateStatusBar])
 
 	// Toggle theme
-	toggleTheme = () => {
-		this.setState({ isDarkTheme: !this.state.isDarkTheme }, () => {
+	const toggleTheme = useCallback(() => {
+		setIsDarkTheme(prev => {
 			// Reload data after theme switch to apply new colors
-			this.reloadKLineData()
+			setTimeout(() => reloadKLineData(), 0)
+			return !prev
 		})
-	}
+	}, [])
 
 	// Select time period
-	selectTimeType = (timeType) => {
-		this.setState({ 
-			selectedTimeType: timeType,
-			showTimeSelector: false
-		}, () => {
-			// Regenerate data and reload
-			this.setState({ klineData: generateMockData() }, () => {
-				this.reloadKLineData()
-			})
-		})
+	const selectTimeType = useCallback((timeType) => {
+		setSelectedTimeType(timeType)
+		setShowTimeSelector(false)
+		// Regenerate data and reload
+		setKlineData(generateMockData())
+		setTimeout(() => reloadKLineData(), 0)
 		console.log('Switch time period:', TimeTypes[timeType].label)
-	}
+	}, [])
 
 	// Select indicator
-	selectIndicator = (type, indicator) => {
+	const selectIndicator = useCallback((type, indicator) => {
 		if (type === 'main') {
-			this.setState({ selectedMainIndicator: indicator }, () => {
-				this.reloadKLineData()
-			})
+			setSelectedMainIndicator(indicator)
 		} else {
-			this.setState({ selectedSubIndicator: indicator }, () => {
-				this.reloadKLineData()
-			})
+			setSelectedSubIndicator(indicator)
 		}
-		this.setState({ showIndicatorSelector: false })
-	}
+		setShowIndicatorSelector(false)
+		setTimeout(() => reloadKLineData(), 0)
+	}, [])
 
 	// Select drawing tool
-	selectDrawTool = (tool) => {
-		this.setState({ 
-			selectedDrawTool: tool,
-			showDrawToolSelector: false,
+	const selectDrawTool = useCallback((tool) => {
+		setSelectedDrawTool(tool)
+		setShowDrawToolSelector(false)
+		setOptionListValue({
+			drawList: {
+				shouldReloadDrawItemIndex: tool === DrawTypeConstants.none ? DrawStateConstants.none : DrawStateConstants.showContext,
+				drawShouldContinue: drawShouldContinue,
+				drawType: tool,
+				shouldFixDraw: false,
+			}
 		})
-    this.setOptionList({
-      drawList: {
-        shouldReloadDrawItemIndex: tool === DrawTypeConstants.none ? DrawStateConstants.none : DrawStateConstants.showContext,
-        drawShouldContinue: this.state.drawShouldContinue,
-        drawType: tool,
-        shouldFixDraw: false,
-      }
-    })
-	}
+	}, [drawShouldContinue])
 
 	// Clear drawings
-	clearDrawings = () => {
-		this.setState({
-      selectedDrawTool: DrawTypeConstants.none,
-      }, () => {
-        this.setOptionList({
-          drawList: {
-            shouldReloadDrawItemIndex: DrawStateConstants.none,
-            shouldClearDraw: true,
-          }
-        })
-      })
-	}
+	const clearDrawings = useCallback(() => {
+		setSelectedDrawTool(DrawTypeConstants.none)
+		setOptionListValue({
+			drawList: {
+				shouldReloadDrawItemIndex: DrawStateConstants.none,
+				shouldClearDraw: true,
+			}
+		})
+	}, [])
 
 	// Reload K-line data
-	reloadKLineData = (shouldScrollToEnd = true) => {
-		if (!this.kLineViewRef) {
-			setTimeout(() => this.reloadKLineData(shouldScrollToEnd), 100)
+	const reloadKLineData = useCallback((shouldScrollToEnd = true) => {
+		if (!kLineViewRef.current) {
+			setTimeout(() => reloadKLineData(shouldScrollToEnd), 100)
 			return
 		}
 
-		const processedData = processKLineData(this.state.klineData, {
-			selectedMainIndicator: this.state.selectedMainIndicator,
-			selectedSubIndicator: this.state.selectedSubIndicator,
-			showVolumeChart: this.state.showVolumeChart
-		}, this.state.isDarkTheme)
-		const optionList = packOptionList(processedData, this.state, shouldScrollToEnd)
-		this.setOptionList(optionList)
-	}
+		const processedData = processKLineData(klineData, {
+			selectedMainIndicator,
+			selectedSubIndicator,
+			showVolumeChart
+		}, isDarkTheme)
+		const newOptionList = packOptionList(processedData, {
+			isDarkTheme,
+			selectedTimeType,
+			selectedMainIndicator,
+			selectedSubIndicator,
+			selectedDrawTool,
+			showIndicatorSelector,
+			showTimeSelector,
+			showDrawToolSelector,
+			klineData,
+			drawShouldContinue,
+			optionList,
+			isLoadingNewData,
+			lastDataLength,
+			currentScrollPosition,
+			showVolumeChart,
+			candleCornerRadius
+		}, shouldScrollToEnd)
+		setOptionListValue(newOptionList)
+	}, [klineData, selectedMainIndicator, selectedSubIndicator, showVolumeChart, isDarkTheme, selectedTimeType, selectedDrawTool, showIndicatorSelector, showTimeSelector, showDrawToolSelector, drawShouldContinue, optionList, isLoadingNewData, lastDataLength, currentScrollPosition, candleCornerRadius])
 
 	// Reload K-line data and adjust scroll position to maintain current view
-	reloadKLineDataWithScrollAdjustment = (addedDataCount) => {
-		if (!this.kLineViewRef) {
-			setTimeout(() => this.reloadKLineDataWithScrollAdjustment(addedDataCount), 100)
+	const reloadKLineDataWithScrollAdjustment = useCallback((addedDataCount) => {
+		if (!kLineViewRef.current) {
+			setTimeout(() => reloadKLineDataWithScrollAdjustment(addedDataCount), 100)
 			return
 		}
 
-		const processedData = processKLineData(this.state.klineData, {
-			selectedMainIndicator: this.state.selectedMainIndicator,
-			selectedSubIndicator: this.state.selectedSubIndicator,
-			showVolumeChart: this.state.showVolumeChart
-		}, this.state.isDarkTheme)
-		const optionList = packOptionList(processedData, this.state, false)
+		const processedData = processKLineData(klineData, {
+			selectedMainIndicator,
+			selectedSubIndicator,
+			showVolumeChart
+		}, isDarkTheme)
+		const newOptionList = packOptionList(processedData, {
+			isDarkTheme,
+			selectedTimeType,
+			selectedMainIndicator,
+			selectedSubIndicator,
+			selectedDrawTool,
+			showIndicatorSelector,
+			showTimeSelector,
+			showDrawToolSelector,
+			klineData,
+			drawShouldContinue,
+			optionList,
+			isLoadingNewData,
+			lastDataLength,
+			currentScrollPosition,
+			showVolumeChart,
+			candleCornerRadius
+		}, false)
 
 		// Calculate scroll distance adjustment needed (based on item width)
 		const pixelRatio = Platform.select({
@@ -182,88 +202,86 @@ class App extends Component {
 		const scrollAdjustment = addedDataCount * itemWidth
 
 		// Set scroll position adjustment parameters
-		optionList.scrollPositionAdjustment = scrollAdjustment
+		newOptionList.scrollPositionAdjustment = scrollAdjustment
 
 		console.log(`Adjust scroll position: ${addedDataCount} data points, scroll distance: ${scrollAdjustment}px`)
 
-		this.setOptionList(optionList)
-	}
+		setOptionListValue(newOptionList)
+	}, [klineData, selectedMainIndicator, selectedSubIndicator, showVolumeChart, isDarkTheme, selectedTimeType, selectedDrawTool, showIndicatorSelector, showTimeSelector, showDrawToolSelector, drawShouldContinue, optionList, isLoadingNewData, lastDataLength, currentScrollPosition, candleCornerRadius])
 
 	// Set optionList property
-	setOptionList = (optionList) => {
-		this.setState({
-			optionList: JSON.stringify(optionList)
-		})
-	}
+	const setOptionListValue = useCallback((optionList) => {
+		setOptionList(JSON.stringify(optionList))
+	}, [])
 
 	// Drawing item touch event
-	onDrawItemDidTouch = (event) => {
+	const onDrawItemDidTouch = useCallback((event) => {
 		const { nativeEvent } = event
 		console.log('Drawing item touched:', nativeEvent)
-	}
+	}, [])
 
 	// Chart touch event
-	onChartTouch = (event) => {
+	const onChartTouch = useCallback((event) => {
 		const { nativeEvent } = event
 		console.log('Chart touched:', nativeEvent)
 
 		if (nativeEvent.isOnClosePriceLabel) {
 			console.log('🎯 Touched close price label! Scroll to latest position')
-			this.scrollToPresent()
+			scrollToPresent()
 		}
-	}
+	}, [scrollToPresent])
 
 	// Scroll to latest position
-	scrollToPresent = () => {
-		this.reloadKLineData(true)
-	}
+	const scrollToPresent = useCallback(() => {
+		reloadKLineData(true)
+	}, [reloadKLineData])
 
 	// Drawing item complete event
-	onDrawItemComplete = (event) => {
+	const onDrawItemComplete = useCallback((event) => {
 		const { nativeEvent } = event
 		console.log('Drawing item complete:', nativeEvent)
-		
+
 		// Processing after drawing completion
-		if (!this.state.drawShouldContinue) {
-			this.selectDrawTool(DrawTypeConstants.none)
+		if (!drawShouldContinue) {
+			selectDrawTool(DrawTypeConstants.none)
 		}
-	}
+	}, [drawShouldContinue, selectDrawTool])
 
 	// Drawing point complete event
-	onDrawPointComplete = (event) => {
+	const onDrawPointComplete = useCallback((event) => {
 		const { nativeEvent } = event
 		console.log('Drawing point complete:', nativeEvent.pointCount)
 
 		// Can display current drawing progress here
-		const currentTool = this.state.selectedDrawTool
+		const currentTool = selectedDrawTool
 		const totalPoints = DrawToolHelper.count(currentTool)
 
 		if (totalPoints > 0) {
 			const progress = `${nativeEvent.pointCount}/${totalPoints}`
 			console.log(`Drawing progress: ${progress}`)
 		}
-	}
+	}, [selectedDrawTool])
 
 	// Handle new data loading triggered by left swipe
-	handleScrollLeft = (event) => {
+	const handleScrollLeft = useCallback((event) => {
 		console.log('onScrollLeft triggered - less than 100 candlesticks to the left, timestamp:', event.nativeEvent.timestamp)
 
-		if (this.state.isLoadingNewData) {
+		if (isLoadingNewData) {
 			return // Prevent duplicate loading
 		}
 
-		this.setState({ isLoadingNewData: true })
+		setIsLoadingNewData(true)
 
 		// Simulate asynchronous data loading
 		setTimeout(() => {
-			this.loadMoreHistoricalData()
+			loadMoreHistoricalData()
 		}, 500)
-	}
+	}, [isLoadingNewData, loadMoreHistoricalData])
 
 	// Load more historical data
-	loadMoreHistoricalData = () => {
+	const loadMoreHistoricalData = useCallback(() => {
 		console.log("loadMoreHistoricalData called")
-		const currentData = this.state.klineData
+		const currentData = klineData
 		const newHistoricalData = generateMoreHistoricalData(currentData, 200)
 		const combinedData = [...newHistoricalData, ...currentData]
 
@@ -272,107 +290,42 @@ class App extends Component {
 		// Calculate scroll offset adjustment needed to maintain current view
 		const addedDataCount = newHistoricalData.length
 
-		this.setState({
-			klineData: combinedData,
-			lastDataLength: currentData.length,
-			isLoadingNewData: false
-		}, () => {
-			// Reload data and maintain current view position
-			this.reloadKLineDataWithScrollAdjustment(addedDataCount)
-		})
-	}
+		setKlineData(combinedData)
+		setLastDataLength(currentData.length)
+		setIsLoadingNewData(false)
 
-	render() {
-		const theme = ThemeManager.getCurrentTheme(this.state.isDarkTheme)
-		const styles = this.getStyles(theme)
+		// Reload data and maintain current view position
+		setTimeout(() => reloadKLineDataWithScrollAdjustment(addedDataCount), 0)
+	}, [klineData, reloadKLineDataWithScrollAdjustment])
 
+	const renderKLineChart = useCallback((styles, theme) => {
+		const directRender = (
+			<RNKLineView
+				ref={kLineViewRef}
+				style={styles.chart}
+				optionList={optionList}
+				onDrawItemDidTouch={onDrawItemDidTouch}
+				onScrollLeft={handleScrollLeft}
+				onChartTouch={onChartTouch}
+				onDrawItemComplete={onDrawItemComplete}
+				onDrawPointComplete={onDrawPointComplete}
+			/>
+		)
+		if (global?.nativeFabricUIManager && Platform.OS == 'ios') {
+			return directRender
+		}
 		return (
-			<View style={styles.container}>
-				{/* Top toolbar */}
-				<Toolbar
-					theme={theme}
-					isDarkTheme={this.state.isDarkTheme}
-					onToggleTheme={this.toggleTheme}
-				/>
-
-				{/* K-line chart */}
-				{this.renderKLineChart(styles, theme)}
-
-				{/* Bottom control bar */}
-				<ControlBar
-					theme={theme}
-					selectedTimeType={this.state.selectedTimeType}
-					selectedMainIndicator={this.state.selectedMainIndicator}
-					selectedSubIndicator={this.state.selectedSubIndicator}
-					selectedDrawTool={this.state.selectedDrawTool}
-					showVolumeChart={this.state.showVolumeChart}
-					candleCornerRadius={this.state.candleCornerRadius}
-					onShowTimeSelector={() => this.setState({ showTimeSelector: true })}
-					onShowIndicatorSelector={() => this.setState({ showIndicatorSelector: true })}
-					onToggleDrawToolSelector={() => this.setState({
-						showDrawToolSelector: !this.state.showDrawToolSelector,
-						showIndicatorSelector: false,
-						showTimeSelector: false
-					})}
-					onClearDrawings={this.clearDrawings}
-					onToggleVolume={() => this.setState({ showVolumeChart: !this.state.showVolumeChart }, () => {
-						this.reloadKLineData()
-					})}
-					onToggleRounded={() => this.setState({ candleCornerRadius: this.state.candleCornerRadius > 0 ? 0 : 1 }, () => {
-						this.reloadKLineData()
-					})}
-				/>
-
-				{/* Selector popup */}
-				<Selectors
-					theme={theme}
-					showTimeSelector={this.state.showTimeSelector}
-					showIndicatorSelector={this.state.showIndicatorSelector}
-					showDrawToolSelector={this.state.showDrawToolSelector}
-					selectedTimeType={this.state.selectedTimeType}
-					selectedMainIndicator={this.state.selectedMainIndicator}
-					selectedSubIndicator={this.state.selectedSubIndicator}
-					selectedDrawTool={this.state.selectedDrawTool}
-					drawShouldContinue={this.state.drawShouldContinue}
-					onSelectTimeType={this.selectTimeType}
-					onSelectIndicator={this.selectIndicator}
-					onSelectDrawTool={this.selectDrawTool}
-					onCloseTimeSelector={() => this.setState({ showTimeSelector: false })}
-					onCloseIndicatorSelector={() => this.setState({ showIndicatorSelector: false })}
-					onToggleDrawShouldContinue={(value) => this.setState({ drawShouldContinue: value })}
-				/>
+			<View style={{ flex: 1 }} collapsable={false}>
+				<View style={{ flex: 1 }} collapsable={false}>
+					<View style={styles.chartContainer} collapsable={false}>
+						{directRender}
+					</View>
+				</View>
 			</View>
 		)
-	}
+	}, [optionList, onDrawItemDidTouch, handleScrollLeft, onChartTouch, onDrawItemComplete, onDrawPointComplete])
 
-	renderKLineChart = (styles, theme) => {
-    const directRender = (
-      <RNKLineView
-        ref={ref => { this.kLineViewRef = ref }}
-        style={styles.chart}
-        optionList={this.state.optionList}
-        onDrawItemDidTouch={this.onDrawItemDidTouch}
-				onScrollLeft={this.handleScrollLeft}
-        onChartTouch={this.onChartTouch}
-        onDrawItemComplete={this.onDrawItemComplete}
-        onDrawPointComplete={this.onDrawPointComplete}
-      />
-    )
-    if (global?.nativeFabricUIManager && Platform.OS == 'ios') {
-      return directRender
-    }
-    return (
-      <View style={{ flex: 1 }} collapsable={false}>
-        <View style={{ flex: 1 }} collapsable={false}>
-          <View style={styles.chartContainer} collapsable={false}>
-          { directRender }
-          </View>
-        </View>
-      </View>
-    )
-	}
-
-	getStyles = (theme) => {
+	const getStyles = useCallback((theme) => {
 		return StyleSheet.create({
 			container: {
 				flex: 1,
@@ -393,7 +346,70 @@ class App extends Component {
 				backgroundColor: 'transparent',
 			},
 		})
-	}
+	}, [])
+
+	const theme = ThemeManager.getCurrentTheme(isDarkTheme)
+	const styles = getStyles(theme)
+
+	return (
+		<View style={styles.container}>
+			{/* Top toolbar */}
+			<Toolbar
+				theme={theme}
+				isDarkTheme={isDarkTheme}
+				onToggleTheme={toggleTheme}
+			/>
+
+			{/* K-line chart */}
+			{renderKLineChart(styles, theme)}
+
+			{/* Bottom control bar */}
+			<ControlBar
+				theme={theme}
+				selectedTimeType={selectedTimeType}
+				selectedMainIndicator={selectedMainIndicator}
+				selectedSubIndicator={selectedSubIndicator}
+				selectedDrawTool={selectedDrawTool}
+				showVolumeChart={showVolumeChart}
+				candleCornerRadius={candleCornerRadius}
+				onShowTimeSelector={() => setShowTimeSelector(true)}
+				onShowIndicatorSelector={() => setShowIndicatorSelector(true)}
+				onToggleDrawToolSelector={() => {
+					setShowDrawToolSelector(!showDrawToolSelector)
+					setShowIndicatorSelector(false)
+					setShowTimeSelector(false)
+				}}
+				onClearDrawings={clearDrawings}
+				onToggleVolume={() => {
+					setShowVolumeChart(!showVolumeChart)
+					setTimeout(() => reloadKLineData(), 0)
+				}}
+				onToggleRounded={() => {
+					setCandleCornerRadius(candleCornerRadius > 0 ? 0 : 1)
+					setTimeout(() => reloadKLineData(), 0)
+				}}
+			/>
+
+			{/* Selector popup */}
+			<Selectors
+				theme={theme}
+				showTimeSelector={showTimeSelector}
+				showIndicatorSelector={showIndicatorSelector}
+				showDrawToolSelector={showDrawToolSelector}
+				selectedTimeType={selectedTimeType}
+				selectedMainIndicator={selectedMainIndicator}
+				selectedSubIndicator={selectedSubIndicator}
+				selectedDrawTool={selectedDrawTool}
+				drawShouldContinue={drawShouldContinue}
+				onSelectTimeType={selectTimeType}
+				onSelectIndicator={selectIndicator}
+				onSelectDrawTool={selectDrawTool}
+				onCloseTimeSelector={() => setShowTimeSelector(false)}
+				onCloseIndicatorSelector={() => setShowIndicatorSelector(false)}
+				onToggleDrawShouldContinue={(value) => setDrawShouldContinue(value)}
+			/>
+		</View>
+	)
 }
 
 export default App
