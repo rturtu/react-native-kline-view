@@ -87,7 +87,8 @@ public class RNKLineView extends SimpleViewManager<HTKLineContainerView> {
     @Override
     public Map<String, Integer> getCommandsMap() {
         return MapBuilder.of(
-            "updateLastCandlestick", 1
+            "updateLastCandlestick", 1,
+            "addCandlesticksAtTheEnd", 2
         );
     }
 
@@ -109,6 +110,21 @@ public class RNKLineView extends SimpleViewManager<HTKLineContainerView> {
                     }
                 } else {
                     android.util.Log.w("RNKLineView", "updateLastCandlestick: args is null or empty");
+                }
+                break;
+            case "addCandlesticksAtTheEnd":
+                android.util.Log.d("RNKLineView", "Processing addCandlesticksAtTheEnd command");
+                if (args != null && args.size() > 0) {
+                    try {
+                        ReadableArray candlesticksArray = args.getArray(0);
+                        android.util.Log.d("RNKLineView", "Calling containerView.addCandlesticksAtTheEnd with " + candlesticksArray.size() + " candlesticks");
+                        containerView.addCandlesticksAtTheEnd(candlesticksArray);
+                    } catch (Exception e) {
+                        android.util.Log.e("RNKLineView", "Error in addCandlesticksAtTheEnd command", e);
+                        e.printStackTrace();
+                    }
+                } else {
+                    android.util.Log.w("RNKLineView", "addCandlesticksAtTheEnd: args is null or empty");
                 }
                 break;
             default:

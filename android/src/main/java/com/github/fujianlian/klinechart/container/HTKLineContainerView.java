@@ -9,10 +9,14 @@ import com.facebook.react.bridge.*;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.HashMap;
 import com.github.fujianlian.klinechart.HTKLineConfigManager;
 import com.github.fujianlian.klinechart.KLineChartView;
 import com.github.fujianlian.klinechart.KLineEntity;
 import com.github.fujianlian.klinechart.RNKLineView;
+import com.github.fujianlian.klinechart.HTKLineTargetItem;
 import com.github.fujianlian.klinechart.formatter.DateFormatter;
 
 
@@ -364,6 +368,151 @@ public class HTKLineContainerView extends RelativeLayout {
             android.util.Log.e("HTKLineContainerView", "Error updating data", e);
         }
 
+    }
+
+    public void addCandlesticksAtTheEnd(ReadableArray candlesticksArray) {
+        android.util.Log.d("HTKLineContainerView", "addCandlesticksAtTheEnd called with " + candlesticksArray.size() + " candlesticks");
+
+        if (klineView == null || configManager.modelArray == null) {
+            android.util.Log.w("HTKLineContainerView", "addCandlesticksAtTheEnd: Null check failed");
+            return;
+        }
+
+        if (candlesticksArray.size() == 0) {
+            android.util.Log.w("HTKLineContainerView", "addCandlesticksAtTheEnd: Empty candlesticks array");
+            return;
+        }
+
+        try {
+            // Check if user is currently at the end of the chart
+            boolean wasAtEnd = klineView.getScrollOffset() >= klineView.getMaxScrollX() - 10;
+
+            // Get existing model for preserving indicator lists structure
+            KLineEntity templateEntity = null;
+            if (!configManager.modelArray.isEmpty()) {
+                templateEntity = configManager.modelArray.get(configManager.modelArray.size() - 1);
+            }
+
+            // Convert ReadableArray to List of KLineEntity
+            List<KLineEntity> newEntities = new ArrayList<>();
+            for (int i = 0; i < candlesticksArray.size(); i++) {
+                ReadableMap candlestickMap = candlesticksArray.getMap(i);
+                if (candlestickMap != null) {
+                    Map<String, Object> candlestickData = candlestickMap.toHashMap();
+                    KLineEntity entity = configManager.packModel(candlestickData);
+
+                    // Validate the entity
+                    if (!Float.isNaN(entity.Close) && !Float.isInfinite(entity.Close)) {
+                        // Initialize indicator lists to prevent IndexOutOfBounds
+                        if (templateEntity != null) {
+                            android.util.Log.d("HTKLineContainerView", "Preserving indicator lists structure for new entity");
+                            // Initialize with empty lists matching the template structure
+                            entity.maList = new ArrayList<>(templateEntity.maList.size());
+                            entity.maVolumeList = new ArrayList<>(templateEntity.maVolumeList.size());
+                            entity.rsiList = new ArrayList<>(templateEntity.rsiList.size());
+                            entity.wrList = new ArrayList<>(templateEntity.wrList.size());
+                            entity.selectedItemList = new ArrayList<>();
+
+                            // Fill with default/zero values to maintain list size
+                            for (int j = 0; j < templateEntity.maList.size(); j++) {
+                                HTKLineTargetItem templateItem = templateEntity.maList.get(j);
+                                HTKLineTargetItem newItem = new HTKLineTargetItem(new HashMap<String, Object>() {{
+                                    put("title", templateItem.title);
+                                    put("value", 0.0f);
+                                    put("selected", true);
+                                    put("index", templateItem.index);
+                                }});
+                                entity.maList.add(newItem);
+                            }
+                            for (int j = 0; j < templateEntity.maVolumeList.size(); j++) {
+                                HTKLineTargetItem templateItem = templateEntity.maVolumeList.get(j);
+                                HTKLineTargetItem newItem = new HTKLineTargetItem(new HashMap<String, Object>() {{
+                                    put("title", templateItem.title);
+                                    put("value", 0.0f);
+                                    put("selected", true);
+                                    put("index", templateItem.index);
+                                }});
+                                entity.maVolumeList.add(newItem);
+                            }
+                            for (int j = 0; j < templateEntity.rsiList.size(); j++) {
+                                HTKLineTargetItem templateItem = templateEntity.rsiList.get(j);
+                                HTKLineTargetItem newItem = new HTKLineTargetItem(new HashMap<String, Object>() {{
+                                    put("title", templateItem.title);
+                                    put("value", 0.0f);
+                                    put("selected", true);
+                                    put("index", templateItem.index);
+                                }});
+                                entity.rsiList.add(newItem);
+                            }
+                            for (int j = 0; j < templateEntity.wrList.size(); j++) {
+                                HTKLineTargetItem templateItem = templateEntity.wrList.get(j);
+                                HTKLineTargetItem newItem = new HTKLineTargetItem(new HashMap<String, Object>() {{
+                                    put("title", templateItem.title);
+                                    put("value", 0.0f);
+                                    put("selected", true);
+                                    put("index", templateItem.index);
+                                }});
+                                entity.wrList.add(newItem);
+                            }
+                        } else {
+                            android.util.Log.d("HTKLineContainerView", "No template entity available, initializing empty indicator lists");
+                            entity.maList = new ArrayList<>();
+                            entity.maVolumeList = new ArrayList<>();
+                            entity.rsiList = new ArrayList<>();
+                            entity.wrList = new ArrayList<>();
+                            entity.selectedItemList = new ArrayList<>();
+                        }
+
+                        newEntities.add(entity);
+                    } else {
+                        android.util.Log.w("HTKLineContainerView", "Skipping invalid candlestick at index " + i);
+                    }
+                }
+            }
+
+            if (newEntities.isEmpty()) {
+                android.util.Log.w("HTKLineContainerView", "No valid candlesticks to add");
+                return;
+            }
+
+            // Add new entities to the end of the array with synchronization
+            synchronized (configManager.modelArray) {
+                configManager.modelArray.addAll(newEntities);
+                android.util.Log.d("HTKLineContainerView", "Added " + newEntities.size() + " new candlesticks to the end");
+                android.util.Log.d("HTKLineContainerView", "Total candlesticks now: " + configManager.modelArray.size());
+                android.util.Log.d("HTKLineContainerView", "Was at end before adding: " + wasAtEnd);
+            }
+
+            // Trigger redraw and optionally scroll to end
+            postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        android.util.Log.d("HTKLineContainerView", "Calling notifyChanged after adding candlesticks");
+                        klineView.notifyChanged();
+
+                        android.util.Log.d("HTKLineContainerView", "Forcing view invalidation after adding candlesticks");
+                        klineView.invalidate();
+
+                        // If user was at the end, keep them at the end
+                        if (wasAtEnd) {
+                            postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    android.util.Log.d("HTKLineContainerView", "Scrolling to end after adding new data");
+                                    klineView.setScrollX(klineView.getMaxScrollX());
+                                }
+                            }, 100); // Additional delay for scroll
+                        }
+                    } catch (Exception e) {
+                        android.util.Log.e("HTKLineContainerView", "Error in redraw operations after adding candlesticks", e);
+                    }
+                }
+            }, 50); // 50ms delay to ensure data is stable
+
+        } catch (Exception e) {
+            android.util.Log.e("HTKLineContainerView", "Error adding candlesticks", e);
+        }
     }
 
 }

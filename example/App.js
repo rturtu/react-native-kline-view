@@ -317,7 +317,7 @@ const App = () => {
 			close: newClose,
 			high: Math.max(lastCandle.high, newClose + Math.abs(priceChange) * 0.5),
 			low: Math.min(lastCandle.low, newClose - Math.abs(priceChange) * 0.5),
-			vol: Math.round(lastCandle.vol * volumeChange),
+			volume: Math.round(lastCandle.vol * volumeChange),
 			// Ensure required fields are present
 			id: lastCandle.id || lastCandle.time,
 			dateString: lastCandle.dateString || new Date(lastCandle.time).toISOString()
@@ -327,6 +327,52 @@ const App = () => {
 
 		// Call the native method directly
 		kLineViewRef.current.updateLastCandlestick(updatedCandle)
+	}, [klineData])
+
+	// Test function to add new candlesticks at the end
+	const testAddCandlesticksAtTheEnd = useCallback(() => {
+		if (!kLineViewRef.current || klineData.length === 0) {
+			console.warn('No chart ref or data available')
+			return
+		}
+
+		const lastCandle = klineData[klineData.length - 1]
+		const numberOfNewCandles = 1 // Add 1 new candlesticks
+
+		// Generate new candlesticks
+		const newCandlesticks = []
+		for (let i = 1; i <= numberOfNewCandles; i++) {
+			const timeIncrement = 60000 * i // 1 minute intervals
+			const basePrice = lastCandle.close
+			const priceVariation = (Math.random() - 0.5) * basePrice * 0.02 // ±2% variation
+
+			const open = Math.max(0.01, basePrice + (Math.random() - 0.5) * basePrice * 0.01)
+			const close = Math.max(0.01, basePrice + priceVariation)
+			const high = Math.max(open, close) + Math.random() * basePrice * 0.005
+			const low = Math.min(open, close) - Math.random() * basePrice * 0.005
+			const volume = Math.round(lastCandle.vol * (0.5 + Math.random()))
+
+			const newCandle = {
+				time: lastCandle.time + timeIncrement,
+				open: parseFloat(open.toFixed(2)),
+				high: parseFloat(high.toFixed(2)),
+				low: parseFloat(low.toFixed(2)),
+				close: parseFloat(close.toFixed(2)),
+				volume: volume,
+				id: lastCandle.time + timeIncrement,
+				dateString: new Date(lastCandle.time + timeIncrement).toISOString()
+			}
+
+			newCandlesticks.push(newCandle)
+		}
+
+		console.log('Adding', numberOfNewCandles, 'new candlesticks at the end:', newCandlesticks)
+
+		// Update local state for future reference
+		// setKlineData(prev => [...prev, ...newCandlesticks])
+
+		// Call the native method directly
+		kLineViewRef.current.addCandlesticksAtTheEnd(newCandlesticks)
 	}, [klineData])
 
 	const renderKLineChart = useCallback((styles) => {
@@ -391,6 +437,7 @@ const App = () => {
 				isDarkTheme={isDarkTheme}
 				onToggleTheme={toggleTheme}
 				onTestUpdate={testUpdateLastCandlestick}
+				onTestAddCandles={testAddCandlesticksAtTheEnd}
 			/>
 
 			{/* K-line chart */}

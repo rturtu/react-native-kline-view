@@ -30,6 +30,30 @@ const RNKLineView = forwardRef((props, ref) => {
       } else {
         console.warn('No nodeHandle found for RNKLineView');
       }
+    },
+    addCandlesticksAtTheEnd: (candlesticks) => {
+      console.log('addCandlesticksAtTheEnd called with:', candlesticks.length, 'candlesticks');
+      const nodeHandle = findNodeHandle(nativeRef.current);
+      console.log('nodeHandle:', nodeHandle, 'Platform:', Platform.OS);
+      if (nodeHandle) {
+        if (Platform.OS === 'ios') {
+          console.log('Dispatching iOS addCandlesticksAtTheEnd command');
+          UIManager.dispatchViewManagerCommand(
+            nodeHandle,
+            UIManager.getViewManagerConfig('RNKLineView').Commands.addCandlesticksAtTheEnd,
+            [candlesticks]
+          );
+        } else {
+          console.log('Dispatching Android addCandlesticksAtTheEnd command with string');
+          UIManager.dispatchViewManagerCommand(
+            nodeHandle,
+            'addCandlesticksAtTheEnd',
+            [candlesticks]
+          );
+        }
+      } else {
+        console.warn('No nodeHandle found for RNKLineView');
+      }
     }
   }));
 

@@ -6,7 +6,8 @@ const Toolbar = ({
 	theme,
 	isDarkTheme,
 	onToggleTheme,
-	onTestUpdate
+	onTestUpdate,
+	onTestAddCandles
 }) => {
 	const styles = createToolbarStyles(theme)
 
@@ -20,6 +21,14 @@ const Toolbar = ({
 						onPress={onTestUpdate}
 					>
 						<Text style={styles.testButtonText}>Update Last</Text>
+					</TouchableOpacity>
+				)}
+				{onTestAddCandles && (
+					<TouchableOpacity
+						style={styles.testButton}
+						onPress={onTestAddCandles}
+					>
+						<Text style={styles.testButtonText}>Add 5 Candles</Text>
 					</TouchableOpacity>
 				)}
 				<Text style={styles.themeLabel}>

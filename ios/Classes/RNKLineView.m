@@ -19,5 +19,8 @@ RCT_EXPORT_VIEW_PROPERTY(optionList, NSString)
 RCT_EXTERN_METHOD(updateLastCandlestick:(nonnull NSNumber *)node
                   candlestick:(nonnull NSDictionary *)candlestick)
 
+RCT_EXTERN_METHOD(addCandlesticksAtTheEnd:(nonnull NSNumber *)node
+                  candlesticks:(nonnull NSArray *)candlesticks)
+
 @end
 

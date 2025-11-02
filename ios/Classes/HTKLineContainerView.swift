@@ -279,5 +279,109 @@ class HTKLineContainerView: UIView {
         }
     }
 
+    @objc func addCandlesticksAtTheEnd(_ candlesticks: NSArray) {
+        print("HTKLineContainerView: addCandlesticksAtTheEnd called with \(candlesticks.count) candlesticks")
+
+        guard let candlesticksArray = candlesticks as? [[String: Any]],
+              !candlesticksArray.isEmpty else {
+            print("HTKLineContainerView: addCandlesticksAtTheEnd - Invalid or empty candlesticks array")
+            return
+        }
+
+        do {
+            // Get template model for preserving indicator lists structure
+            var templateModel: HTKLineModel? = nil
+            if !configManager.modelArray.isEmpty {
+                templateModel = configManager.modelArray.last
+            }
+
+            // Convert array of dictionaries to HTKLineModel array
+            let newModels = HTKLineModel.packModelArray(candlesticksArray)
+
+            if newModels.isEmpty {
+                print("HTKLineContainerView: No valid models created from input data")
+                return
+            }
+
+            // Initialize indicator lists for new models to prevent IndexOutOfBounds
+            for newModel in newModels {
+                if let template = templateModel {
+                    print("HTKLineContainerView: Preserving indicator lists structure for new model")
+                    // Initialize with empty arrays matching the template structure
+                    newModel.maList = Array(repeating: HTKLineItemModel(), count: template.maList.count)
+                    newModel.maVolumeList = Array(repeating: HTKLineItemModel(), count: template.maVolumeList.count)
+                    newModel.rsiList = Array(repeating: HTKLineItemModel(), count: template.rsiList.count)
+                    newModel.wrList = Array(repeating: HTKLineItemModel(), count: template.wrList.count)
+                    newModel.selectedItemList = []
+
+                    // Set default values for indicator items
+                    for i in 0..<newModel.maList.count {
+                        newModel.maList[i].value = 0
+                        newModel.maList[i].title = template.maList[i].title
+                        newModel.maList[i].selected = template.maList[i].selected
+                        newModel.maList[i].index = template.maList[i].index
+                    }
+                    for i in 0..<newModel.maVolumeList.count {
+                        newModel.maVolumeList[i].value = 0
+                        newModel.maVolumeList[i].title = template.maVolumeList[i].title
+                        newModel.maVolumeList[i].selected = template.maVolumeList[i].selected
+                        newModel.maVolumeList[i].index = template.maVolumeList[i].index
+                    }
+                    for i in 0..<newModel.rsiList.count {
+                        newModel.rsiList[i].value = 0
+                        newModel.rsiList[i].title = template.rsiList[i].title
+                        newModel.rsiList[i].selected = template.rsiList[i].selected
+                        newModel.rsiList[i].index = template.rsiList[i].index
+                    }
+                    for i in 0..<newModel.wrList.count {
+                        newModel.wrList[i].value = 0
+                        newModel.wrList[i].title = template.wrList[i].title
+                        newModel.wrList[i].selected = template.wrList[i].selected
+                        newModel.wrList[i].index = template.wrList[i].index
+                    }
+                } else {
+                    print("HTKLineContainerView: No template model available, initializing empty indicator lists")
+                    newModel.maList = []
+                    newModel.maVolumeList = []
+                    newModel.rsiList = []
+                    newModel.wrList = []
+                    newModel.selectedItemList = []
+                }
+            }
+
+            // Get the scroll position before adding data
+            let wasAtEnd = klineView.contentOffset.x >= (klineView.contentSize.width - klineView.frame.width - 10)
+
+            // Add new models to the end of the array
+            configManager.modelArray.append(contentsOf: newModels)
+
+            print("HTKLineContainerView: Added \(newModels.count) new candlesticks to the end")
+            print("HTKLineContainerView: Total candlesticks now: \(configManager.modelArray.count)")
+            print("HTKLineContainerView: Was at end before adding: \(wasAtEnd)")
+
+            // Force redraw and optionally scroll to end
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+
+                print("HTKLineContainerView: Reloading content size after adding candlesticks")
+                self.klineView.reloadContentSize()
+
+                print("HTKLineContainerView: Triggering redraw after adding candlesticks")
+                self.klineView.setNeedsDisplay()
+
+                // If user was at the end, keep them at the end
+                if wasAtEnd {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        print("HTKLineContainerView: Scrolling to end after adding new data")
+                        let maxContentOffsetX = max(0, self.klineView.contentSize.width - self.klineView.bounds.size.width)
+                        self.klineView.reloadContentOffset(maxContentOffsetX, true)
+                    }
+                }
+            }
+        } catch {
+            print("HTKLineContainerView: Error adding candlesticks: \(error)")
+        }
+    }
+
 }
 
