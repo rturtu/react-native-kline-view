@@ -18,372 +18,36 @@ import {
 	PixelRatio
 } from 'react-native'
 import RNKLineView from 'react-native-kline-view'
+import {
+	calculateBOLL,
+	calculateMACD,
+	calculateKDJ,
+	calculateMAWithConfig,
+	calculateVolumeMAWithConfig,
+	calculateRSIWithConfig,
+	calculateWRWithConfig
+} from './utils/indicators'
+import { ThemeManager, COLOR } from './utils/themes'
+import {
+	TimeConstants,
+	TimeTypes,
+	IndicatorTypes,
+	DrawTypeConstants,
+	DrawStateConstants,
+	DrawToolTypes,
+	DrawToolHelper,
+	FORMAT
+} from './utils/constants'
+import {
+	fixRound,
+	formatTime,
+	isHorizontalScreen,
+	screenWidth,
+	screenHeight
+} from './utils/helpers'
 
-// Helper functions
-const fixRound = (value, precision, showSign = false, showGrouping = false) => {
-	if (value === null || value === undefined || isNaN(value)) {
-		return '--'
-	}
-	
-	let result = Number(value).toFixed(precision)
-	
-	if (showGrouping) {
-		// Add thousands separator
-		result = result.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-	}
-	
-	if (showSign && value > 0) {
-		result = '+' + result
-	}
-	
-	return result
-}
 
-// FORMAT helper function
-const FORMAT = (text) => text
 
-// Time formatting function, replaces moment
-const formatTime = (timestamp, format = 'MM-DD HH:mm') => {
-	const date = new Date(timestamp)
-	
-	const month = String(date.getMonth() + 1).padStart(2, '0')
-	const day = String(date.getDate()).padStart(2, '0')
-	const hours = String(date.getHours()).padStart(2, '0')
-	const minutes = String(date.getMinutes()).padStart(2, '0')
-	const seconds = String(date.getSeconds()).padStart(2, '0')
-	
-	// Support common formatting patterns
-	return format
-		.replace('MM', month)
-		.replace('DD', day)
-		.replace('HH', hours)
-		.replace('mm', minutes)
-		.replace('ss', seconds)
-}
-
-// Technical indicator calculation functions - original version replaced by configuration version
-
-// Basic technical indicator calculation functions still needed
-const calculateBOLL = (data, n = 20, p = 2) => {
-	return data.map((item, index) => {
-		if (index < n - 1) {
-			return {
-				...item,
-				bollMb: item.close,
-				bollUp: item.close,
-				bollDn: item.close
-			}
-		}
-
-		// Calculate MA
-		let sum = 0
-		for (let i = index - n + 1; i <= index; i++) {
-			sum += data[i].close
-		}
-		const ma = sum / n
-		
-		// Calculate standard deviation
-		let variance = 0
-		for (let i = index - n + 1; i <= index; i++) {
-			variance += Math.pow(data[i].close - ma, 2)
-		}
-		const std = Math.sqrt(variance / (n - 1))
-		
-		return {
-			...item,
-			bollMb: ma,
-			bollUp: ma + p * std,
-			bollDn: ma - p * std
-		}
-	})
-}
-
-const calculateMACD = (data, s = 12, l = 26, m = 9) => {
-	let ema12 = data[0].close
-	let ema26 = data[0].close
-	let dea = 0
-	
-	return data.map((item, index) => {
-		if (index === 0) {
-			return {
-				...item,
-                macdValue: 0,
-                macdDea: 0,
-                macdDif: 0,
-			}
-		}
-		
-		// Calculate EMA
-		ema12 = (2 * item.close + (s - 1) * ema12) / (s + 1)
-		ema26 = (2 * item.close + (l - 1) * ema26) / (l + 1)
-		
-		const dif = ema12 - ema26
-		dea = (2 * dif + (m - 1) * dea) / (m + 1)
-		const macd = 2 * (dif - dea)
-		
-		return {
-			...item,
-            macdValue: macd,
-            macdDea: dea,
-            macdDif: dif,
-		}
-	})
-}
-
-const calculateKDJ = (data, n = 9, m1 = 3, m2 = 3) => {
-	let k = 50
-	let d = 50
-	
-	return data.map((item, index) => {
-		if (index === 0) {
-			return {
-				...item,
-				kdjK: k,
-				kdjD: d,
-				kdjJ: 3 * k - 2 * d
-			}
-		}
-		
-		// Find highest and lowest prices within n periods
-		const startIndex = Math.max(0, index - n + 1)
-		let highest = -Infinity
-		let lowest = Infinity
-		
-		for (let i = startIndex; i <= index; i++) {
-			highest = Math.max(highest, data[i].high)
-			lowest = Math.min(lowest, data[i].low)
-		}
-		
-		const rsv = highest === lowest ? 50 : ((item.close - lowest) / (highest - lowest)) * 100
-		k = (rsv + (m1 - 1) * k) / m1
-		d = (k + (m1 - 1) * d) / m1
-		const j = m2 * k - 2 * d
-		
-		return {
-			...item,
-			kdjK: k,
-			kdjD: d,
-			kdjJ: j
-		}
-	})
-}
-
-// Get screen dimensions
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window')
-const isHorizontalScreen = screenWidth > screenHeight
-
-// Helper function: Convert RGB values from 0-1 range to 0-255 range
-const COLOR = (r, g, b, a = 1) => {
-	if (a === 1) {
-		return `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})`
-	} else {
-		return `rgba(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)}, ${a})`
-	}
-}
-
-// Theme configuration
-class ThemeManager {
-	static themes = {
-		light: {
-			// Base colors
-			backgroundColor: 'white',
-			titleColor: COLOR(0.08, 0.09, 0.12),
-			detailColor: COLOR(0.55, 0.62, 0.68),
-			textColor7724: COLOR(0.77, 0.81, 0.84),
-
-			// Special background colors
-			headerColor: COLOR(0.97, 0.97, 0.98),
-			tabBarBackgroundColor: 'white',
-			backgroundColor9103: COLOR(0.91, 0.92, 0.93),
-			backgroundColor9703: COLOR(0.97, 0.97, 0.98),
-			backgroundColor9113: COLOR(0.91, 0.92, 0.93),
-			backgroundColor9709: COLOR(0.97, 0.97, 0.98),
-			backgroundColor9603: COLOR(0.96, 0.97, 0.98),
-			backgroundColor9411: COLOR(0.94, 0.95, 0.96),
-			backgroundColor9607: COLOR(0.96, 0.97, 0.99),
-			backgroundColor9609: 'white',
-			backgroundColor9509: COLOR(0.95, 0.97, 0.99),
-
-			// Functional colors
-			backgroundColorBlue: COLOR(0, 0.4, 0.93),
-			buttonColor: COLOR(0, 0.4, 0.93),
-			borderColor: COLOR(0.91, 0.92, 0.93),
-			backgroundOpacity: COLOR(0, 0, 0, 0.5),
-			
-			// K-line related colors
-			increaseColor: COLOR(0.0, 0.78, 0.32), // Rise color: Green
-			decreaseColor: COLOR(1.0, 0.27, 0.27), // Fall color: Red
-			minuteLineColor: COLOR(0, 0.4, 0.93),
-
-			// Grid and borders
-			gridColor: COLOR(0.91, 0.92, 0.93),
-			separatorColor: COLOR(0.91, 0.92, 0.93),
-
-			// Text colors
-			textColor: COLOR(0.08, 0.09, 0.12),
-		},
-		dark: {
-			// Base colors
-			backgroundColor: COLOR(0.07, 0.12, 0.19),
-			titleColor: COLOR(0.81, 0.83, 0.91),
-			detailColor: COLOR(0.43, 0.53, 0.66),
-			textColor7724: COLOR(0.24, 0.33, 0.42),
-
-			// Special background colors
-			headerColor: COLOR(0.09, 0.16, 0.25),
-			tabBarBackgroundColor: COLOR(0.09, 0.16, 0.25),
-			backgroundColor9103: COLOR(0.03, 0.09, 0.14),
-			backgroundColor9703: COLOR(0.03, 0.09, 0.14),
-			backgroundColor9113: COLOR(0.13, 0.2, 0.29),
-			backgroundColor9709: COLOR(0.09, 0.16, 0.25),
-			backgroundColor9603: COLOR(0.03, 0.09, 0.14),
-			backgroundColor9411: COLOR(0.11, 0.17, 0.25),
-			backgroundColor9607: COLOR(0.07, 0.15, 0.23),
-			backgroundColor9609: COLOR(0.09, 0.15, 0.23),
-			backgroundColor9509: COLOR(0.09, 0.16, 0.25),
-
-			// Functional colors
-			backgroundColorBlue: COLOR(0.14, 0.51, 1),
-			buttonColor: COLOR(0.14, 0.51, 1),
-			borderColor: COLOR(0.13, 0.2, 0.29),
-			backgroundOpacity: COLOR(0, 0, 0, 0.8),
-			
-			// K-line related colors
-			increaseColor: COLOR(0.0, 1.0, 0.53), // Rise color: Bright green
-			decreaseColor: COLOR(1.0, 0.4, 0.4), // Fall color: Bright red
-			minuteLineColor: COLOR(0.14, 0.51, 1),
-
-			// Grid and borders
-			gridColor: COLOR(0.13, 0.2, 0.29),
-			separatorColor: COLOR(0.13, 0.2, 0.29),
-
-			// Text colors
-			textColor: COLOR(0.81, 0.83, 0.91),
-		}
-	}
-
-	static getCurrentTheme(isDark) {
-		return this.themes[isDark ? 'dark' : 'light']
-	}
-}
-
-// Time period constants
-const TimeConstants = {
-	oneMinute: 1,
-	threeMinute: 2,
-	fiveMinute: 3,
-	fifteenMinute: 4,
-	thirtyMinute: 5,
-	oneHour: 6,
-	fourHour: 7,
-	sixHour: 8,
-	oneDay: 9,
-	oneWeek: 10,
-	oneMonth: 11,
-	minuteHour: -1  // Minute chart
-}
-
-// Time period types - using constant values
-const TimeTypes = {
-	1: { label: 'Minute', value: TimeConstants.minuteHour },
-	2: { label: '1min', value: TimeConstants.oneMinute },
-	3: { label: '3min', value: TimeConstants.threeMinute },
-	4: { label: '5min', value: TimeConstants.fiveMinute },
-	5: { label: '15min', value: TimeConstants.fifteenMinute },
-	6: { label: '30min', value: TimeConstants.thirtyMinute },
-	7: { label: '1h', value: TimeConstants.oneHour },
-	8: { label: '4h', value: TimeConstants.fourHour },
-	9: { label: '6h', value: TimeConstants.sixHour },
-	10: { label: '1d', value: TimeConstants.oneDay },
-	11: { label: '1w', value: TimeConstants.oneWeek },
-	12: { label: '1M', value: TimeConstants.oneMonth }
-}
-
-// Indicator types - sub-chart indicator indices changed to 3-6
-const IndicatorTypes = {
-	main: {
-		1: { label: 'MA', value: 'ma' },
-		2: { label: 'BOLL', value: 'boll' },
-		0: { label: 'NONE', value: 'none' }
-	},
-	sub: {
-		3: { label: 'MACD', value: 'macd' },
-		4: { label: 'KDJ', value: 'kdj' },
-		5: { label: 'RSI', value: 'rsi' },
-		6: { label: 'WR', value: 'wr' },
-		0: { label: 'NONE', value: 'none' }
-	}
-}
-
-// Drawing type constants
-const DrawTypeConstants = {
-	none: 0,
-  show: -1,
-	line: 1,
-	horizontalLine: 2,
-	verticalLine: 3,
-	halfLine: 4,
-	parallelLine: 5,
-	rectangle: 101,
-	parallelogram: 102
-}
-
-// Drawing state constants
-const DrawStateConstants = {
-	none: -3,
-	showPencil: -2,
-	showContext: -1
-}
-
-// Drawing tool types - using numeric constants
-const DrawToolTypes = {
-	[DrawTypeConstants.none]: { label: 'Disable Drawing', value: DrawTypeConstants.none },
-	[DrawTypeConstants.line]: { label: 'Line', value: DrawTypeConstants.line },
-	[DrawTypeConstants.horizontalLine]: { label: 'Horizontal Line', value: DrawTypeConstants.horizontalLine },
-	[DrawTypeConstants.verticalLine]: { label: 'Vertical Line', value: DrawTypeConstants.verticalLine },
-	[DrawTypeConstants.halfLine]: { label: 'Ray', value: DrawTypeConstants.halfLine },
-	[DrawTypeConstants.parallelLine]: { label: 'Parallel Channel', value: DrawTypeConstants.parallelLine },
-	[DrawTypeConstants.rectangle]: { label: 'Rectangle', value: DrawTypeConstants.rectangle },
-	[DrawTypeConstants.parallelogram]: { label: 'Parallelogram', value: DrawTypeConstants.parallelogram }
-}
-
-// Drawing tool helper methods
-const DrawToolHelper = {
-	name: (type) => {
-		switch(type) {
-			case DrawTypeConstants.line:
-				return FORMAT('Line')
-			case DrawTypeConstants.horizontalLine:
-				return FORMAT('Horizontal Line')
-			case DrawTypeConstants.verticalLine:
-				return FORMAT('Vertical Line')
-			case DrawTypeConstants.halfLine:
-				return FORMAT('Ray')
-			case DrawTypeConstants.parallelLine:
-				return FORMAT('Parallel Channel')
-			case DrawTypeConstants.rectangle:
-				return FORMAT('Rectangle')
-			case DrawTypeConstants.parallelogram:
-				return FORMAT('Parallelogram')
-		}
-		return ''
-	},
-	
-	count: (type) => {
-		if (type === DrawTypeConstants.line || 
-			type === DrawTypeConstants.horizontalLine || 
-			type === DrawTypeConstants.verticalLine || 
-			type === DrawTypeConstants.halfLine || 
-			type === DrawTypeConstants.rectangle) {
-			return 2
-		}
-		if (type === DrawTypeConstants.parallelLine || 
-			type === DrawTypeConstants.parallelogram) {
-			return 3
-		}
-		return 0
-	}
-}
 
 class App extends Component {
 	constructor(props) {
@@ -812,7 +476,7 @@ class App extends Component {
 			.map(item => ({ period: parseInt(item.title, 10), index: item.index }))
 		
 		if (selectedMAPeriods.length > 0) {
-			processedData = this.calculateMAWithConfig(processedData, selectedMAPeriods)
+			processedData = calculateMAWithConfig(processedData, selectedMAPeriods)
 		}
 		
 		// Calculate volume MA indicator
@@ -821,7 +485,7 @@ class App extends Component {
 			.map(item => ({ period: parseInt(item.title, 10), index: item.index }))
 
 		if (selectedVolumeMAPeriods.length > 0 && this.state.showVolumeChart) {
-			processedData = this.calculateVolumeMAWithConfig(processedData, selectedVolumeMAPeriods)
+			processedData = calculateVolumeMAWithConfig(processedData, selectedVolumeMAPeriods)
 		}
 		
 		// Calculate BOLL indicator
@@ -851,7 +515,7 @@ class App extends Component {
 			.map(item => ({ period: parseInt(item.title, 10), index: item.index }))
 		
 		if (selectedRSIPeriods.length > 0) {
-			processedData = this.calculateRSIWithConfig(processedData, selectedRSIPeriods)
+			processedData = calculateRSIWithConfig(processedData, selectedRSIPeriods)
 		}
 		
 		// Calculate WR indicator
@@ -860,120 +524,12 @@ class App extends Component {
 			.map(item => ({ period: parseInt(item.title, 10), index: item.index }))
 		
 		if (selectedWRPeriods.length > 0) {
-			processedData = this.calculateWRWithConfig(processedData, selectedWRPeriods)
+			processedData = calculateWRWithConfig(processedData, selectedWRPeriods)
 		}
 		
 		return processedData
 	}
 
-	// Calculate MA indicator based on configuration
-	calculateMAWithConfig = (data, periodConfigs) => {
-		return data.map((item, index) => {
-			const maList = new Array(3) // Fixed 3 positions
-			
-			periodConfigs.forEach(config => {
-				if (index < config.period - 1) {
-					maList[config.index] = { value: item.close, title: `${config.period}` }
-				} else {
-					let sum = 0
-					for (let i = index - config.period + 1; i <= index; i++) {
-						sum += data[i].close
-					}
-					maList[config.index] = { value: sum / config.period, title: `${config.period}` }
-				}
-			})
-			
-			return { ...item, maList }
-		})
-	}
-
-	// Calculate volume MA indicator based on configuration
-	calculateVolumeMAWithConfig = (data, periodConfigs) => {
-		return data.map((item, index) => {
-			const maVolumeList = new Array(2) // Fixed 2 positions
-			
-			periodConfigs.forEach(config => {
-				if (index < config.period - 1) {
-					maVolumeList[config.index] = { value: item.volume, title: `${config.period}` }
-				} else {
-					let sum = 0
-					for (let i = index - config.period + 1; i <= index; i++) {
-						sum += data[i].volume
-					}
-					maVolumeList[config.index] = { value: sum / config.period, title: `${config.period}` }
-				}
-			})
-			
-			return { ...item, maVolumeList }
-		})
-	}
-
-	// Calculate RSI indicator based on configuration
-	calculateRSIWithConfig = (data, periodConfigs) => {
-		return data.map((item, index) => {
-			if (index === 0) {
-				const rsiList = new Array(3) // Fixed 3 positions
-				periodConfigs.forEach(config => {
-					rsiList[config.index] = { value: 50, index: config.index, title: `${config.period}` }
-				})
-				return { ...item, rsiList }
-			}
-			
-			const rsiList = new Array(3) // Fixed 3 positions
-			periodConfigs.forEach(config => {
-				if (index < config.period) {
-					rsiList[config.index] = { value: 50, index: config.index, title: `${config.period}` }
-					return
-				}
-				
-				let gains = 0
-				let losses = 0
-				
-				for (let i = index - config.period + 1; i <= index; i++) {
-					const change = data[i].close - data[i - 1].close
-					if (change > 0) gains += change
-					else losses += Math.abs(change)
-				}
-				
-				const avgGain = gains / config.period
-				const avgLoss = losses / config.period
-				const rs = avgLoss === 0 ? 100 : avgGain / avgLoss
-				const rsi = 100 - (100 / (1 + rs))
-				
-				rsiList[config.index] = { value: rsi, index: config.index, title: `${config.period}` }
-			})
-			
-			return { ...item, rsiList }
-		})
-	}
-
-	// Calculate WR indicator based on configuration
-	calculateWRWithConfig = (data, periodConfigs) => {
-		return data.map((item, index) => {
-			const wrList = new Array(1) // Fixed 1 position
-			
-			periodConfigs.forEach(config => {
-				if (index < config.period - 1) {
-					wrList[config.index] = { value: -50, index: config.index, title: `${config.period}` }
-					return
-				}
-				
-				// Find highest and lowest prices within period cycles
-				let highest = -Infinity
-				let lowest = Infinity
-				
-				for (let i = index - config.period + 1; i <= index; i++) {
-					highest = Math.max(highest, data[i].high)
-					lowest = Math.min(lowest, data[i].low)
-				}
-				
-				const wr = highest === lowest ? -50 : -((highest - item.close) / (highest - lowest)) * 100
-				wrList[config.index] = { value: wr, index: config.index, title: `${config.period}` }
-			})
-			
-			return { ...item, wrList }
-		})
-	}
 
 	// Add technical indicators to selected item list
 	addIndicatorToSelectedList = (item, targetList, priceCount) => {
@@ -1464,6 +1020,7 @@ class App extends Component {
 			controlBar: {
 				flexDirection: 'row',
 				justifyContent: 'space-around',
+				flexWrap: 'wrap',
 				alignItems: 'center',
 				paddingHorizontal: 16,
 				paddingVertical: 12,
