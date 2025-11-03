@@ -490,9 +490,6 @@ public class HTKLineContainerView extends RelativeLayout {
         }
 
         try {
-            // Get current scroll position to maintain it after adding data at start
-            int currentScrollX = klineView.getScrollOffset();
-
             // Reset the scroll left trigger flag to allow new triggers
             klineView.resetScrollLeftTrigger();
 
@@ -521,6 +518,9 @@ public class HTKLineContainerView extends RelativeLayout {
                 return;
             }
 
+            // Get current scroll position before modifying data
+            int currentScrollX = klineView.getScrollOffset();
+
             // Add new entities to the beginning of the array (prepend)
             synchronized (configManager.modelArray) {
                 configManager.modelArray.addAll(0, newEntities);
@@ -528,30 +528,27 @@ public class HTKLineContainerView extends RelativeLayout {
                 android.util.Log.d("HTKLineContainerView", "Total candlesticks now: " + configManager.modelArray.size());
             }
 
-            // Trigger redraw and adjust scroll position
-            postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        android.util.Log.d("HTKLineContainerView", "Triggering redraw after adding candlesticks at start");
-                        klineView.notifyChanged();
+            // Set up scroll position adjustment using the config manager mechanism
+            int addedWidth = newEntities.size() * (int) klineView.configManager.itemWidth;
+            configManager.scrollPositionAdjustment = addedWidth;
+            configManager.shouldAdjustScrollPosition = true;
 
-                        // Adjust scroll position to maintain the same view after prepending data
-                        postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                int addedWidth = newEntities.size() * (int) klineView.configManager.itemWidth;
-                                int newScrollX = currentScrollX + addedWidth;
-                                android.util.Log.d("HTKLineContainerView", "Adjusting scroll position by " + addedWidth + " pixels");
-                                klineView.setScrollX(newScrollX);
-                            }
-                        }, 100); // Additional delay for scroll adjustment
+            android.util.Log.d("HTKLineContainerView", "Set scroll position adjustment: " + addedWidth + " pixels");
 
-                    } catch (Exception e) {
-                        android.util.Log.e("HTKLineContainerView", "Error in redraw operations after adding candlesticks at start", e);
-                    }
-                }
-            }, 50); // 50ms delay to ensure data is stable
+            // Use the same reload mechanism as optionList
+            int previousScrollX = klineView.getScrollOffset();
+            klineView.notifyChanged();
+
+            if (klineView.configManager.shouldAdjustScrollPosition) {
+                // Adjust scroll position to compensate for the new data added at start
+                int newScrollX = previousScrollX + klineView.configManager.scrollPositionAdjustment;
+                android.util.Log.d("HTKLineContainerView", "Adjusting scroll position from " + previousScrollX + " to " + newScrollX);
+                klineView.setScrollX(newScrollX);
+
+                // Reset the flags
+                configManager.shouldAdjustScrollPosition = false;
+                configManager.scrollPositionAdjustment = 0;
+            }
 
         } catch (Exception e) {
             android.util.Log.e("HTKLineContainerView", "Error adding candlesticks at start", e);

@@ -396,23 +396,25 @@ class HTKLineContainerView: UIView {
             // Reset the scroll left trigger flag to allow new triggers
             self.klineView.resetScrollLeftTrigger()
 
-            // Force redraw and adjust scroll position
+            // Force redraw and adjust scroll position in a single operation to prevent flickering
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
 
-                print("HTKLineContainerView: Reloading content size after adding candlesticks at start")
+                // Calculate the new scroll position before reloading content
+                let addedWidth = CGFloat(newModels.count) * self.configManager.itemWidth
+                let newContentOffsetX = currentContentOffsetX + addedWidth
+
+                print("HTKLineContainerView: Reloading content size and adjusting scroll position by \(addedWidth) pixels")
+
+                // Reload content size first
                 self.klineView.reloadContentSize()
 
-                print("HTKLineContainerView: Triggering redraw after adding candlesticks at start")
-                self.klineView.setNeedsDisplay()
+                // Set the new scroll position immediately to prevent the view from snapping to the wrong position
+                self.klineView.reloadContentOffset(newContentOffsetX, false)
 
-                // Adjust scroll position to maintain the same view after prepending data
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    let addedWidth = CGFloat(newModels.count) * self.configManager.itemWidth
-                    let newContentOffsetX = currentContentOffsetX + addedWidth
-                    print("HTKLineContainerView: Adjusting scroll position by \(addedWidth) pixels")
-                    self.klineView.reloadContentOffset(newContentOffsetX, false)
-                }
+                // Trigger redraw only after scroll position is set
+                print("HTKLineContainerView: Triggering redraw after scroll position adjustment")
+                self.klineView.setNeedsDisplay()
             }
         } catch {
             print("HTKLineContainerView: Error adding candlesticks at start: \(error)")

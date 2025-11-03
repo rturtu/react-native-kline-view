@@ -1674,13 +1674,15 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
         int currentScrollX = getScrollOffset();
         int distance = endScrollX - currentScrollX;
 
-        if (distance != 0) {
-            // Use the OverScroller from parent class for smooth animation
-            if (mScroller != null) {
-                mScroller.startScroll(currentScrollX, 0, distance, 0, 500); // 500ms duration
-                invalidate(); // Trigger redraw which will call computeScroll()
-            }
-        }
+        // android.util.Log.d("BaseKLineChartView", "smoothScrollToEnd DEBUG:");
+        // android.util.Log.d("BaseKLineChartView", "  mDataLen=" + mDataLen + ", mItemCount=" + mItemCount + ", mPointWidth=" + mPointWidth);
+        // android.util.Log.d("BaseKLineChartView", "  mWidth=" + mWidth + ", mScaleX=" + mScaleX + ", paddingRight=" + configManager.paddingRight);
+        // android.util.Log.d("BaseKLineChartView", "  current=" + currentScrollX + ", end=" + endScrollX + ", distance=" + distance);
+
+        // Always scroll to end position, regardless of current position
+        // This ensures we go to the rightmost position to show the latest data
+        setScrollX(endScrollX);
+        // android.util.Log.d("BaseKLineChartView", "Set scroll position to end: " + endScrollX);
     }
 
     // Public getter methods for accessing protected fields

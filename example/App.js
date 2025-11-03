@@ -20,7 +20,8 @@ import {
 	DrawToolHelper
 } from './utils/constants'
 import {
-	isHorizontalScreen
+	isHorizontalScreen,
+	formatTime
 } from './utils/helpers'
 import Toolbar from './components/Toolbar'
 import ControlBar from './components/ControlBar'
@@ -49,6 +50,7 @@ const App = () => {
 	const [currentScrollPosition, setCurrentScrollPosition] = useState(0)
 	const [showVolumeChart, setShowVolumeChart] = useState(true)
 	const [candleCornerRadius, setCandleCornerRadius] = useState(0)
+	const firstCandleTimeRef = useRef(klineData.length > 0 ? klineData[0].time : null)
 
 	const kLineViewRef = useRef(null)
 
@@ -516,7 +518,7 @@ const App = () => {
 				close: parseFloat(close.toFixed(2)),
 				vol: safeValue(volume, 100000), // Fallback to reasonable volume
 				id: lastCandle.time + timeIncrement,
-				dateString: new Date(lastCandle.time + timeIncrement).toISOString(),
+				dateString: formatTime(lastCandle.time + timeIncrement, 'MM-DD HH:mm'),
 				// Add indicator lists
 				maList: [
 					{ title: '5', value: safeValue(ma5, close), selected: true, index: 0 },
@@ -577,6 +579,11 @@ const App = () => {
 		const tempAllData = [...klineData]
 
 		for (let i = 0; i < numberOfNewCandles; i++) {
+			// Calculate timestamp going backwards in time (oldest candles first in our generation)
+			// i=0 gives us the oldest candle (200 minutes ago), i=199 gives us the newest (1 minute ago)
+			const minutesBack = numberOfNewCandles - i // 200, 199, 198, ..., 1
+			const timestamp = firstCandleTimeRef.current - (minutesBack * 60 * 1000)
+
 			// Generate price data going backward in time
 			const basePrice = firstCandle.open
 			const priceVariation1 = (Math.random() - 0.5) * basePrice * 0.02
@@ -616,14 +623,14 @@ const App = () => {
 			const safeValue = (val, fallback = 0) => isNaN(val) || !isFinite(val) ? fallback : val
 
 			const newCandle = {
-				time: firstCandle.time + (i + 1) * timeIncrement,
+				time: timestamp,
 				open: parseFloat(open.toFixed(2)),
 				high: parseFloat(high.toFixed(2)),
 				low: parseFloat(low.toFixed(2)),
 				close: parseFloat(close.toFixed(2)) - 200,
 				vol: safeValue(volume, 100000), // Fallback to reasonable volume
-				id: firstCandle.time + (i + 1) * timeIncrement,
-				dateString: new Date(firstCandle.time + (i + 1) * timeIncrement).toISOString(),
+				id: timestamp,
+				dateString: formatTime(timestamp, 'MM-DD HH:mm'),
 				// Add indicator lists
 				maList: [
 					{ title: '5', value: safeValue(ma5, close), selected: true, index: 0 },
@@ -646,12 +653,18 @@ const App = () => {
 				kdjJ: 50   // Placeholder J value
 			}
 
-			newCandlesticks.unshift(newCandle) // Add to beginning of array
+			newCandlesticks.push(newCandle) // Add in chronological order (oldest to newest)
 		}
+		firstCandleTimeRef.current = newCandlesticks[0].time
 
 		console.log('Adding', numberOfNewCandles, 'new candlesticks at the start:')
-		console.log("Last added candle", newCandlesticks[newCandlesticks.length - 1])
-		console.log("Previous first candle", firstCandle)
+		console.log("First historical candle (oldest):", newCandlesticks[0])
+		console.log("Last historical candle (newest):", newCandlesticks[newCandlesticks.length - 1])
+		console.log("Previous first candle:", firstCandle)
+		console.log("Timestamp comparison:")
+		console.log("  Historical oldest:", new Date(newCandlesticks[0].time).toLocaleString())
+		console.log("  Historical newest:", new Date(newCandlesticks[newCandlesticks.length - 1].time).toLocaleString())
+		console.log("  Previous first:", new Date(firstCandle.time).toLocaleString())
 
 		// Call the native method directly
 		kLineViewRef.current.addCandlesticksAtTheStart(newCandlesticks)
