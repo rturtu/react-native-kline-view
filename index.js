@@ -8,19 +8,15 @@ const RNKLineView = forwardRef((props, ref) => {
 
   useImperativeHandle(ref, () => ({
     updateLastCandlestick: (candlestick) => {
-      console.log('updateLastCandlestick called with:', candlestick);
       const nodeHandle = findNodeHandle(nativeRef.current);
-      console.log('nodeHandle:', nodeHandle, 'Platform:', Platform.OS);
       if (nodeHandle) {
         if (Platform.OS === 'ios') {
-          console.log('Dispatching iOS command');
           UIManager.dispatchViewManagerCommand(
             nodeHandle,
             UIManager.getViewManagerConfig('RNKLineView').Commands.updateLastCandlestick,
             [candlestick]
           );
         } else {
-          console.log('Dispatching Android command with string');
           UIManager.dispatchViewManagerCommand(
             nodeHandle,
             'updateLastCandlestick',
@@ -32,19 +28,15 @@ const RNKLineView = forwardRef((props, ref) => {
       }
     },
     addCandlesticksAtTheEnd: (candlesticks) => {
-      console.log('addCandlesticksAtTheEnd called with:', candlesticks.length, 'candlesticks');
       const nodeHandle = findNodeHandle(nativeRef.current);
-      console.log('nodeHandle:', nodeHandle, 'Platform:', Platform.OS);
       if (nodeHandle) {
         if (Platform.OS === 'ios') {
-          console.log('Dispatching iOS addCandlesticksAtTheEnd command');
           UIManager.dispatchViewManagerCommand(
             nodeHandle,
             UIManager.getViewManagerConfig('RNKLineView').Commands.addCandlesticksAtTheEnd,
             [candlesticks]
           );
         } else {
-          console.log('Dispatching Android addCandlesticksAtTheEnd command with string');
           UIManager.dispatchViewManagerCommand(
             nodeHandle,
             'addCandlesticksAtTheEnd',
@@ -56,19 +48,15 @@ const RNKLineView = forwardRef((props, ref) => {
       }
     },
     addCandlesticksAtTheStart: (candlesticks) => {
-      console.log('addCandlesticksAtTheStart called with:', candlesticks.length, 'candlesticks');
       const nodeHandle = findNodeHandle(nativeRef.current);
-      console.log('nodeHandle:', nodeHandle, 'Platform:', Platform.OS);
       if (nodeHandle) {
         if (Platform.OS === 'ios') {
-          console.log('Dispatching iOS addCandlesticksAtTheStart command');
           UIManager.dispatchViewManagerCommand(
             nodeHandle,
             UIManager.getViewManagerConfig('RNKLineView').Commands.addCandlesticksAtTheStart,
             [candlesticks]
           );
         } else {
-          console.log('Dispatching Android addCandlesticksAtTheStart command with string');
           UIManager.dispatchViewManagerCommand(
             nodeHandle,
             'addCandlesticksAtTheStart',
