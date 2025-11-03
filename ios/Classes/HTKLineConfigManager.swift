@@ -69,6 +69,8 @@ class HTKLineConfigManager: NSObject {
 
     var modelArray = [HTKLineModel]()
 
+    var useImperativeApi = false
+
     var shouldScrollToEnd = true
 
     var scrollPositionAdjustment: CGFloat = 0
@@ -334,7 +336,11 @@ class HTKLineConfigManager: NSObject {
     }
 
     func reloadOptionList(_ optionList: [String: Any]) {
-        if let modelList = optionList["modelArray"] as? [[String: Any]] {
+        if let useImperativeApiValue = optionList["useImperativeApi"] as? Bool {
+            useImperativeApi = useImperativeApiValue
+        }
+
+        if !useImperativeApi, let modelList = optionList["modelArray"] as? [[String: Any]] {
             modelArray = HTKLineModel.packModelArray(modelList)
         }
         

@@ -21,6 +21,8 @@ public class HTKLineConfigManager {
 
 	public List<KLineEntity> modelArray = new ArrayList<>();
 
+	public Boolean useImperativeApi = false;
+
 	public Boolean shouldScrollToEnd = true;
 
 	public int scrollPositionAdjustment = 0;
@@ -276,8 +278,13 @@ public class HTKLineConfigManager {
 
     public void reloadOptionList(Map optionList) {
 
+        Boolean useImperativeApiValue = (Boolean)optionList.get("useImperativeApi");
+        if (useImperativeApiValue != null) {
+            this.useImperativeApi = useImperativeApiValue;
+        }
+
     	List modelArray = (List)optionList.get("modelArray");
-    	if (modelArray != null) {
+    	if (!this.useImperativeApi && modelArray != null) {
     		this.modelArray = this.packModelList(modelArray);
     	}
 
