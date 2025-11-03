@@ -264,19 +264,14 @@ const App = () => {
 
 	// Handle new data loading triggered by left swipe
 	const handleScrollLeft = useCallback((event) => {
-		console.log('onScrollLeft triggered - less than 100 candlesticks to the left, timestamp:', event.nativeEvent.timestamp)
-
-		if (isLoadingNewData) {
-			return // Prevent duplicate loading
+		console.log('handleScrollLeft triggered, isLoadingNewData:', isLoadingNewData)
+		if (!isLoadingNewData) {
+			console.log('Loading 200 new historical candlesticks at start')
+			testAddCandlesticksAtTheStart()
+		} else {
+			console.log('Already loading data, skipping...')
 		}
-
-		setIsLoadingNewData(true)
-
-		// Simulate asynchronous data loading
-		setTimeout(() => {
-			loadMoreHistoricalData()
-		}, 500)
-	}, [isLoadingNewData, loadMoreHistoricalData])
+	}, [isLoadingNewData, testAddCandlesticksAtTheStart])
 
 	// Load more historical data
 	const loadMoreHistoricalData = useCallback(() => {
@@ -433,8 +428,9 @@ const App = () => {
 			return
 		}
 
+
 		const lastCandle = klineData[klineData.length - 1]
-		const numberOfNewCandles = 1 // Add 1 new candlesticks
+		const numberOfNewCandles = 200 // Add 200 new candlesticks
 
 		// Generate new candlesticks with indicators
 		const newCandlesticks = []
@@ -557,6 +553,115 @@ const App = () => {
 		kLineViewRef.current.addCandlesticksAtTheEnd(newCandlesticks)
 	}, [klineData])
 
+	// Test function to add new candlesticks at the start
+	const testAddCandlesticksAtTheStart = useCallback(() => {
+		if (!kLineViewRef.current || klineData.length === 0) {
+			console.warn('No chart ref or data available')
+			return
+		}
+
+		if (isLoadingNewData) {
+			console.log('Already loading data, skipping...')
+			return
+		}
+
+		setIsLoadingNewData(true)
+		console.log('Starting to load 200 new historical candlesticks')
+
+		const numberOfNewCandles = 200 // Load 200 candlesticks
+		const newCandlesticks = []
+		const firstCandle = klineData[0]
+		const timeIncrement = -1 * 60 * 1000 // Go backward 1 minute
+
+		// Create temp array for calculations (prepend to existing data)
+		const tempAllData = [...klineData]
+
+		for (let i = 0; i < numberOfNewCandles; i++) {
+			// Generate price data going backward in time
+			const basePrice = firstCandle.open
+			const priceVariation = (Math.random() - 0.5) * basePrice * 0.02
+			const open = Math.max(0.01, basePrice + priceVariation)
+			const close = Math.max(0.01, basePrice + priceVariation)
+			const high = Math.max(open, close) + Math.random() * basePrice * 0.005
+			const low = Math.min(open, close) - Math.random() * basePrice * 0.005
+			const volume = Math.round(firstCandle.vol * (0.5 + Math.random()))
+
+			// Calculate MA indicators based on position in the prepended data
+			const currentIndex = numberOfNewCandles - 1 - i // Position in the new data
+
+			// Helper function to safely get volume value
+			const getSafeVolume = (item) => {
+				const vol = item.vol || item.volume
+				return isNaN(vol) || !isFinite(vol) ? 100000 : vol
+			}
+
+			// Calculate Volume MA5 (for the start, use current volume as base)
+			let volumeMa5 = volume
+			// Since we're at the start, use simple fallback
+
+			// Calculate Volume MA10
+			let volumeMa10 = volume
+
+			// Calculate MA5
+			let ma5 = close
+
+			// Calculate MA10
+			let ma10 = close
+
+			// Calculate MA20
+			let ma20 = close
+
+			// Ensure all values are valid numbers
+			const safeValue = (val, fallback = 0) => isNaN(val) || !isFinite(val) ? fallback : val
+
+			const newCandle = {
+				time: firstCandle.time + (i + 1) * timeIncrement,
+				open: parseFloat(open.toFixed(2)),
+				high: parseFloat(high.toFixed(2)),
+				low: parseFloat(low.toFixed(2)),
+				close: parseFloat(close.toFixed(2)) - 200,
+				vol: safeValue(volume, 100000), // Fallback to reasonable volume
+				id: firstCandle.time + (i + 1) * timeIncrement,
+				dateString: new Date(firstCandle.time + (i + 1) * timeIncrement).toISOString(),
+				// Add indicator lists
+				maList: [
+					{ title: '5', value: safeValue(ma5, close), selected: true, index: 0 },
+					{ title: '10', value: safeValue(ma10, close), selected: true, index: 1 },
+					{ title: '20', value: safeValue(ma20, close), selected: true, index: 2 }
+				],
+				maVolumeList: [
+					{ title: '5', value: safeValue(volumeMa5, 100000), selected: showVolumeChart, index: 0 },
+					{ title: '10', value: safeValue(volumeMa10, 100000), selected: showVolumeChart, index: 1 }
+				],
+				rsiList: firstCandle.rsiList || [],
+				wrList: firstCandle.wrList || [],
+				selectedItemList: firstCandle.selectedItemList || [],
+				// Add placeholder values for BOLL and KDJ indicators
+				bollMb: close,  // Middle band (moving average)
+				bollUp: close * 1.02,  // Upper band (simplified)
+				bollDn: close * 0.98,  // Lower band (simplified)
+				kdjK: 50,  // Placeholder K value
+				kdjD: 50,  // Placeholder D value
+				kdjJ: 50   // Placeholder J value
+			}
+
+			newCandlesticks.unshift(newCandle) // Add to beginning of array
+		}
+
+		console.log('Adding', numberOfNewCandles, 'new candlesticks at the start:')
+		console.log("Last added candle", newCandlesticks[newCandlesticks.length - 1])
+		console.log("Previous first candle", firstCandle)
+
+		// Call the native method directly
+		kLineViewRef.current.addCandlesticksAtTheStart(newCandlesticks)
+
+		// // Reset loading state after a delay to allow chart to update
+		// setTimeout(() => {
+		// 	setIsLoadingNewData(false)
+		// 	console.log('Loading state reset, ready for next load')
+		// }, 1000)
+	}, [klineData, showVolumeChart, isLoadingNewData])
+
 	const renderKLineChart = useCallback((styles) => {
 		const directRender = (
 			<RNKLineView
@@ -620,6 +725,7 @@ const App = () => {
 				onToggleTheme={toggleTheme}
 				onTestUpdate={testUpdateLastCandlestick}
 				onTestAddCandles={testAddCandlesticksAtTheEnd}
+				onTestAddCandlesAtStart={testAddCandlesticksAtTheStart}
 			/>
 
 			{/* K-line chart */}

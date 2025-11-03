@@ -476,4 +476,83 @@ public class HTKLineContainerView extends RelativeLayout {
         }
     }
 
+    public void addCandlesticksAtTheStart(ReadableArray candlesticksArray) {
+        android.util.Log.d("HTKLineContainerView", "addCandlesticksAtTheStart called with " + candlesticksArray.size() + " candlesticks");
+
+        if (klineView == null || configManager.modelArray == null) {
+            android.util.Log.w("HTKLineContainerView", "addCandlesticksAtTheStart: Null check failed");
+            return;
+        }
+
+        if (candlesticksArray.size() == 0) {
+            android.util.Log.w("HTKLineContainerView", "addCandlesticksAtTheStart: Empty candlesticks array");
+            return;
+        }
+
+        try {
+            // Get current scroll position to maintain it after adding data at start
+            int currentScrollX = klineView.getScrollOffset();
+
+            // Convert ReadableArray to List of KLineEntity
+            List<KLineEntity> newEntities = new ArrayList<>();
+            for (int i = 0; i < candlesticksArray.size(); i++) {
+                ReadableMap candlestickMap = candlesticksArray.getMap(i);
+                if (candlestickMap != null) {
+                    Map<String, Object> candlestickData = candlestickMap.toHashMap();
+                    KLineEntity entity = configManager.packModel(candlestickData);
+
+                    // Validate the entity
+                    if (!Float.isNaN(entity.Close) && !Float.isInfinite(entity.Close)) {
+                        // The indicator lists are now properly populated by packModel() from React Native data
+                        android.util.Log.d("HTKLineContainerView", "Using indicator data from React Native - maList.size=" + entity.maList.size() + ", maVolumeList.size=" + entity.maVolumeList.size());
+
+                        newEntities.add(entity);
+                    } else {
+                        android.util.Log.w("HTKLineContainerView", "Skipping invalid candlestick at index " + i);
+                    }
+                }
+            }
+
+            if (newEntities.isEmpty()) {
+                android.util.Log.w("HTKLineContainerView", "No valid candlesticks to add");
+                return;
+            }
+
+            // Add new entities to the beginning of the array (prepend)
+            synchronized (configManager.modelArray) {
+                configManager.modelArray.addAll(0, newEntities);
+                android.util.Log.d("HTKLineContainerView", "Added " + newEntities.size() + " new candlesticks to the start");
+                android.util.Log.d("HTKLineContainerView", "Total candlesticks now: " + configManager.modelArray.size());
+            }
+
+            // Trigger redraw and adjust scroll position
+            postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        android.util.Log.d("HTKLineContainerView", "Triggering redraw after adding candlesticks at start");
+                        klineView.notifyChanged();
+
+                        // Adjust scroll position to maintain the same view after prepending data
+                        postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                int addedWidth = newEntities.size() * (int) klineView.configManager.itemWidth;
+                                int newScrollX = currentScrollX + addedWidth;
+                                android.util.Log.d("HTKLineContainerView", "Adjusting scroll position by " + addedWidth + " pixels");
+                                klineView.setScrollX(newScrollX);
+                            }
+                        }, 100); // Additional delay for scroll adjustment
+
+                    } catch (Exception e) {
+                        android.util.Log.e("HTKLineContainerView", "Error in redraw operations after adding candlesticks at start", e);
+                    }
+                }
+            }, 50); // 50ms delay to ensure data is stable
+
+        } catch (Exception e) {
+            android.util.Log.e("HTKLineContainerView", "Error adding candlesticks at start", e);
+        }
+    }
+
 }

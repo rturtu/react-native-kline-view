@@ -361,5 +361,60 @@ class HTKLineContainerView: UIView {
         }
     }
 
+    @objc func addCandlesticksAtTheStart(_ candlesticks: NSArray) {
+        print("HTKLineContainerView: addCandlesticksAtTheStart called with \(candlesticks.count) candlesticks")
+
+        guard let candlesticksArray = candlesticks as? [[String: Any]],
+              !candlesticksArray.isEmpty else {
+            print("HTKLineContainerView: addCandlesticksAtTheStart - Invalid or empty candlesticks array")
+            return
+        }
+
+        do {
+            // Convert array of dictionaries to HTKLineModel array
+            let newModels = HTKLineModel.packModelArray(candlesticksArray)
+
+            if newModels.isEmpty {
+                print("HTKLineContainerView: No valid models created from input data")
+                return
+            }
+
+            // The indicator lists are now properly populated by packModelArray() from React Native data
+            for newModel in newModels {
+                print("HTKLineContainerView: Using indicator data from React Native - maList.count=\(newModel.maList.count), maVolumeList.count=\(newModel.maVolumeList.count)")
+            }
+
+            // Get the current scroll position to maintain it after adding data at start
+            let currentContentOffsetX = klineView.contentOffset.x
+
+            // Add new models to the beginning of the array (prepend)
+            configManager.modelArray.insert(contentsOf: newModels, at: 0)
+
+            print("HTKLineContainerView: Added \(newModels.count) new candlesticks to the start")
+            print("HTKLineContainerView: Total candlesticks now: \(configManager.modelArray.count)")
+
+            // Force redraw and adjust scroll position
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+
+                print("HTKLineContainerView: Reloading content size after adding candlesticks at start")
+                self.klineView.reloadContentSize()
+
+                print("HTKLineContainerView: Triggering redraw after adding candlesticks at start")
+                self.klineView.setNeedsDisplay()
+
+                // Adjust scroll position to maintain the same view after prepending data
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    let addedWidth = CGFloat(newModels.count) * self.klineView.pointWidth
+                    let newContentOffsetX = currentContentOffsetX + addedWidth
+                    print("HTKLineContainerView: Adjusting scroll position by \(addedWidth) pixels")
+                    self.klineView.reloadContentOffset(newContentOffsetX, false)
+                }
+            }
+        } catch {
+            print("HTKLineContainerView: Error adding candlesticks at start: \(error)")
+        }
+    }
+
 }
 

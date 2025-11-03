@@ -1630,6 +1630,13 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
         mPointWidth = pointWidth;
     }
 
+    /**
+     * 获取每个点的宽度
+     */
+    public float getPointWidth() {
+        return mPointWidth;
+    }
+
     public Paint getGridPaint() {
         return mGridPaint;
     }

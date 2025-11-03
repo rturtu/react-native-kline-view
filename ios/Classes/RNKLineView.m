@@ -22,5 +22,8 @@ RCT_EXTERN_METHOD(updateLastCandlestick:(nonnull NSNumber *)node
 RCT_EXTERN_METHOD(addCandlesticksAtTheEnd:(nonnull NSNumber *)node
                   candlesticks:(nonnull NSArray *)candlesticks)
 
+RCT_EXTERN_METHOD(addCandlesticksAtTheStart:(nonnull NSNumber *)node
+                  candlesticks:(nonnull NSArray *)candlesticks)
+
 @end
 
