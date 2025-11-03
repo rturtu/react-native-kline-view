@@ -565,7 +565,7 @@ const App = () => {
 			return
 		}
 
-		setIsLoadingNewData(true)
+		// setIsLoadingNewData(true)
 		console.log('Starting to load 200 new historical candlesticks')
 
 		const numberOfNewCandles = 200 // Load 200 candlesticks
@@ -579,9 +579,10 @@ const App = () => {
 		for (let i = 0; i < numberOfNewCandles; i++) {
 			// Generate price data going backward in time
 			const basePrice = firstCandle.open
-			const priceVariation = (Math.random() - 0.5) * basePrice * 0.02
-			const open = Math.max(0.01, basePrice + priceVariation)
-			const close = Math.max(0.01, basePrice + priceVariation)
+			const priceVariation1 = (Math.random() - 0.5) * basePrice * 0.02
+			const priceVariation2 = (Math.random() - 0.5) * basePrice * 0.02
+			const open = Math.max(0.01, basePrice + priceVariation1)
+			const close = Math.max(0.01, basePrice + priceVariation2)
 			const high = Math.max(open, close) + Math.random() * basePrice * 0.005
 			const low = Math.min(open, close) - Math.random() * basePrice * 0.005
 			const volume = Math.round(firstCandle.vol * (0.5 + Math.random()))

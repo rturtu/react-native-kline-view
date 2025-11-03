@@ -1700,4 +1700,12 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
         return mClosePriceLabelFrame.height();
     }
 
+    /**
+     * Reset the scroll left trigger flag to allow new triggers
+     */
+    public void resetScrollLeftTrigger() {
+        mHasTriggeredLeftSide = false;
+        android.util.Log.d("BaseKLineChartView", "Reset scroll left trigger flag");
+    }
+
 }

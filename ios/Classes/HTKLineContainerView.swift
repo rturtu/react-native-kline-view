@@ -393,6 +393,9 @@ class HTKLineContainerView: UIView {
             print("HTKLineContainerView: Added \(newModels.count) new candlesticks to the start")
             print("HTKLineContainerView: Total candlesticks now: \(configManager.modelArray.count)")
 
+            // Reset the scroll left trigger flag to allow new triggers
+            self.klineView.resetScrollLeftTrigger()
+
             // Force redraw and adjust scroll position
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
@@ -405,7 +408,7 @@ class HTKLineContainerView: UIView {
 
                 // Adjust scroll position to maintain the same view after prepending data
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    let addedWidth = CGFloat(newModels.count) * self.klineView.pointWidth
+                    let addedWidth = CGFloat(newModels.count) * self.configManager.itemWidth
                     let newContentOffsetX = currentContentOffsetX + addedWidth
                     print("HTKLineContainerView: Adjusting scroll position by \(addedWidth) pixels")
                     self.klineView.reloadContentOffset(newContentOffsetX, false)

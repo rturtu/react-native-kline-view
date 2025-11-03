@@ -493,6 +493,9 @@ public class HTKLineContainerView extends RelativeLayout {
             // Get current scroll position to maintain it after adding data at start
             int currentScrollX = klineView.getScrollOffset();
 
+            // Reset the scroll left trigger flag to allow new triggers
+            klineView.resetScrollLeftTrigger();
+
             // Convert ReadableArray to List of KLineEntity
             List<KLineEntity> newEntities = new ArrayList<>();
             for (int i = 0; i < candlesticksArray.size(); i++) {

@@ -45,4 +45,16 @@ class RNKLineView: RCTViewManager {
         }
     }
 
+    @objc func addCandlesticksAtTheStart(_ node: NSNumber, candlesticks: NSArray) {
+        print("RNKLineView: addCandlesticksAtTheStart called for node \(node) with \(candlesticks.count) candlesticks")
+        DispatchQueue.main.async {
+            guard let view = self.bridge?.uiManager.view(forReactTag: node) as? HTKLineContainerView else {
+                print("RNKLineView: Could not find HTKLineContainerView for node \(node)")
+                return
+            }
+            print("RNKLineView: Calling view.addCandlesticksAtTheStart")
+            view.addCandlesticksAtTheStart(candlesticks)
+        }
+    }
+
 }

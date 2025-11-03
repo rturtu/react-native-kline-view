@@ -802,4 +802,10 @@ extension HTKLineView: UIScrollViewDelegate {
         scrollViewDidScroll(self)
     }
 
+    // Reset the scroll left trigger flag to allow new triggers
+    func resetScrollLeftTrigger() {
+        hasTriggeredScrollLeft = false
+        print("HTKLineView: Reset scroll left trigger flag")
+    }
+
 }
