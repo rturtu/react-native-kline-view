@@ -228,7 +228,7 @@ export const processKLineData = (rawData, selectedIndicators, isDarkTheme) => {
 		high: item.high,
 		low: item.low,
 		close: item.close,
-		vol: item.volume,
+		vol: item.vol || item.volume || 0,  // Use vol field, fallback to volume for compatibility
 	}))
 
 	// Calculate technical indicators based on targetList configuration

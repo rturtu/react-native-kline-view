@@ -315,7 +315,8 @@ public class HTKLineContainerView extends RelativeLayout {
 
             // Create a new entity but preserve indicator lists from the existing entity
             KLineEntity newEntity = configManager.packModel(candlestickData);
-            android.util.Log.d("HTKLineContainerView", "Created new entity: " + newEntity.Close);
+            android.util.Log.d("HTKLineContainerView", "Created new entity: Close=" + newEntity.Close + ", Volume=" + newEntity.Volume);
+            android.util.Log.d("HTKLineContainerView", "Input candlestick data vol field: " + candlestickData.get("vol"));
 
             // Validate the new entity
             if (Float.isNaN(newEntity.Close) || Float.isInfinite(newEntity.Close)) {
@@ -323,13 +324,29 @@ public class HTKLineContainerView extends RelativeLayout {
                 return;
             }
 
-            // Preserve the indicator lists from the existing entity to avoid IndexOutOfBounds
-            android.util.Log.d("HTKLineContainerView", "Preserving indicator lists from existing entity");
-            newEntity.maList = existingEntity.maList;
-            newEntity.maVolumeList = existingEntity.maVolumeList;
-            newEntity.rsiList = existingEntity.rsiList;
-            newEntity.wrList = existingEntity.wrList;
-            newEntity.selectedItemList = existingEntity.selectedItemList;
+            // Only preserve indicator lists if the new data doesn't contain them
+            android.util.Log.d("HTKLineContainerView", "Using new indicator data from React Native");
+            if (newEntity.maList.isEmpty()) {
+                newEntity.maList = existingEntity.maList;
+            }
+            if (newEntity.maVolumeList.isEmpty()) {
+                newEntity.maVolumeList = existingEntity.maVolumeList;
+            }
+            if (newEntity.rsiList.isEmpty()) {
+                newEntity.rsiList = existingEntity.rsiList;
+            }
+            if (newEntity.wrList.isEmpty()) {
+                newEntity.wrList = existingEntity.wrList;
+            }
+            if (newEntity.selectedItemList.isEmpty()) {
+                newEntity.selectedItemList = existingEntity.selectedItemList;
+            }
+
+            android.util.Log.d("HTKLineContainerView", "New maVolumeList size: " + newEntity.maVolumeList.size());
+            if (!newEntity.maVolumeList.isEmpty()) {
+                android.util.Log.d("HTKLineContainerView", "Volume MA5: " + ((HTKLineTargetItem)newEntity.maVolumeList.get(0)).value +
+                                   ", MA10: " + ((HTKLineTargetItem)newEntity.maVolumeList.get(1)).value);
+            }
 
             // Update the last item in the data list with synchronization
             synchronized (configManager.modelArray) {

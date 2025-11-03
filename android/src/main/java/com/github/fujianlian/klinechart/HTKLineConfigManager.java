@@ -234,10 +234,13 @@ public class HTKLineConfigManager {
 
         // Handle volume with special case for NaN
         Object volValue = keyValue.get("vol");
+        // android.util.Log.d("HTKLineConfigManager", "packModel - volValue from input: " + volValue);
         if (volValue instanceof Number && !((Number)volValue).toString().equals("NaN")) {
             entity.Volume = ((Number)volValue).floatValue();
+            // android.util.Log.d("HTKLineConfigManager", "packModel - Setting Volume to: " + entity.Volume);
         } else {
             entity.Volume = 0.0f;
+            // android.util.Log.w("HTKLineConfigManager", "packModel - Volume was null or NaN, setting to 0");
         }
         entity.selectedItemList = (List<Map<String, Object>>) keyValue.get("selectedItemList");
 

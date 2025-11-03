@@ -168,11 +168,11 @@ export const calculateVolumeMAWithConfig = (data, periodConfigs) => {
 
 		periodConfigs.forEach(config => {
 			if (index < config.period - 1) {
-				maVolumeList[config.index] = { value: item.volume, title: `${config.period}` }
+				maVolumeList[config.index] = { value: item.vol || item.volume || 0, title: `${config.period}` }
 			} else {
 				let sum = 0
 				for (let i = index - config.period + 1; i <= index; i++) {
-					sum += data[i].volume
+					sum += data[i].vol || data[i].volume || 0
 				}
 				maVolumeList[config.index] = { value: sum / config.period, title: `${config.period}` }
 			}

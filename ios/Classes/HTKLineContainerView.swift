@@ -252,16 +252,34 @@ class HTKLineContainerView: UIView {
             let lastIndex = configManager.modelArray.count - 1
             let existingModel = configManager.modelArray[lastIndex]
 
-            // Create updated model but preserve indicator lists from existing model
+            // Create updated model with new indicator data from React Native
             let updatedModel = HTKLineModel.packModel(candlestickDict)
 
-            // Preserve the indicator lists from the existing model to avoid IndexOutOfBounds
-            print("HTKLineContainerView: Preserving indicator lists from existing model")
-            updatedModel.maList = existingModel.maList
-            updatedModel.maVolumeList = existingModel.maVolumeList
-            updatedModel.rsiList = existingModel.rsiList
-            updatedModel.wrList = existingModel.wrList
-            updatedModel.selectedItemList = existingModel.selectedItemList
+            print("HTKLineContainerView: Input vol field: \(candlestickDict["vol"] ?? "nil")")
+            print("HTKLineContainerView: Created model with volume: \(updatedModel.volume)")
+
+            // Only preserve indicator lists if the new data doesn't contain them
+            print("HTKLineContainerView: Using new indicator data from React Native")
+            if updatedModel.maList.isEmpty {
+                updatedModel.maList = existingModel.maList
+            }
+            if updatedModel.maVolumeList.isEmpty {
+                updatedModel.maVolumeList = existingModel.maVolumeList
+            }
+            if updatedModel.rsiList.isEmpty {
+                updatedModel.rsiList = existingModel.rsiList
+            }
+            if updatedModel.wrList.isEmpty {
+                updatedModel.wrList = existingModel.wrList
+            }
+            if updatedModel.selectedItemList.isEmpty {
+                updatedModel.selectedItemList = existingModel.selectedItemList
+            }
+
+            print("HTKLineContainerView: New maVolumeList count: \(updatedModel.maVolumeList.count)")
+            if !updatedModel.maVolumeList.isEmpty {
+                print("HTKLineContainerView: Volume MA5: \(updatedModel.maVolumeList[0].value), MA10: \(updatedModel.maVolumeList[1].value)")
+            }
 
             // Update the model array
             configManager.modelArray[lastIndex] = updatedModel

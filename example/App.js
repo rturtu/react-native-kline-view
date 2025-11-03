@@ -35,8 +35,8 @@ import { generateMockData, generateMoreHistoricalData } from './utils/generateDa
 const App = () => {
 	const [isDarkTheme, setIsDarkTheme] = useState(false)
 	const [selectedTimeType, setSelectedTimeType] = useState(2) // Corresponds to 1 minute
-	const [selectedMainIndicator, setSelectedMainIndicator] = useState(0) // Corresponds to MA
-	const [selectedSubIndicator, setSelectedSubIndicator] = useState(0) // Corresponds to MACD
+	const [selectedMainIndicator, setSelectedMainIndicator] = useState(1) // Corresponds to MA (1=MA, 2=BOLL)
+	const [selectedSubIndicator, setSelectedSubIndicator] = useState(4) // Corresponds to KDJ (3=MACD, 4=KDJ, 5=RSI, 6=WR)
 	const [selectedDrawTool, setSelectedDrawTool] = useState(DrawTypeConstants.none)
 	const [showIndicatorSelector, setShowIndicatorSelector] = useState(false)
 	const [showTimeSelector, setShowTimeSelector] = useState(false)
@@ -309,25 +309,122 @@ const App = () => {
 
 		// Create a modified version of the last candlestick with random price changes
 		const priceChange = (0.01 - Math.random() * 0.02) * lastCandle.close // Random change between -1 and 1
-		const volumeChange = Math.random() * 0.5 + 0.75 // Random multiplier between 0.75 and 1.25
+		const volumeChange = Math.random() * 0.1 + 1 // Random multiplier between 0.75 and 1.25
 
 		const newClose = Math.max(0.01, lastCandle.close + priceChange)
+		// Use vol field (native code expects 'vol' not 'volume')
+		const currentVolume = lastCandle.vol || 100000
+		const newVolume = Math.round(currentVolume * volumeChange)
+		// console.log('Volume calculation:', { currentVolume, volumeChange, newVolume })
+
+		// Calculate MA indicators for the updated candlestick
+		const currentIndex = klineData.length - 1
+
+		// Helper function to safely get volume value
+		const getSafeVolume = (item) => {
+			const vol = item.vol || item.volume
+			return isNaN(vol) || !isFinite(vol) ? 100000 : vol
+		}
+
+		// Calculate Volume MA5
+		let volumeMa5 = newVolume
+		if (currentIndex >= 4) {
+			let sum = newVolume
+			// Get the previous 4 candles (not including the current one being updated)
+			for (let j = Math.max(0, currentIndex - 4); j < currentIndex; j++) {
+				sum += getSafeVolume(klineData[j])
+			}
+			volumeMa5 = sum / 5
+			// console.log('Volume MA5 calculation:', { newVolume, sum, volumeMa5, currentIndex })
+		}
+
+		// Calculate Volume MA10
+		let volumeMa10 = newVolume
+		if (currentIndex >= 9) {
+			let sum = newVolume
+			// Get the previous 9 candles (not including the current one being updated)
+			for (let j = Math.max(0, currentIndex - 9); j < currentIndex; j++) {
+				sum += getSafeVolume(klineData[j])
+			}
+			volumeMa10 = sum / 10
+			// console.log('Volume MA10 calculation:', { newVolume, sum, volumeMa10, currentIndex })
+		}
+
+		// Calculate price MA indicators
+		let ma5 = newClose
+		if (currentIndex >= 4) {
+			let sum = newClose
+			for (let j = Math.max(0, currentIndex - 4); j < currentIndex; j++) {
+				sum += klineData[j].close
+			}
+			ma5 = sum / 5
+		}
+
+		let ma10 = newClose
+		if (currentIndex >= 9) {
+			let sum = newClose
+			for (let j = Math.max(0, currentIndex - 9); j < currentIndex; j++) {
+				sum += klineData[j].close
+			}
+			ma10 = sum / 10
+		}
+
+		let ma20 = newClose
+		if (currentIndex >= 19) {
+			let sum = newClose
+			for (let j = Math.max(0, currentIndex - 19); j < currentIndex; j++) {
+				sum += klineData[j].close
+			}
+			ma20 = sum / 20
+		}
+
+		// Ensure all values are valid numbers
+		const safeValue = (val, fallback = 0) => isNaN(val) || !isFinite(val) ? fallback : val
+
+		// Remove the volume field to avoid confusion (we use vol)
+		const { volume, ...lastCandleWithoutVolume } = lastCandle
+
 		const updatedCandle = {
-			...lastCandle,
+			...lastCandleWithoutVolume,
 			close: newClose,
 			high: Math.max(lastCandle.high, newClose + Math.abs(priceChange) * 0.5),
 			low: Math.min(lastCandle.low, newClose - Math.abs(priceChange) * 0.5),
-			vol: Math.round(lastCandle.vol * volumeChange),
+			vol: newVolume,
 			// Ensure required fields are present
 			id: lastCandle.id || lastCandle.time,
-			dateString: lastCandle.dateString || new Date(lastCandle.time).toISOString()
+			dateString: lastCandle.dateString || new Date(lastCandle.time).toISOString(),
+			// Add calculated indicator lists
+			maList: [
+				{ title: '5', value: safeValue(ma5, newClose), selected: true, index: 0 },
+				{ title: '10', value: safeValue(ma10, newClose), selected: true, index: 1 },
+				{ title: '20', value: safeValue(ma20, newClose), selected: true, index: 2 }
+			],
+			maVolumeList: [
+				{ title: '5', value: safeValue(volumeMa5, 100000), selected: showVolumeChart, index: 0 },
+				{ title: '10', value: safeValue(volumeMa10, 100000), selected: showVolumeChart, index: 1 }
+			],
+			rsiList: lastCandle.rsiList || [],
+			wrList: lastCandle.wrList || [],
+			selectedItemList: lastCandle.selectedItemList || [],
+			// Add placeholder values for BOLL and KDJ indicators
+			bollMb: newClose,  // Middle band (moving average)
+			bollUp: newClose * 1.02,  // Upper band (simplified)
+			bollDn: newClose * 0.98,  // Lower band (simplified)
+			kdjK: 50,  // Placeholder K value
+			kdjD: 50,  // Placeholder D value
+			kdjJ: 50   // Placeholder J value
 		}
 
 		console.log('Updating last candlestick:', updatedCandle)
+		// console.log('Volume MA values being sent:', {
+		//	volumeMa5: updatedCandle.maVolumeList[0].value,
+		//	volumeMa10: updatedCandle.maVolumeList[1].value,
+		//	newVolume: updatedCandle.vol
+		// })
 
 		// Call the native method directly
 		kLineViewRef.current.updateLastCandlestick(updatedCandle)
-	}, [klineData])
+	}, [klineData, showVolumeChart])
 
 	// Test function to add new candlesticks at the end
 	const testAddCandlesticksAtTheEnd = useCallback(() => {
@@ -436,7 +533,14 @@ const App = () => {
 				],
 				rsiList: lastCandle.rsiList || [],
 				wrList: lastCandle.wrList || [],
-				selectedItemList: lastCandle.selectedItemList || []
+				selectedItemList: lastCandle.selectedItemList || [],
+				// Add placeholder values for BOLL and KDJ indicators
+				bollMb: close,  // Middle band (moving average)
+				bollUp: close * 1.02,  // Upper band (simplified)
+				bollDn: close * 0.98,  // Lower band (simplified)
+				kdjK: 50,  // Placeholder K value
+				kdjD: 50,  // Placeholder D value
+				kdjJ: 50   // Placeholder J value
 			}
 
 			newCandlesticks.push(newCandle)

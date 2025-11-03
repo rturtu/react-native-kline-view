@@ -28,7 +28,7 @@ export const generateMockData = () => {
       high: parseFloat(high.toFixed(2)),
       low: parseFloat(low.toFixed(2)),
       close: parseFloat(close.toFixed(2)),
-      volume: parseFloat(volume.toFixed(2))
+      vol: parseFloat(volume.toFixed(2))  // Native code expects 'vol' not 'volume'
     })
     
     lastClose = close
@@ -63,7 +63,7 @@ export const generateMoreHistoricalData = (existingData, count = 200) => {
       high: parseFloat(high.toFixed(2)),
       low: parseFloat(low.toFixed(2)),
       close: parseFloat(close.toFixed(2)),
-      volume: parseFloat(volume.toFixed(2))
+      vol: parseFloat(volume.toFixed(2))  // Native code expects 'vol' not 'volume'
     })
 
     lastClose = close
