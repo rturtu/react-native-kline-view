@@ -55,6 +55,7 @@ const App = () => {
 	const [showVolumeChart, setShowVolumeChart] = useState(true)
 	const [candleCornerRadius, setCandleCornerRadius] = useState(0)
 	const firstCandleTimeRef = useRef(klineData.length > 0 ? klineData[0].time : null)
+	const [initialDataLoaded, setInitialDataLoaded] = useState(false)
 
 	const kLineViewRef = useRef(null)
 
@@ -74,7 +75,7 @@ const App = () => {
 		// Initialize loading K-line data
 		setLastDataLength(klineData.length)
 		setTimeout(() => reloadKLineData(), 0)
-	}, [])
+	}, [showVolumeChart, selectedMainIndicator, selectedSubIndicator])
 
 	useEffect(() => {
 		updateStatusBar()
@@ -93,7 +94,8 @@ const App = () => {
 	const selectTimeType = useCallback((timeType) => {
 		setSelectedTimeType(timeType)
 		setShowTimeSelector(false)
-		// Regenerate data and reload
+		// Reset initial data loaded flag and regenerate data
+		setInitialDataLoaded(false)
 		setKlineData(generateMockData())
 		setTimeout(() => reloadKLineData(), 0)
 		console.log('Switch time period:', TimeTypes[timeType].label)
@@ -166,6 +168,23 @@ const App = () => {
 		}, shouldScrollToEnd, kLineViewRef.current ? true : false)
 		setOptionListValue(newOptionList)
 	}, [klineData, selectedMainIndicator, selectedSubIndicator, showVolumeChart, isDarkTheme, selectedTimeType, selectedDrawTool, showIndicatorSelector, showTimeSelector, showDrawToolSelector, drawShouldContinue, optionList, lastDataLength, currentScrollPosition, candleCornerRadius])
+
+	// Load initial data when component mounts and ref is available
+	useEffect(() => {
+		if (kLineViewRef.current && klineData.length > 0 && !initialDataLoaded) {
+			console.log('Loading initial candlesticks via imperative API:', klineData.length)
+			const processedData = processKLineData(klineData, {
+				selectedMainIndicator,
+				selectedSubIndicator,
+				showVolumeChart
+			}, isDarkTheme)
+
+			setTimeout(() => {
+				kLineViewRef.current?.addCandlesticksAtTheEnd(processedData)
+				setInitialDataLoaded(true)
+			}, 200) // Give chart time to initialize
+		}
+	}, [kLineViewRef.current, klineData, selectedMainIndicator, selectedSubIndicator, showVolumeChart, isDarkTheme, initialDataLoaded])
 
 	// Reload K-line data and adjust scroll position to maintain current view
 	const reloadKLineDataWithScrollAdjustment = useCallback((addedDataCount) => {

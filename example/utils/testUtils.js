@@ -44,7 +44,11 @@ export const testUpdateLastCandlestick = (klineData, showVolumeChart, updateLast
 		bollDn: newClose * (1 + Math.random() * 0.06 - 0.03),  // Lower band (simplified)
 		kdjK: 50 + Math.random() * 10 - 5,  // Placeholder K value
 		kdjD: 50 + Math.random() * 10 - 5,  // Placeholder D value
-		kdjJ: 50 + Math.random() * 10 - 5   // Placeholder J value
+		kdjJ: 50 + Math.random() * 10 - 5,   // Placeholder J value
+
+		macdValue:123 + Math.random() * 100 - 50,
+		macdDea:123 + Math.random() * 100 - 50,
+		macdDif:123 + Math.random() * 100 - 50,
 	}
 
 	console.log('Updating last candlestick:', {
@@ -176,7 +180,11 @@ export const testAddCandlesticksAtTheEnd = (klineData, showVolumeChart, addCandl
 			bollDn: close * (1 + Math.random() * 0.06 - 0.03),  // Lower band (simplified)
 			kdjK: 50 + Math.random() * 10 - 5,  // Placeholder K value
 			kdjD: 50 + Math.random() * 10 - 5,  // Placeholder D value
-			kdjJ: 50 + Math.random() * 10 - 5   // Placeholder J value
+			kdjJ: 50 + Math.random() * 10 - 5,   // Placeholder J value
+			
+      macdValue:123 + Math.random() * 100 - 50,
+      macdDea:123 + Math.random() * 100 - 50,
+      macdDif:123 + Math.random() * 100 - 50,
 		}
 
 		newCandlesticks.push(newCandle)
@@ -279,7 +287,10 @@ export const testAddCandlesticksAtTheStart = (klineData, showVolumeChart, firstC
 			bollDn: close * (1 + Math.random() * 0.06 - 0.03),  // Lower band (simplified)
 			kdjK: 50 + Math.random() * 10 - 5,  // Placeholder K value
 			kdjD: 50 + Math.random() * 10 - 5,  // Placeholder D value
-			kdjJ: 50 + Math.random() * 10 - 5   // Placeholder J value
+			kdjJ: 50 + Math.random() * 10 - 5,   // Placeholder J value
+      macdValue:123 + Math.random() * 100 - 50,
+      macdDea:123 + Math.random() * 100 - 50,
+      macdDif:123 + Math.random() * 100 - 50,
 		}
 
 		newCandlesticks.push(newCandle) // Add in chronological order (oldest to newest)
