@@ -28,18 +28,21 @@ class HTWrDraw: NSObject, HTKLineDrawProtocol {
     }
 
     func drawLine(_ model: HTKLineModel, _ lastModel: HTKLineModel, _ maxValue: CGFloat, _ minValue: CGFloat, _ baseY: CGFloat, _ height: CGFloat, _ index: Int, _ lastIndex: Int, _ context: CGContext, _ configManager: HTKLineConfigManager) {
-        for itemModel in configManager.wrList {
+        // Use the embedded indicator data from candlestick rather than config manager's empty list
+        for (i, itemModel) in model.wrList.enumerated() {
+            guard i < lastModel.wrList.count && itemModel.index < configManager.targetColorList.count else { continue }
             let color = configManager.targetColorList[itemModel.index]
-            drawLine(value: model.wrList[itemModel.index].value, lastValue: lastModel.wrList[itemModel.index].value, maxValue: maxValue, minValue: minValue, baseY: baseY, height: height, index: index, lastIndex: lastIndex, color: color, isBezier: false, context: context, configManager: configManager)
+            drawLine(value: itemModel.value, lastValue: lastModel.wrList[i].value, maxValue: maxValue, minValue: minValue, baseY: baseY, height: height, index: index, lastIndex: lastIndex, color: color, isBezier: false, context: context, configManager: configManager)
         }
     }
 
     func drawText(_ model: HTKLineModel, _ baseX: CGFloat, _ baseY: CGFloat, _ context: CGContext, _ configManager: HTKLineConfigManager) {
         var x = baseX
         let font = configManager.createFont(configManager.headerTextFontSize)
-        for itemModel in configManager.wrList {
-            let item = model.wrList[itemModel.index]
-            let title = String(format: "WR(%@):%@", item.title, configManager.precision(item.value, -1))
+        // Use the embedded indicator data from candlestick rather than config manager's empty list
+        for itemModel in model.wrList {
+            guard itemModel.index < configManager.targetColorList.count else { continue }
+            let title = String(format: "WR(%@):%@", itemModel.title, configManager.precision(itemModel.value, -1))
             let color = configManager.targetColorList[itemModel.index]
             x += drawText(title: title, point: CGPoint.init(x: x, y: baseY), color: color, font: font, context: context, configManager: configManager)
             x += 5

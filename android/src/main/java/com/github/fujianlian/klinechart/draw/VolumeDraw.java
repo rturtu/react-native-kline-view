@@ -51,10 +51,14 @@ public class VolumeDraw implements IChartDraw<IVolume> {
         drawHistogram(canvas, curPoint, lastPoint, curX, view, position);
         KLineEntity lastItem = (KLineEntity) lastPoint;
         KLineEntity currentItem = (KLineEntity) curPoint;
-        for (int i = 0; i < view.configManager.maVolumeList.size(); i++) {
+        // Use the embedded indicator data from candlestick rather than config manager's empty list
+        int maVolumeCount = Math.min(currentItem.maVolumeList.size(), lastItem.maVolumeList.size());
+        for (int i = 0; i < maVolumeCount; i++) {
             HTKLineTargetItem currentTargetItem = (HTKLineTargetItem) currentItem.maVolumeList.get(i);
             HTKLineTargetItem lastTargetItem = (HTKLineTargetItem) lastItem.maVolumeList.get(i);
-            primaryPaint.setColor(view.configManager.targetColorList[view.configManager.maVolumeList.get(i).index]);
+            // Use the target item's index for color selection
+            int colorIndex = Math.min(currentTargetItem.index, view.configManager.targetColorList.length - 1);
+            primaryPaint.setColor(view.configManager.targetColorList[colorIndex]);
             view.drawVolLine(canvas, primaryPaint, lastX, lastTargetItem.value, curX, currentTargetItem.value);
         }
     }
@@ -93,9 +97,12 @@ public class VolumeDraw implements IChartDraw<IVolume> {
             primaryPaint.setColor(view.configManager.targetColorList[5]);
             canvas.drawText(text, x, y, primaryPaint);
             x += view.getTextPaint().measureText(text);
-            for (int i = 0; i < view.configManager.maVolumeList.size(); i++) {
+            // Use the embedded indicator data from candlestick rather than config manager's list
+            for (int i = 0; i < point.maVolumeList.size(); i++) {
                 HTKLineTargetItem targetItem = (HTKLineTargetItem) point.maVolumeList.get(i);
-                primaryPaint.setColor(view.configManager.targetColorList[view.configManager.maVolumeList.get(i).index]);
+                // Use the target item's index for color selection
+                int colorIndex = Math.min(targetItem.index, view.configManager.targetColorList.length - 1);
+                primaryPaint.setColor(view.configManager.targetColorList[colorIndex]);
                 StringBuilder stringBuilder = new StringBuilder();
                 stringBuilder.append("MA");
                 stringBuilder.append(targetItem.title);

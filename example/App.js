@@ -163,7 +163,7 @@ const App = () => {
 			currentScrollPosition,
 			showVolumeChart,
 			candleCornerRadius
-		}, shouldScrollToEnd)
+		}, shouldScrollToEnd, kLineViewRef.current ? true : false)
 		setOptionListValue(newOptionList)
 	}, [klineData, selectedMainIndicator, selectedSubIndicator, showVolumeChart, isDarkTheme, selectedTimeType, selectedDrawTool, showIndicatorSelector, showTimeSelector, showDrawToolSelector, drawShouldContinue, optionList, lastDataLength, currentScrollPosition, candleCornerRadius])
 

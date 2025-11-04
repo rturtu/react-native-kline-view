@@ -42,16 +42,16 @@ class HTVolumeDraw: NSObject, HTKLineDrawProtocol {
         if (configManager.isMinute) {
 
         } else {
-            for itemModel in configManager.maVolumeList {
+            // Use the embedded indicator data from candlestick rather than config manager's empty list
+            for (i, itemModel) in model.maVolumeList.enumerated() {
                 // Safety check to prevent index out of bounds
-                guard itemModel.index < model.maVolumeList.count &&
-                      itemModel.index < lastModel.maVolumeList.count else {
-                    print("HTVolumeDraw: Index out of bounds - itemModel.index: \(itemModel.index), model.maVolumeList.count: \(model.maVolumeList.count), lastModel.maVolumeList.count: \(lastModel.maVolumeList.count)")
+                guard i < lastModel.maVolumeList.count &&
+                      itemModel.index < configManager.targetColorList.count else {
                     continue
                 }
 
                 let color = configManager.targetColorList[itemModel.index]
-                drawLine(value: model.maVolumeList[itemModel.index].value, lastValue: lastModel.maVolumeList[itemModel.index].value, maxValue: maxValue, minValue: minValue, baseY: baseY, height: height, index: index, lastIndex: lastIndex, color: color, isBezier: false, context: context, configManager: configManager)
+                drawLine(value: itemModel.value, lastValue: lastModel.maVolumeList[i].value, maxValue: maxValue, minValue: minValue, baseY: baseY, height: height, index: index, lastIndex: lastIndex, color: color, isBezier: false, context: context, configManager: configManager)
             }
         }
     }
@@ -61,15 +61,14 @@ class HTVolumeDraw: NSObject, HTKLineDrawProtocol {
         let font = configManager.createFont(configManager.headerTextFontSize)
         x += drawText(title: String(format: "VOL:%@", configManager.precision(model.volume, configManager.volume)), point: CGPoint.init(x: x, y: baseY), color: configManager.targetColorList[5], font: font, context: context, configManager: configManager)
         x += 5
-        for itemModel in configManager.maVolumeList {
+        // Use the embedded indicator data from candlestick rather than config manager's empty list
+        for itemModel in model.maVolumeList {
             // Safety check to prevent index out of bounds
-            guard itemModel.index < model.maVolumeList.count else {
-                print("HTVolumeDraw: drawText - Index out of bounds - itemModel.index: \(itemModel.index), model.maVolumeList.count: \(model.maVolumeList.count)")
+            guard itemModel.index < configManager.targetColorList.count else {
                 continue
             }
 
-            let item = model.maVolumeList[itemModel.index]
-            let title = String(format: "MA%@:%@", item.title, configManager.precision(item.value, configManager.volume))
+            let title = String(format: "MA%@:%@", itemModel.title, configManager.precision(itemModel.value, configManager.volume))
             let color = configManager.targetColorList[itemModel.index]
             x += drawText(title: title, point: CGPoint.init(x: x, y: baseY), color: color, font: font, context: context, configManager: configManager)
             x += 5

@@ -82,9 +82,11 @@ class HTMainDraw: NSObject, HTKLineDrawProtocol {
             case .none:
                 break
             case .ma:
-                for (i, itemModel) in configManager.maList.enumerated() {
+                // Use the embedded indicator data from candlestick rather than config manager's empty list
+                for (i, itemModel) in model.maList.enumerated() {
+                    guard i < lastModel.maList.count && itemModel.index < configManager.targetColorList.count else { continue }
                     let color = configManager.targetColorList[itemModel.index]
-                    drawLine(value: model.maList[i].value, lastValue: lastModel.maList[i].value, maxValue: maxValue, minValue: minValue, baseY: baseY, height: height, index: index, lastIndex: lastIndex, color: color, isBezier: false, context: context, configManager: configManager)
+                    drawLine(value: itemModel.value, lastValue: lastModel.maList[i].value, maxValue: maxValue, minValue: minValue, baseY: baseY, height: height, index: index, lastIndex: lastIndex, color: color, isBezier: false, context: context, configManager: configManager)
                 }
             case .boll:
                 let itemList = [
@@ -108,10 +110,11 @@ class HTMainDraw: NSObject, HTKLineDrawProtocol {
                 break
             case .ma:
                 var x = baseX
-                for (i, itemModel) in configManager.maList.enumerated() {
-                    let item = model.maList[i]
+                // Use the embedded indicator data from candlestick rather than config manager's empty list
+                for item in model.maList {
+                    guard item.index < configManager.targetColorList.count else { continue }
                     let title = String(format: "MA%@:%@", item.title, configManager.precision(item.value, configManager.price))
-                    let color = configManager.targetColorList[itemModel.index]
+                    let color = configManager.targetColorList[item.index]
                     let font = configManager.createFont(configManager.headerTextFontSize)
                     x += drawText(title: title, point: CGPoint.init(x: x, y: baseY), color: color, font: font, context: context, configManager: configManager)
                     x += 5

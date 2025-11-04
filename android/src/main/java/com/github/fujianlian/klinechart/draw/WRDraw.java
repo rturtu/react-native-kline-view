@@ -37,10 +37,14 @@ public class WRDraw implements IChartDraw<IWR> {
     public void drawTranslated(@Nullable IWR lastPoint, @NonNull IWR curPoint, float lastX, float curX, @NonNull Canvas canvas, @NonNull BaseKLineChartView view, int position) {
         KLineEntity lastItem = (KLineEntity) lastPoint;
         KLineEntity currentItem = (KLineEntity) curPoint;
-        for (int i = 0; i < view.configManager.wrList.size(); i++) {
+        // Use the embedded indicator data from candlestick rather than config manager's list
+        int wrCount = Math.min(currentItem.wrList.size(), lastItem.wrList.size());
+        for (int i = 0; i < wrCount; i++) {
             HTKLineTargetItem currentTargetItem = (HTKLineTargetItem) currentItem.wrList.get(i);
             HTKLineTargetItem lastTargetItem = (HTKLineTargetItem) lastItem.wrList.get(i);
-            primaryPaint.setColor(view.configManager.targetColorList[view.configManager.wrList.get(i).index]);
+            // Use the target item's index for color selection
+            int colorIndex = Math.min(currentTargetItem.index, view.configManager.targetColorList.length - 1);
+            primaryPaint.setColor(view.configManager.targetColorList[colorIndex]);
             view.drawChildLine(canvas, primaryPaint, lastX, lastTargetItem.value, curX, currentTargetItem.value);
         }
     }
@@ -49,9 +53,12 @@ public class WRDraw implements IChartDraw<IWR> {
     public void drawText(@NonNull Canvas canvas, @NonNull BaseKLineChartView view, int position, float x, float y) {
         KLineEntity point = (KLineEntity) view.getItem(position);
         String text = "";
-        for (int i = 0; i < view.configManager.wrList.size(); i++) {
+        // Use the embedded indicator data from candlestick rather than config manager's list
+        for (int i = 0; i < point.wrList.size(); i++) {
             HTKLineTargetItem targetItem = (HTKLineTargetItem) point.wrList.get(i);
-            this.primaryPaint.setColor(view.configManager.targetColorList[view.configManager.wrList.get(i).index]);
+            // Use the target item's index for color selection
+            int colorIndex = Math.min(targetItem.index, view.configManager.targetColorList.length - 1);
+            this.primaryPaint.setColor(view.configManager.targetColorList[colorIndex]);
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append("WR(");
             stringBuilder.append(targetItem.title);

@@ -133,10 +133,14 @@ public class MainDraw implements IChartDraw<ICandle> {
         if (primaryStatus == PrimaryStatus.MA) {
             KLineEntity lastItem = (KLineEntity) lastPoint;
             KLineEntity currentItem = (KLineEntity) curPoint;
-            for (int i = 0; i < view.configManager.maList.size(); i ++) {
+            // Use the embedded indicator data from candlestick rather than config manager's empty list
+            int maCount = Math.min(currentItem.maList.size(), lastItem.maList.size());
+            for (int i = 0; i < maCount; i ++) {
                 HTKLineTargetItem currentTargetItem = (HTKLineTargetItem) currentItem.maList.get(i);
                 HTKLineTargetItem lastTargetItem = (HTKLineTargetItem) lastItem.maList.get(i);
-                primaryPaint.setColor(view.configManager.targetColorList[view.configManager.maList.get(i).index]);
+                // Use the target item's index for color selection
+                int colorIndex = Math.min(currentTargetItem.index, view.configManager.targetColorList.length - 1);
+                primaryPaint.setColor(view.configManager.targetColorList[colorIndex]);
                 view.drawMainLine(canvas, this.primaryPaint, lastX, lastTargetItem.value, curX, currentTargetItem.value);
             }
         } else if (primaryStatus == PrimaryStatus.BOLL) {
@@ -166,9 +170,12 @@ public class MainDraw implements IChartDraw<ICandle> {
 
         } else {
             if (primaryStatus == PrimaryStatus.MA) {
-                for (int i = 0; i < view.configManager.maList.size(); i ++) {
+                // Use the embedded indicator data from candlestick rather than config manager's empty list
+                for (int i = 0; i < point.maList.size(); i ++) {
                     HTKLineTargetItem targetItem = (HTKLineTargetItem) point.maList.get(i);
-                    this.primaryPaint.setColor(view.configManager.targetColorList[view.configManager.maList.get(i).index]);
+                    // Use the target item's index for color selection
+                    int colorIndex = Math.min(targetItem.index, view.configManager.targetColorList.length - 1);
+                    this.primaryPaint.setColor(view.configManager.targetColorList[colorIndex]);
                     StringBuilder stringBuilder = new StringBuilder();
                     stringBuilder.append("MA");
                     stringBuilder.append(targetItem.title);

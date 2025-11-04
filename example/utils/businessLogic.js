@@ -273,7 +273,7 @@ export const processKLineData = (rawData, selectedIndicators, isDarkTheme) => {
 /**
  * Pack option list for chart configuration
  */
-export const packOptionList = (modelArray, appState, shouldScrollToEnd = true) => {
+export const packOptionList = (modelArray, appState, shouldScrollToEnd = true, useImperativeApi = false) => {
 	const {
 		isDarkTheme,
 		selectedTimeType,
@@ -402,6 +402,7 @@ export const packOptionList = (modelArray, appState, shouldScrollToEnd = true) =
 		second: selectedSubIndicator,
 		time: TimeTypes[selectedTimeType].value,
 		configList: configList,
-		drawList: drawList
+		drawList: drawList,
+		useImperativeApi: useImperativeApi
 	}
 }

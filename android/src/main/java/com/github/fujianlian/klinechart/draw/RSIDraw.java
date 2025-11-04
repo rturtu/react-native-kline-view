@@ -39,10 +39,14 @@ public class RSIDraw implements IChartDraw<IRSI> {
     public void drawTranslated(@Nullable IRSI lastPoint, @NonNull IRSI curPoint, float lastX, float curX, @NonNull Canvas canvas, @NonNull BaseKLineChartView view, int position) {
         KLineEntity lastItem = (KLineEntity) lastPoint;
         KLineEntity currentItem = (KLineEntity) curPoint;
-        for (int i = 0; i < view.configManager.rsiList.size(); i++) {
+        // Use the embedded indicator data from candlestick rather than config manager's list
+        int rsiCount = Math.min(currentItem.rsiList.size(), lastItem.rsiList.size());
+        for (int i = 0; i < rsiCount; i++) {
             HTKLineTargetItem currentTargetItem = (HTKLineTargetItem) currentItem.rsiList.get(i);
             HTKLineTargetItem lastTargetItem = (HTKLineTargetItem) lastItem.rsiList.get(i);
-            primaryPaint.setColor(view.configManager.targetColorList[view.configManager.rsiList.get(i).index]);
+            // Use the target item's index for color selection
+            int colorIndex = Math.min(currentTargetItem.index, view.configManager.targetColorList.length - 1);
+            primaryPaint.setColor(view.configManager.targetColorList[colorIndex]);
             view.drawChildLine(canvas, primaryPaint, lastX, lastTargetItem.value, curX, currentTargetItem.value);
         }
     }
@@ -51,9 +55,12 @@ public class RSIDraw implements IChartDraw<IRSI> {
     public void drawText(@NonNull Canvas canvas, @NonNull BaseKLineChartView view, int position, float x, float y) {
         KLineEntity point = (KLineEntity) view.getItem(position);
         String text = "";
-        for (int i = 0; i < view.configManager.rsiList.size(); i++) {
+        // Use the embedded indicator data from candlestick rather than config manager's list
+        for (int i = 0; i < point.rsiList.size(); i++) {
             HTKLineTargetItem targetItem = (HTKLineTargetItem) point.rsiList.get(i);
-            this.primaryPaint.setColor(view.configManager.targetColorList[view.configManager.rsiList.get(i).index]);
+            // Use the target item's index for color selection
+            int colorIndex = Math.min(targetItem.index, view.configManager.targetColorList.length - 1);
+            this.primaryPaint.setColor(view.configManager.targetColorList[colorIndex]);
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append("RSI(");
             stringBuilder.append(targetItem.title);
