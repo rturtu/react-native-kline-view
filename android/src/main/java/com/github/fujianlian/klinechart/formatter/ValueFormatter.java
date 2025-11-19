@@ -25,7 +25,21 @@ public class ValueFormatter implements IValueFormatter {
     }
 
     public String formatVolume(float value) {
-        return this._format(value, false, true);
+        if (Float.isNaN(value) || Float.isInfinite(value)) {
+            return "--";
+        }
+
+        double num = Math.abs(value);
+
+        if (num >= 1000000000) {
+            return String.format("%.1fB", value / 1000000000.0);
+        } else if (num >= 1000000) {
+            return String.format("%.1fM", value / 1000000.0);
+        } else if (num >= 1000) {
+            return String.format("%.1fK", value / 1000.0);
+        } else {
+            return String.format("%.0f", value);
+        }
     }
 
     public static String format(float value, int rightLength, boolean fillzero) {

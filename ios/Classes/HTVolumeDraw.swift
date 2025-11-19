@@ -59,7 +59,7 @@ class HTVolumeDraw: NSObject, HTKLineDrawProtocol {
     func drawText(_ model: HTKLineModel, _ baseX: CGFloat, _ baseY: CGFloat, _ context: CGContext, _ configManager: HTKLineConfigManager) {
         var x = baseX
         let font = configManager.createFont(configManager.headerTextFontSize)
-        x += drawText(title: String(format: "VOL:%@", configManager.precision(model.volume, configManager.volume)), point: CGPoint.init(x: x, y: baseY), color: configManager.targetColorList[5], font: font, context: context, configManager: configManager)
+        x += drawText(title: String(format: "VOL:%@", configManager.formatVolume(model.volume)), point: CGPoint.init(x: x, y: baseY), color: configManager.targetColorList[5], font: font, context: context, configManager: configManager)
         x += 5
         // Use the embedded indicator data from candlestick rather than config manager's empty list
         for itemModel in model.maVolumeList {
@@ -68,7 +68,7 @@ class HTVolumeDraw: NSObject, HTKLineDrawProtocol {
                 continue
             }
 
-            let title = String(format: "MA%@:%@", itemModel.title, configManager.precision(itemModel.value, configManager.volume))
+            let title = String(format: "MA%@:%@", itemModel.title, configManager.formatVolume(itemModel.value))
             let color = configManager.targetColorList[itemModel.index]
             x += drawText(title: title, point: CGPoint.init(x: x, y: baseY), color: color, font: font, context: context, configManager: configManager)
             x += 5

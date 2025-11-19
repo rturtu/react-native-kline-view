@@ -162,6 +162,20 @@ class HTKLineConfigManager: NSObject {
         return formatter.string(from: number) ?? ""
     }
 
+    func formatVolume(_ value: CGFloat, _ precision: Int = 1) -> String {
+        let num = Double(value)
+
+        if num >= 1000000000 {
+            return String(format: "%.1fB", num / 1000000000)
+        } else if num >= 1000000 {
+            return String(format: "%.1fM", num / 1000000)
+        } else if num >= 1000 {
+            return String(format: "%.1fK", num / 1000)
+        } else {
+            return String(format: "%.0f", num)
+        }
+    }
+
 
     var candleLineWidth: CGFloat = 1
 
