@@ -1,73 +1,73 @@
 package com.github.fujianlian.klinechart.entity;
 
 /**
- * 蜡烛图实体接口
+ * Candlestick chart entity interface
  * Created by tifezh on 2016/6/9.
  */
 public interface ICandle {
 
     /**
-     * 开盘价
+     * Opening price
      */
     float getOpenPrice();
 
     /**
-     * 最高价
+     * Highest price
      */
     float getHighPrice();
 
     /**
-     * 最低价
+     * Lowest price
      */
     float getLowPrice();
 
     /**
-     * 收盘价
+     * Closing price
      */
     float getClosePrice();
 
     float getVolume();
 
 
-    // 以下为MA数据
+    // The following are MA data
     /**
-     * 五(月，日，时，分，5分等)均价
+     * 5-period moving average price
      */
     float getMA5Price();
 
     /**
-     * 十(月，日，时，分，5分等)均价
+     * 10-period moving average price
      */
     float getMA10Price();
 
     /**
-     * 二十(月，日，时，分，5分等)均价
+     * 20-period moving average price
      */
     float getMA20Price();
 
     /**
-     * 三十(月，日，时，分，5分等)均价
+     * 30-period moving average price
      */
     float getMA30Price();
 
     /**
-     * 六十(月，日，时，分，5分等)均价
+     * 60-period moving average price
      */
     float getMA60Price();
 
-    // 以下为BOLL数据
+    // The following are BOLL data
     /**
-     * 上轨线
+     * Upper band
      */
     float getUp();
 
     /**
-     * 中轨线
+     * Middle band
      */
     float getMb();
 
     /**
-     * 下轨线
+     * Lower band
      */
     float getDn();
 

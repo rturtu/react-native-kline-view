@@ -3,28 +3,28 @@ package com.github.fujianlian.klinechart.base;
 import android.database.DataSetObserver;
 
 /**
- * 数据适配器
+ * Data adapter
  * Created by tifezh on 2016/6/14.
  */
 
 public interface IAdapter {
     /**
-     * 获取点的数目
+     * Get the number of data points
      *
      * @return
      */
     int getCount();
 
     /**
-     * 通过序号获取item
+     * Get item by index
      *
-     * @param position 对应的序号
-     * @return 数据实体
+     * @param position corresponding index
+     * @return data entity
      */
     Object getItem(int position);
 
     /**
-     * 通过序号获取时间
+     * Get time by index
      *
      * @param position
      * @return
@@ -32,21 +32,21 @@ public interface IAdapter {
     String getDate(int position);
 
     /**
-     * 注册一个数据观察者
+     * Register a data observer
      *
-     * @param observer 数据观察者
+     * @param observer data observer
      */
     void registerDataSetObserver(DataSetObserver observer);
 
     /**
-     * 移除一个数据观察者
+     * Remove a data observer
      *
-     * @param observer 数据观察者
+     * @param observer data observer
      */
     void unregisterDataSetObserver(DataSetObserver observer);
 
     /**
-     * 当数据发生变化时调用
+     * Called when data changes
      */
     void notifyDataSetChanged();
 }

@@ -94,9 +94,9 @@ class HTDrawContext {
         //        }
         //
         //
-        //        // 能够处理点击, 改变拖动的点, 重新绘制
+        //        // Able to handle clicks, change dragging points, redraw
         //        if let klineView = klineView, ) {
-        //            // 如果移动了或者点击了, 去弹起配置弹窗
+        //            // If moved or clicked, show configuration popup
         //            if let moveDrawItem = moveDrawItem, let moveDrawItemIndex = drawItemList.firstIndex(of: moveDrawItem), state != .changed {
         //                configManager.onDrawItemDidTouch?(moveDrawItem, moveDrawItemIndex)
         //            }
@@ -126,7 +126,7 @@ class HTDrawContext {
             if length >= 1 {
                 let index = length - 1
                 drawItem?.pointList[index] = location
-                // 最后一个点起笔
+                // Start drawing from the last point
                 if case .ended = state, let drawItem = drawItem {
                     configManager.onDrawPointComplete?(drawItem, drawItemList.count - 1)
                     if index == drawItem.drawType.count - 1 {

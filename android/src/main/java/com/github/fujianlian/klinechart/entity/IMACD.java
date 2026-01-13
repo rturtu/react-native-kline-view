@@ -1,8 +1,8 @@
 package com.github.fujianlian.klinechart.entity;
 
 /**
- * MACD指标(指数平滑移动平均线)接口
- * @see <a href="https://baike.baidu.com/item/MACD指标"/>相关说明</a>
+ * MACD indicator (exponential smoothing moving average) interface
+ * @see <a href="https://baike.baidu.com/item/MACD指标"/>Related information</a>
  * Created by tifezh on 2016/6/10.
  */
 
@@ -10,17 +10,17 @@ public interface IMACD {
 
 
     /**
-     * DEA值
+     * DEA value
      */
     float getDea();
 
     /**
-     * DIF值
+     * DIF value
      */
     float getDif();
 
     /**
-     * MACD值
+     * MACD value
      */
     float getMacd();
 

@@ -6,7 +6,7 @@ import android.database.DataSetObserver;
 import com.github.fujianlian.klinechart.base.IAdapter;
 
 /**
- * k线图的数据适配器
+ * Data adapter for K-line chart
  * Created by tifezh on 2016/6/9.
  */
 

@@ -25,7 +25,7 @@ enum HTDrawType: Int {
 
     case parallelogram = 102
     
-    // 最多可以有多少个点, 超过就直接跳到下一次绘画
+    // Maximum number of points allowed, exceeding this will jump to the next drawing
     var count: Int {
         switch self {
         case .line, .horizontalLine, .verticalLine, .halfLine, .rectangle:
@@ -63,7 +63,7 @@ class HTDrawItem: NSObject {
         self.pointList = [startPoint]
     }
     
-    // 找到谁正在被拖动
+    // Find which item is being dragged
     static func findTouchMoveItem(_ drawItemList: [HTDrawItem]) -> HTDrawItem? {
         for drawItem in drawItemList {
             if drawItem.touchMoveIndexList.count > 0 {
@@ -73,7 +73,7 @@ class HTDrawItem: NSObject {
         return nil
     }
     
-    // 如果是线段, 填充所有的点到 touchMoveIndexList
+    // If it's a line segment, fill all points to touchMoveIndexList
     static func fillAllTouchMoveItem(_ drawItem: HTDrawItem) -> Void {
         drawItem.touchMoveIndexList.removeAll()
         for (index, _) in drawItem.pointList.enumerated() {
@@ -81,7 +81,7 @@ class HTDrawItem: NSObject {
         }
     }
     
-    // 计算某个点到另外两个点连成的线之间的垂直距离
+    // Calculate the perpendicular distance from a point to a line formed by two other points
     static func pedalPoint(p1: CGPoint, p2:CGPoint, x0: CGPoint) -> Double {
         let a = p2.y - p1.y
         let b = p1.x - p2.x
@@ -93,7 +93,7 @@ class HTDrawItem: NSObject {
         return Double(d)
     }
     
-    // 计算某个点到另一个点的距离
+    // Calculate the distance from one point to another point
     static func distance(p1: CGPoint, p2:CGPoint) -> CGFloat {
         let a = p2.y - p1.y
         let b = p1.x - p2.x
@@ -101,7 +101,7 @@ class HTDrawItem: NSObject {
         return d
     }
     
-    // 计算两个点的中心点
+    // Calculate the center point between two points
     static func centerPoint(p1: CGPoint, p2: CGPoint) -> CGPoint {
         let a = p2.x + p1.x
         let b = p1.y + p2.y
@@ -263,7 +263,7 @@ class HTDrawItem: NSObject {
         return false
     }
     
-    // 开始 began 拖动时, 找到是否碰到了某个点
+    // When starting to drag, find if any point was touched
     static func beganFillTouchMoveItem(_ drawItemList: [HTDrawItem], _ location: CGPoint, _ klineView: HTKLineView) {
         clearAllTouchMoveIndexList(drawItemList)
         for drawItem in drawItemList.reversed() {
@@ -280,7 +280,7 @@ class HTDrawItem: NSObject {
         }
     }
     
-    // 是否有正在拖动的点, 如果有的话, 进行更改位移
+    // Check if there are points being dragged, if so, apply translation
     static func canResponseTranslation(_ drawItemList: [HTDrawItem], _ translation: CGPoint) -> Bool {
         if let touchMoveItem = findTouchMoveItem(drawItemList) {
             if touchMoveItem.drawIsLock {
@@ -295,14 +295,14 @@ class HTDrawItem: NSObject {
         return false
     }
     
-    // 清除所有的拖动
+    // Clear all dragging operations
     static func clearAllTouchMoveIndexList(_ drawItemList: [HTDrawItem]) -> Void {
         for drawItem in drawItemList {
             drawItem.touchMoveIndexList = []
         }
     }
     
-    // 本次是否点中了某个绘图
+    // Check if any drawing item was hit this time
     static func canResponseLocation(_ drawItemList: [HTDrawItem], _ location: CGPoint, _ klineView: HTKLineView) -> HTDrawItem? {
         beganFillTouchMoveItem(drawItemList, location, klineView)
         let drawItem = findTouchMoveItem(drawItemList)
@@ -310,7 +310,7 @@ class HTDrawItem: NSObject {
         return drawItem
     }
     
-    // 是否会响应这次事件, 如果能响应, 不做绘图, 进行拖动
+    // Whether it will respond to this event, if it can respond, don't draw, perform dragging
     static func canResponseTouch(_ drawItemList: [HTDrawItem], _ location: CGPoint, _ translation: CGPoint, _ state: UIGestureRecognizerState, _ klineView: HTKLineView) -> Bool {
         switch state {
         case .began:

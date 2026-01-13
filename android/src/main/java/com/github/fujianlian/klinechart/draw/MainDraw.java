@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 主图的实现类
+ * Main chart implementation class
  * Created by tifezh on 2016/6/14.
  */
 public class MainDraw implements IChartDraw<ICandle> {
@@ -144,7 +144,7 @@ public class MainDraw implements IChartDraw<ICandle> {
                 view.drawMainLine(canvas, this.primaryPaint, lastX, lastTargetItem.value, curX, currentTargetItem.value);
             }
         } else if (primaryStatus == PrimaryStatus.BOLL) {
-            //画boll
+            // Draw BOLL
             if (lastPoint.getMb() != 0) {
                 primaryPaint.setColor(view.configManager.targetColorList[0]);
                 view.drawMainLine(canvas, primaryPaint, lastX, lastPoint.getMb(), curX, curPoint.getMb());
@@ -249,14 +249,14 @@ public class MainDraw implements IChartDraw<ICandle> {
     }
 
     /**
-     * 画Candle
+     * Draw Candle
      *
      * @param canvas
-     * @param x      x轴坐标
-     * @param high   最高价
-     * @param low    最低价
-     * @param open   开盘价
-     * @param close  收盘价
+     * @param x      x-axis coordinate
+     * @param high   highest price
+     * @param low    lowest price
+     * @param open   opening price
+     * @param close  closing price
      */
     private void drawCandle(BaseKLineChartView view, Canvas canvas, float x, float high, float low, float open, float close) {
         high = view.yFromValue(high);
@@ -268,7 +268,7 @@ public class MainDraw implements IChartDraw<ICandle> {
         float cornerRadius = view.configManager.candleCornerRadius;
 
         if (open > close) {
-            //实心
+            // Solid
             if (mCandleSolid) {
                 // Draw wick first (behind body)
                 canvas.drawRect(x - lineR, high, x + lineR, low, mRedWickPaint);
@@ -317,7 +317,7 @@ public class MainDraw implements IChartDraw<ICandle> {
     }
 
     /**
-     * draw选择器
+     * Draw selector
      *
      * @param view
      * @param canvas
@@ -393,7 +393,7 @@ public class MainDraw implements IChartDraw<ICandle> {
     }
 
     /**
-     * 设置蜡烛宽度
+     * Set candle width
      *
      * @param candleWidth
      */
@@ -402,7 +402,7 @@ public class MainDraw implements IChartDraw<ICandle> {
     }
 
     /**
-     * 设置蜡烛线宽度
+     * Set candle line width
      *
      * @param candleLineWidth
      */
@@ -411,7 +411,7 @@ public class MainDraw implements IChartDraw<ICandle> {
     }
 
     /**
-     * 设置ma5颜色
+     * Set MA5 color
      *
      * @param color
      */
@@ -420,7 +420,7 @@ public class MainDraw implements IChartDraw<ICandle> {
     }
 
     /**
-     * 设置ma10颜色
+     * Set MA10 color
      *
      * @param color
      */
@@ -429,7 +429,7 @@ public class MainDraw implements IChartDraw<ICandle> {
     }
 
     /**
-     * 设置ma30颜色
+     * Set MA30 color
      *
      * @param color
      */
@@ -438,7 +438,7 @@ public class MainDraw implements IChartDraw<ICandle> {
     }
 
     /**
-     * 设置选择器文字颜色
+     * Set selector text color
      *
      * @param color
      */
@@ -447,7 +447,7 @@ public class MainDraw implements IChartDraw<ICandle> {
     }
 
     /**
-     * 设置选择器文字大小
+     * Set selector text size
      *
      * @param textSize
      */
@@ -456,7 +456,7 @@ public class MainDraw implements IChartDraw<ICandle> {
     }
 
     /**
-     * 设置选择器背景
+     * Set selector background
      *
      * @param color
      */
@@ -465,7 +465,7 @@ public class MainDraw implements IChartDraw<ICandle> {
     }
 
     /**
-     * 设置曲线宽度
+     * Set curve width
      */
     public void setLineWidth(float width) {
         ma30Paint.setStrokeWidth(width);
@@ -476,7 +476,7 @@ public class MainDraw implements IChartDraw<ICandle> {
     }
 
     /**
-     * 设置文字大小
+     * Set text size
      */
     public void setTextSize(float textSize) {
         ma30Paint.setTextSize(textSize);
@@ -504,7 +504,7 @@ public class MainDraw implements IChartDraw<ICandle> {
     }
 
     /**
-     * 蜡烛是否实心
+     * Whether candles are solid
      */
     public void setCandleSolid(boolean candleSolid) {
         mCandleSolid = candleSolid;

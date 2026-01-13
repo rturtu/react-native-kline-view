@@ -289,7 +289,7 @@ class HTKLineConfigManager: NSObject {
     
     var onDrawPointComplete: HTKLineDrawItemBlock?
     
-    // -3 表示没有弹起任何弹窗, -2 表示弹起了画笔弹窗没有弹起 context 弹窗, -1 表示弹起了弹窗, 弹窗表示的是全局配置, 其他表示正常的 index
+    // -3 means no popup is shown, -2 means drawing tool popup is shown but no context popup, -1 means popup is shown representing global configuration, others represent normal index
     var shouldReloadDrawItemIndex = -3
     
     var drawShouldTrash = false
@@ -419,7 +419,7 @@ class HTKLineConfigManager: NSObject {
             self.shouldScrollToEnd = shouldScrollToEnd
         }
 
-        // 处理滚动位置调整
+        // Handle scroll position adjustment
         if let scrollPositionAdjustment = optionList["scrollPositionAdjustment"] as? NSNumber {
             self.scrollPositionAdjustment = CGFloat(scrollPositionAdjustment.floatValue)
             self.shouldAdjustScrollPosition = true

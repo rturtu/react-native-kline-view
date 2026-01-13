@@ -10,7 +10,7 @@ import android.widget.OverScroller;
 import android.widget.RelativeLayout;
 
 /**
- * 可以滑动和放大的view
+ * View that can scroll and zoom
  * Created by tian on 2016/5/3.
  */
 public abstract class ScrollAndScaleView extends RelativeLayout implements
@@ -179,7 +179,7 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         boolean shouldContinue = true;
-        // 按压手指超过1个
+        // More than 1 finger pressed
         if (event.getPointerCount() > 1) {
             isLongPress = false;
         }
@@ -194,7 +194,7 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
                 mDownY = event.getY();
                 break;
             case MotionEvent.ACTION_MOVE:
-                //长按之后移动
+                // Move after long press
                 if (isLongPress) {
                     onLongPress(event);
                 }
@@ -202,7 +202,7 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
                     shouldContinue = true;
                     getParent().requestDisallowInterceptTouchEvent(true);
                 } else {
-                    //发现不是自己处理，还给父类
+                    // Found not handled by self, return to parent class
                     shouldContinue = false;
                     getParent().requestDisallowInterceptTouchEvent(false);
                 }
@@ -233,17 +233,17 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
 
 
     /**
-     * 滑到了最左边
+     * Scrolled to the leftmost side
      */
     abstract public void onLeftSide();
 
     /**
-     * 滑到了最右边
+     * Scrolled to the rightmost side
      */
     abstract public void onRightSide();
 
     /**
-     * 是否在触摸中
+     * Whether currently touching
      *
      * @return
      */
@@ -252,21 +252,21 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
     }
 
     /**
-     * 获取位移的最小值
+     * Get the minimum offset value
      *
      * @return
      */
     public abstract int getMinScrollX();
 
     /**
-     * 获取位移的最大值
+     * Get the maximum offset value
      *
      * @return
      */
     public abstract int getMaxScrollX();
 
     /**
-     * 设置ScrollX
+     * Set ScrollX
      *
      * @param scrollX
      */
@@ -276,7 +276,7 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
     }
 
     /**
-     * 是否是多指触控
+     * Whether it's multi-touch
      *
      * @return
      */
@@ -328,28 +328,28 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
     }
 
     /**
-     * 设置缩放的最大值
+     * Set maximum scale value
      */
     public void setScaleXMax(float scaleXMax) {
         mScaleXMax = scaleXMax;
     }
 
     /**
-     * 设置缩放的最小值
+     * Set minimum scale value
      */
     public void setScaleXMin(float scaleXMin) {
         mScaleXMin = scaleXMin;
     }
 
     /**
-     * 设置是否可以滑动
+     * Set whether scrolling is enabled
      */
     public void setScrollEnable(boolean scrollEnable) {
         mScrollEnable = scrollEnable;
     }
 
     /**
-     * 设置是否可以缩放
+     * Set whether scaling is enabled
      */
     public void setScaleEnable(boolean scaleEnable) {
         mScaleEnable = scaleEnable;

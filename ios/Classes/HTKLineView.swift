@@ -46,7 +46,7 @@ class HTKLineView: UIScrollView {
 
     var closePriceLabelFrame: CGRect = .zero
 
-    // 计算属性
+    // Computed properties
     var visibleModelArray = [HTKLineModel]()
     var volumeRange: ClosedRange<CGFloat> = 0...0
     var allWidth: CGFloat = 0
@@ -103,7 +103,7 @@ class HTKLineView: UIScrollView {
         reloadContentSize()
 
         if configManager.shouldAdjustScrollPosition {
-            // 调整滚动位置以补偿新增的数据
+            // Adjust scroll position to compensate for newly added data
             let newContentOffset = previousContentOffset + configManager.scrollPositionAdjustment
             reloadContentOffset(newContentOffset, false)
         } else if configManager.shouldScrollToEnd || isEnd {

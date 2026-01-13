@@ -1,16 +1,16 @@
 package com.github.fujianlian.klinechart.base;
 
 /**
- * Value格式化接口
+ * Value formatter interface
  * Created by tifezh on 2016/6/21.
  */
 
 public interface IValueFormatter {
     /**
-     * 格式化value
+     * Format value
      *
-     * @param value 传入的value值
-     * @return 返回字符串
+     * @param value the input value
+     * @return formatted string
      */
     String format(float value);
 }

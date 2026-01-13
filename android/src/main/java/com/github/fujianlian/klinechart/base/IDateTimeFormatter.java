@@ -3,7 +3,7 @@ package com.github.fujianlian.klinechart.base;
 import java.util.Date;
 
 /**
- * 时间格式化接口
+ * Date time formatter interface
  * Created by tifezh on 2016/6/21.
  */
 

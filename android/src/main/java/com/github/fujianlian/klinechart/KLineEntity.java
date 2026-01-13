@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * K线实体
+ * K-Line Entity
  * Created by tifezh on 2016/5/16.
  */
 public class KLineEntity implements IKLine {

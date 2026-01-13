@@ -93,7 +93,7 @@ extension HTKLineDrawProtocol {
     }
 
     func textHeight(font: UIFont) -> CGFloat {
-        let titleString = "你好" as NSString
+        let titleString = "Hello" as NSString
         let attributedList: [NSAttributedStringKey: Any] = [
             .font: font,
         ]

@@ -8,7 +8,7 @@
   
 *Ultra-smooth rendering • Interactive drawing tools • Multiple technical indicators • Dark/Light themes*
   
-English | [中文文档](./README.cn.md)
+English
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Platform](https://img.shields.io/badge/platform-ios%20%7C%20android-lightgrey)](https://reactnative.dev)
