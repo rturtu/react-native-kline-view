@@ -57,4 +57,50 @@ class RNKLineView: RCTViewManager {
         }
     }
 
+    @objc func addOrderLine(_ node: NSNumber, orderLine: NSDictionary) {
+        print("RNKLineView: addOrderLine called for node \(node) with data: \(orderLine)")
+        DispatchQueue.main.async {
+            guard let view = self.bridge?.uiManager.view(forReactTag: node) as? HTKLineContainerView else {
+                print("RNKLineView: Could not find HTKLineContainerView for node \(node)")
+                return
+            }
+            print("RNKLineView: Calling view.addOrderLine")
+            view.addOrderLine(orderLine)
+        }
+    }
+
+    @objc func removeOrderLine(_ node: NSNumber, orderLineId: NSString) {
+        print("RNKLineView: removeOrderLine called for node \(node) with id: \(orderLineId)")
+        DispatchQueue.main.async {
+            guard let view = self.bridge?.uiManager.view(forReactTag: node) as? HTKLineContainerView else {
+                print("RNKLineView: Could not find HTKLineContainerView for node \(node)")
+                return
+            }
+            print("RNKLineView: Calling view.removeOrderLine")
+            view.removeOrderLine(orderLineId as String)
+        }
+    }
+
+    @objc func updateOrderLine(_ node: NSNumber, orderLine: NSDictionary) {
+        print("RNKLineView: updateOrderLine called for node \(node) with data: \(orderLine)")
+        DispatchQueue.main.async {
+            guard let view = self.bridge?.uiManager.view(forReactTag: node) as? HTKLineContainerView else {
+                print("RNKLineView: Could not find HTKLineContainerView for node \(node)")
+                return
+            }
+            print("RNKLineView: Calling view.updateOrderLine")
+            view.updateOrderLine(orderLine)
+        }
+    }
+
+    @objc func getOrderLines(_ node: NSNumber) -> NSArray {
+        print("RNKLineView: getOrderLines called for node \(node)")
+        guard let view = self.bridge?.uiManager.view(forReactTag: node) as? HTKLineContainerView else {
+            print("RNKLineView: Could not find HTKLineContainerView for node \(node)")
+            return NSArray()
+        }
+        print("RNKLineView: Calling view.getOrderLines")
+        return view.getOrderLines()
+    }
+
 }

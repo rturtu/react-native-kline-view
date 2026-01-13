@@ -89,7 +89,11 @@ public class RNKLineView extends SimpleViewManager<HTKLineContainerView> {
         return MapBuilder.of(
             "updateLastCandlestick", 1,
             "addCandlesticksAtTheEnd", 2,
-            "addCandlesticksAtTheStart", 3
+            "addCandlesticksAtTheStart", 3,
+            "addOrderLine", 4,
+            "removeOrderLine", 5,
+            "updateOrderLine", 6,
+            "getOrderLines", 7
         );
     }
 
@@ -141,6 +145,63 @@ public class RNKLineView extends SimpleViewManager<HTKLineContainerView> {
                     }
                 } else {
                     android.util.Log.w("RNKLineView", "addCandlesticksAtTheStart: args is null or empty");
+                }
+                break;
+            case "addOrderLine":
+                android.util.Log.d("RNKLineView", "Processing addOrderLine command");
+                if (args != null && args.size() > 0) {
+                    try {
+                        ReadableMap orderLineData = args.getMap(0);
+                        Map<String, Object> dataMap = orderLineData.toHashMap();
+                        android.util.Log.d("RNKLineView", "Calling containerView.addOrderLine with data: " + dataMap);
+                        containerView.addOrderLine(dataMap);
+                    } catch (Exception e) {
+                        android.util.Log.e("RNKLineView", "Error in addOrderLine command", e);
+                        e.printStackTrace();
+                    }
+                } else {
+                    android.util.Log.w("RNKLineView", "addOrderLine: args is null or empty");
+                }
+                break;
+            case "removeOrderLine":
+                android.util.Log.d("RNKLineView", "Processing removeOrderLine command");
+                if (args != null && args.size() > 0) {
+                    try {
+                        String orderLineId = args.getString(0);
+                        android.util.Log.d("RNKLineView", "Calling containerView.removeOrderLine with id: " + orderLineId);
+                        containerView.removeOrderLine(orderLineId);
+                    } catch (Exception e) {
+                        android.util.Log.e("RNKLineView", "Error in removeOrderLine command", e);
+                        e.printStackTrace();
+                    }
+                } else {
+                    android.util.Log.w("RNKLineView", "removeOrderLine: args is null or empty");
+                }
+                break;
+            case "updateOrderLine":
+                android.util.Log.d("RNKLineView", "Processing updateOrderLine command");
+                if (args != null && args.size() > 0) {
+                    try {
+                        ReadableMap orderLineData = args.getMap(0);
+                        Map<String, Object> dataMap = orderLineData.toHashMap();
+                        android.util.Log.d("RNKLineView", "Calling containerView.updateOrderLine with data: " + dataMap);
+                        containerView.updateOrderLine(dataMap);
+                    } catch (Exception e) {
+                        android.util.Log.e("RNKLineView", "Error in updateOrderLine command", e);
+                        e.printStackTrace();
+                    }
+                } else {
+                    android.util.Log.w("RNKLineView", "updateOrderLine: args is null or empty");
+                }
+                break;
+            case "getOrderLines":
+                android.util.Log.d("RNKLineView", "Processing getOrderLines command");
+                try {
+                    android.util.Log.d("RNKLineView", "Calling containerView.getOrderLines");
+                    containerView.getOrderLines();
+                } catch (Exception e) {
+                    android.util.Log.e("RNKLineView", "Error in getOrderLines command", e);
+                    e.printStackTrace();
                 }
                 break;
             default:

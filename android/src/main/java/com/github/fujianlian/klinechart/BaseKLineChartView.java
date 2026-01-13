@@ -13,6 +13,7 @@ import com.github.fujianlian.klinechart.base.IChartDraw;
 import com.github.fujianlian.klinechart.base.IDateTimeFormatter;
 import com.github.fujianlian.klinechart.base.IValueFormatter;
 import com.github.fujianlian.klinechart.container.HTDrawContext;
+import com.github.fujianlian.klinechart.container.HTKLineContainerView;
 import com.github.fujianlian.klinechart.container.HTPoint;
 import com.github.fujianlian.klinechart.draw.MainDraw;
 import com.github.fujianlian.klinechart.draw.PrimaryStatus;
@@ -322,6 +323,7 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
                 drawMaxAndMin(canvas);
                 drawValue(canvas, isLongPress ? mSelectedIndex : mStopIndex);
                 drawClosePriceLine(canvas);
+                drawOrderLines(canvas);
                 drawSelector(canvas);
                 android.util.Log.d("BaseKLineChartView", "Chart elements drawn successfully");
             } else {
@@ -835,6 +837,47 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
             if (mChildDraw != null) {
                 float y = mVolRect.bottom + textHeight;
                 mChildDraw.drawText(canvas, this, position, x, y);
+            }
+        }
+    }
+
+    private void drawOrderLines(Canvas canvas) {
+        // Get parent container view to access order lines
+        if (getParent() instanceof HTKLineContainerView) {
+            HTKLineContainerView containerView = (HTKLineContainerView) getParent();
+            java.util.Map<String, java.util.Map<String, Object>> orderLines = containerView.getAllOrderLines();
+
+            // Create a paint for drawing order lines
+            Paint orderLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            orderLinePaint.setStyle(Paint.Style.STROKE);
+            orderLinePaint.setStrokeWidth(2.0f);
+            orderLinePaint.setColor(Color.parseColor("#FF9500")); // Orange color
+
+            // Create dashed line effect
+            float[] dashIntervals = {15.0f, 10.0f}; // dash length, gap length
+            orderLinePaint.setPathEffect(new DashPathEffect(dashIntervals, 0));
+
+            for (java.util.Map.Entry<String, java.util.Map<String, Object>> entry : orderLines.entrySet()) {
+                java.util.Map<String, Object> orderLineData = entry.getValue();
+
+                if (orderLineData.containsKey("price") && orderLineData.containsKey("type")) {
+                    double price = 0;
+                    Object priceObj = orderLineData.get("price");
+                    if (priceObj instanceof Number) {
+                        price = ((Number) priceObj).doubleValue();
+                    }
+
+                    String type = (String) orderLineData.get("type");
+
+                    // Convert price to Y coordinate
+                    float y = yFromValue((float) price);
+
+                    // Only draw if the price is within the visible main chart area
+                    if (y >= mMainRect.top && y <= mMainRect.bottom) {
+                        // Draw horizontal line across the visible width
+                        canvas.drawLine(0, y, getWidth(), y, orderLinePaint);
+                    }
+                }
             }
         }
     }

@@ -194,6 +194,7 @@ class HTKLineView: UIScrollView {
                 drawHighLow(context)
                 drawTime(context)
                 drawClosePrice(context)
+                drawOrderLines(context)
                 drawSelectedLine(context)
                 drawSelectedBoard(context)
                 drawSelectedTime(context)
@@ -706,6 +707,49 @@ class HTKLineView: UIScrollView {
             point: CGPoint.init(
                 x: x - width / 2.0, y: y + (configManager.paddingBottom - height) / 2),
             color: color, font: font, context: context, configManager: configManager)
+    }
+
+    func drawOrderLines(_ context: CGContext) {
+        // Access order lines from parent container view
+        guard let containerView = superview as? HTKLineContainerView else {
+            return
+        }
+
+        let orderLines = containerView.getAllOrderLines()
+
+        for (_, orderLineData) in orderLines {
+            guard let price = orderLineData["price"] as? Double,
+                  let type = orderLineData["type"] as? String else {
+                continue
+            }
+
+            // Convert price to Y coordinate
+            let priceRange = mainMinMaxRange.upperBound - mainMinMaxRange.lowerBound
+            let normalizedPrice = (price - mainMinMaxRange.lowerBound) / priceRange
+            let y = mainBaseY + mainHeight - CGFloat(normalizedPrice) * mainHeight
+
+            // Only draw if the price is within the visible range
+            if y >= mainBaseY && y <= mainBaseY + mainHeight {
+                // Set line style based on order type
+                context.setLineWidth(1.0)
+
+                // For now, just draw a simple dashed line for all order types
+                // Future: customize based on type (limit, stop_loss, take_profit, etc.)
+                context.setStrokeColor(UIColor.orange.cgColor)
+
+                // Create dashed line pattern
+                let dashPattern: [CGFloat] = [5.0, 3.0]
+                context.setLineDash(phase: 0, lengths: dashPattern)
+
+                // Draw horizontal line across the visible width
+                context.move(to: CGPoint(x: 0, y: y))
+                context.addLine(to: CGPoint(x: allWidth, y: y))
+                context.strokePath()
+
+                // Reset dash pattern for other drawing operations
+                context.setLineDash(phase: 0, lengths: [])
+            }
+        }
     }
 
     func valuePointFromViewPoint(_ point: CGPoint) -> CGPoint {

@@ -25,6 +25,7 @@ import {
 } from './utils/helpers'
 import Toolbar from './components/Toolbar'
 import ControlBar from './components/ControlBar'
+import OrderInput from './components/OrderInput'
 import Selectors from './components/Selectors'
 import {
 	processKLineData,
@@ -314,6 +315,33 @@ const App = () => {
 		})
 	}, [klineData, showVolumeChart,kLineViewRef.current])
 
+	// Order line management
+	const [orderIdCounter, setOrderIdCounter] = useState(1)
+
+	const handleAddLimitOrder = useCallback((price) => {
+		if (!kLineViewRef.current) return
+
+		const orderLine = {
+			id: `limit-order-${orderIdCounter}`,
+			type: 'limit',
+			price: price,
+			amount: 1,
+			isBuy: true
+		}
+
+		console.log('Adding limit order:', orderLine)
+		kLineViewRef.current.addOrderLine(orderLine)
+		setOrderIdCounter(prev => prev + 1)
+	}, [kLineViewRef.current, orderIdCounter])
+
+	// Get current price for the input component
+	const getCurrentPrice = useCallback(() => {
+		if (klineData.length > 0) {
+			return klineData[klineData.length - 1].close
+		}
+		return null
+	}, [klineData])
+
 
 
 	const renderKLineChart = useCallback((styles) => {
@@ -384,6 +412,13 @@ const App = () => {
 
 			{/* K-line chart */}
 			{renderKLineChart(styles)}
+
+			{/* Order input */}
+			<OrderInput
+				theme={theme}
+				onAddOrder={handleAddLimitOrder}
+				currentPrice={getCurrentPrice()}
+			/>
 
 			{/* Bottom control bar */}
 			<ControlBar
