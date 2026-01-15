@@ -13,8 +13,6 @@ class HTKLineView: UIScrollView {
 
     var configManager: HTKLineConfigManager
 
-    private let minVisibleCandles: CGFloat = 5
-
     lazy var drawContext: HTDrawContext = {
         let drawContext = HTDrawContext.init(self, configManager)
         return drawContext
@@ -157,7 +155,7 @@ class HTKLineView: UIScrollView {
 
     func reloadContentOffset(_ contentOffsetX: CGFloat, _ animated: Bool = false) {
         let allCandlesWidth = configManager.itemWidth * CGFloat(configManager.modelArray.count)
-        let maxAllowedOffset = allCandlesWidth - minVisibleCandles * configManager.itemWidth
+        let maxAllowedOffset = allCandlesWidth - configManager.minVisibleCandles * configManager.itemWidth
         let offsetX = max(0, min(contentOffsetX, maxAllowedOffset))
         setContentOffset(CGPoint.init(x: offsetX, y: 0), animated: animated)
     }
@@ -726,7 +724,7 @@ extension HTKLineView: UIScrollViewDelegate {
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let allCandlesWidth = configManager.itemWidth * CGFloat(configManager.modelArray.count)
-        let maxAllowedOffset = allCandlesWidth - minVisibleCandles * configManager.itemWidth
+        let maxAllowedOffset = allCandlesWidth - configManager.minVisibleCandles * configManager.itemWidth
 
         let contentOffsetX = scrollView.contentOffset.x
 
