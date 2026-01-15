@@ -16,6 +16,7 @@ import android.widget.RelativeLayout;
 public abstract class ScrollAndScaleView extends RelativeLayout implements
         GestureDetector.OnGestureListener,
         ScaleGestureDetector.OnScaleGestureListener {
+    protected static final int MIN_VISIBLE_CANDLES = 5;
     protected int mScrollX = 0;
     protected GestureDetectorCompat mDetector;
     protected ScaleGestureDetector mScaleDetector;
@@ -271,8 +272,13 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
      * @param scrollX
      */
     public void setScrollX(int scrollX) {
-        this.mScrollX = scrollX;
-        scrollTo(scrollX, 0);
+        int maxScroll = getMaxScrollX();
+        int screenWidth = (int)(getWidth() / getScaleX());
+        int realDataMaxScroll = maxScroll - screenWidth;
+        int maxAllowedScroll = realDataMaxScroll - (int)(MIN_VISIBLE_CANDLES * getmPointWidth());
+        int normalizedMaxAllowedScroll = Math.max(0, maxAllowedScroll);
+        this.mScrollX = Math.max(0, Math.min(scrollX, normalizedMaxAllowedScroll));
+        scrollTo(this.mScrollX, 0);
     }
 
     /**
