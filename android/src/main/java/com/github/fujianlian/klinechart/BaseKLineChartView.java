@@ -948,7 +948,7 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
         int maxScroll = getMaxScrollX();
         int screenWidth = (int)(getWidth() / getScaleX());
         int realDataMaxScroll = maxScroll - screenWidth;
-        int maxAllowedScroll = realDataMaxScroll - (int)(getMinVisibleCandles() * getmPointWidth());
+        int maxAllowedScroll = realDataMaxScroll - (int)(getMinVisibleCandles() * getPointWidth());
         int normalizedMaxAllowedScroll = Math.max(0, maxAllowedScroll);
 
         if (l > normalizedMaxAllowedScroll) {

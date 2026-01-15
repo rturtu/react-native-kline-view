@@ -272,6 +272,13 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
     public abstract int getMaxScrollX();
 
     /**
+     * Get the point width
+     *
+     * @return
+     */
+    public abstract float getPointWidth();
+
+    /**
      * Set ScrollX
      *
      * @param scrollX
@@ -280,7 +287,7 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
         int maxScroll = getMaxScrollX();
         int screenWidth = (int)(getWidth() / getScaleX());
         int realDataMaxScroll = maxScroll - screenWidth;
-        int maxAllowedScroll = realDataMaxScroll - (int)(getMinVisibleCandles() * getmPointWidth());
+        int maxAllowedScroll = realDataMaxScroll - (int)(getMinVisibleCandles() * getPointWidth());
         int normalizedMaxAllowedScroll = Math.max(0, maxAllowedScroll);
         this.mScrollX = Math.max(0, Math.min(scrollX, normalizedMaxAllowedScroll));
         scrollTo(this.mScrollX, 0);
