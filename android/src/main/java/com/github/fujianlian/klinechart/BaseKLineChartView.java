@@ -944,8 +944,6 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
     @Override
     protected void onScrollChanged(int l, int t, int oldl, int oldt) {
         android.util.Log.d("BaseKLineChartView", "onScrollChanged() - l=" + l + ", t=" + t + ", oldl=" + oldl + ", oldt=" + oldt);
-        
-
         super.onScrollChanged(l, t, oldl, oldt);
     }
 
