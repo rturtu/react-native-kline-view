@@ -847,16 +847,6 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
             HTKLineContainerView containerView = (HTKLineContainerView) getParent();
             java.util.Map<String, java.util.Map<String, Object>> orderLines = containerView.getAllOrderLines();
 
-            // Create a paint for drawing order lines
-            Paint orderLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            orderLinePaint.setStyle(Paint.Style.STROKE);
-            orderLinePaint.setStrokeWidth(2.0f);
-            orderLinePaint.setColor(Color.parseColor("#FF9500")); // Orange color
-
-            // Create dashed line effect
-            float[] dashIntervals = {15.0f, 10.0f}; // dash length, gap length
-            orderLinePaint.setPathEffect(new DashPathEffect(dashIntervals, 0));
-
             for (java.util.Map.Entry<String, java.util.Map<String, Object>> entry : orderLines.entrySet()) {
                 java.util.Map<String, Object> orderLineData = entry.getValue();
 
@@ -874,6 +864,30 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
 
                     // Only draw if the price is within the visible main chart area
                     if (y >= mMainRect.top && y <= mMainRect.bottom) {
+                        // Create a paint for drawing order lines
+                        Paint orderLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+                        orderLinePaint.setStyle(Paint.Style.STROKE);
+                        orderLinePaint.setStrokeWidth(2.0f);
+
+                        // Use color property if available, otherwise default to orange
+                        int lineColor = Color.parseColor("#FF9500"); // Default orange color
+                        if (orderLineData.containsKey("color")) {
+                            String colorString = (String) orderLineData.get("color");
+                            if (colorString != null) {
+                                try {
+                                    lineColor = Color.parseColor(colorString);
+                                } catch (IllegalArgumentException e) {
+                                    // If parsing fails, use default orange color
+                                    lineColor = Color.parseColor("#FF9500");
+                                }
+                            }
+                        }
+                        orderLinePaint.setColor(lineColor);
+
+                        // Create dashed line effect
+                        float[] dashIntervals = {15.0f, 10.0f}; // dash length, gap length
+                        orderLinePaint.setPathEffect(new DashPathEffect(dashIntervals, 0));
+
                         // Draw horizontal line across the visible width
                         canvas.drawLine(0, y, getWidth(), y, orderLinePaint);
                     }

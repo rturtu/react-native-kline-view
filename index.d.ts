@@ -7,7 +7,7 @@ declare module 'react-native-kline-view' {
     type: string; // 'limit' | 'liquidation' | 'stop_loss' | 'take_profit' | etc.
     price: number;
     amount: number;
-    isBuy: boolean;
+    color: string; // Hex color string (e.g., '#FF0000' for red)
   }
 
   export interface RNKLineViewRef {

@@ -317,6 +317,7 @@ const App = () => {
 
 	// Order line management
 	const [orderIdCounter, setOrderIdCounter] = useState(1)
+	const [orderLines, setOrderLines] = useState({})
 
 	const handleAddLimitOrder = useCallback((price) => {
 		if (!kLineViewRef.current) return
@@ -326,13 +327,34 @@ const App = () => {
 			type: 'limit',
 			price: price,
 			amount: 1,
-			isBuy: true
+			color: '#00FF00' // Green color for the order line
 		}
 
 		console.log('Adding limit order:', orderLine)
 		kLineViewRef.current.addOrderLine(orderLine)
+		setOrderLines(prev => ({ ...prev, [orderLine.id]: orderLine }))
 		setOrderIdCounter(prev => prev + 1)
 	}, [kLineViewRef.current, orderIdCounter])
+
+	const handleUpdateOrder = useCallback((orderId, newPrice) => {
+		if (!kLineViewRef.current) return
+
+		const existingOrder = orderLines[orderId]
+		if (!existingOrder) {
+			console.warn(`Order with ID ${orderId} not found`)
+			return
+		}
+
+		const updatedOrderLine = {
+			...existingOrder,
+			price: newPrice,
+			color: '#FF9500' // Orange color for updated orders
+		}
+
+		console.log('Updating order:', updatedOrderLine)
+		kLineViewRef.current.updateOrderLine(updatedOrderLine)
+		setOrderLines(prev => ({ ...prev, [orderId]: updatedOrderLine }))
+	}, [kLineViewRef.current, orderLines])
 
 	// Get current price for the input component
 	const getCurrentPrice = useCallback(() => {
@@ -417,7 +439,9 @@ const App = () => {
 			<OrderInput
 				theme={theme}
 				onAddOrder={handleAddLimitOrder}
+				onUpdateOrder={handleUpdateOrder}
 				currentPrice={getCurrentPrice()}
+				orderLines={orderLines}
 			/>
 
 			{/* Bottom control bar */}

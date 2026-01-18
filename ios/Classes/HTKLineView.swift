@@ -9,6 +9,25 @@
 import Lottie
 import UIKit
 
+// Extension to create UIColor from hex string
+extension UIColor {
+    convenience init?(hexString: String) {
+        let hex = hexString.trimmingCharacters(in: .whitespacesAndNewlines)
+        let scanner = Scanner(string: hex.hasPrefix("#") ? String(hex.dropFirst()) : hex)
+        var rgbValue: UInt64 = 0
+
+        guard scanner.scanHexInt64(&rgbValue) else {
+            return nil
+        }
+
+        let red = CGFloat((rgbValue & 0xFF0000) >> 16) / 255.0
+        let green = CGFloat((rgbValue & 0x00FF00) >> 8) / 255.0
+        let blue = CGFloat(rgbValue & 0x0000FF) / 255.0
+
+        self.init(red: red, green: green, blue: blue, alpha: 1.0)
+    }
+}
+
 class HTKLineView: UIScrollView {
 
     var configManager: HTKLineConfigManager
@@ -733,9 +752,12 @@ class HTKLineView: UIScrollView {
                 // Set line style based on order type
                 context.setLineWidth(1.0)
 
-                // For now, just draw a simple dashed line for all order types
-                // Future: customize based on type (limit, stop_loss, take_profit, etc.)
-                context.setStrokeColor(UIColor.orange.cgColor)
+                // Use color property if available, otherwise default to orange
+                var lineColor = UIColor.orange
+                if let colorString = orderLineData["color"] as? String {
+                    lineColor = UIColor(hexString: colorString) ?? UIColor.orange
+                }
+                context.setStrokeColor(lineColor.cgColor)
 
                 // Create dashed line pattern
                 let dashPattern: [CGFloat] = [5.0, 3.0]
