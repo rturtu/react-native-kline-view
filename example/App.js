@@ -319,7 +319,7 @@ const App = () => {
 	const [orderIdCounter, setOrderIdCounter] = useState(1)
 	const [orderLines, setOrderLines] = useState({})
 
-	const handleAddLimitOrder = useCallback((price) => {
+	const handleAddLimitOrder = useCallback((price, label) => {
 		if (!kLineViewRef.current) return
 
 		const orderLine = {
@@ -327,7 +327,9 @@ const App = () => {
 			type: 'limit',
 			price: price,
 			amount: 1,
-			color: '#00FF00' // Green color for the order line
+			color: '#00FF00', // Green color for the order line
+			label: label || `Limit ${orderIdCounter}`,
+			labelFontSize: 14
 		}
 
 		console.log('Adding limit order:', orderLine)
@@ -348,7 +350,9 @@ const App = () => {
 		const updatedOrderLine = {
 			...existingOrder,
 			price: newPrice,
-			color: '#FF9500' // Orange color for updated orders
+			color: '#FF9500', // Orange color for updated orders
+			label: `${existingOrder.label} (Updated)`,
+			labelFontSize: 12
 		}
 
 		console.log('Updating order:', updatedOrderLine)

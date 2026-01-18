@@ -211,9 +211,9 @@ class HTKLineView: UIScrollView {
                 drawValue(context)
 
                 drawHighLow(context)
+                drawOrderLines(context)
                 drawTime(context)
                 drawClosePrice(context)
-                drawOrderLines(context)
                 drawSelectedLine(context)
                 drawSelectedBoard(context)
                 drawSelectedTime(context)
@@ -763,9 +763,41 @@ class HTKLineView: UIScrollView {
                 let dashPattern: [CGFloat] = [5.0, 3.0]
                 context.setLineDash(phase: 0, lengths: dashPattern)
 
-                // Draw horizontal line across the visible width
-                context.move(to: CGPoint(x: 0, y: y))
-                context.addLine(to: CGPoint(x: allWidth, y: y))
+                // Calculate line start position (after label if it exists)
+                var lineStartX: CGFloat = 0
+
+                // Draw label if available and calculate where line should start
+                if let label = orderLineData["label"] as? String, !label.isEmpty {
+                    let fontSize = (orderLineData["labelFontSize"] as? CGFloat) ?? 12.0
+                    let font = configManager.createFont(fontSize)
+
+                    // Calculate text size
+                    let attributes: [NSAttributedString.Key: Any] = [
+                        .font: font,
+                        .foregroundColor: lineColor
+                    ]
+                    let textSize = label.size(withAttributes: attributes)
+
+                    // Position label on the left side with some padding
+                    let labelPadding: CGFloat = 8
+                    let labelX = labelPadding
+                    let labelY = y - textSize.height / 2
+
+                    // Only draw label if there's enough space
+                    if labelX + textSize.width + labelPadding < allWidth / 3 {
+                        let textRect = CGRect(x: labelX, y: labelY, width: textSize.width, height: textSize.height)
+                        label.draw(in: textRect, withAttributes: attributes)
+
+                        // Set line to start after label with additional padding
+                        lineStartX = labelX + textSize.width + labelPadding
+                    }
+                }
+
+                // Draw horizontal line starting after the label (or from 0 if no label)
+                // Stop before the Y-axis scale area (paddingRight)
+                let lineEndX = allWidth - configManager.paddingRight
+                context.move(to: CGPoint(x: lineStartX, y: y))
+                context.addLine(to: CGPoint(x: lineEndX, y: y))
                 context.strokePath()
 
                 // Reset dash pattern for other drawing operations

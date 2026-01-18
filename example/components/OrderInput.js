@@ -3,13 +3,15 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-nativ
 
 const OrderInput = ({ theme, onAddOrder, onUpdateOrder, currentPrice, orderLines }) => {
 	const [priceInput, setPriceInput] = useState(currentPrice ? currentPrice.toString() : '')
+	const [labelInput, setLabelInput] = useState('')
 	const [updateOrderId, setUpdateOrderId] = useState('')
 	const [updatePriceInput, setUpdatePriceInput] = useState('')
 
 	const handleAddOrder = () => {
 		const price = parseFloat(priceInput)
 		if (!isNaN(price) && price > 0) {
-			onAddOrder(price)
+			onAddOrder(price, labelInput)
+			setLabelInput('')
 		}
 	}
 
@@ -110,12 +112,19 @@ const OrderInput = ({ theme, onAddOrder, onUpdateOrder, currentPrice, orderLines
 			<View style={styles.row}>
 				<Text style={styles.label}>Add Order:</Text>
 				<TextInput
-					style={styles.input}
+					style={styles.shortInput}
 					value={priceInput}
 					onChangeText={setPriceInput}
-					placeholder="Enter price"
+					placeholder="Price"
 					placeholderTextColor={theme.gridColor}
 					keyboardType="numeric"
+				/>
+				<TextInput
+					style={styles.input}
+					value={labelInput}
+					onChangeText={setLabelInput}
+					placeholder="Label (optional)"
+					placeholderTextColor={theme.gridColor}
 				/>
 				{currentPrice && (
 					<TouchableOpacity

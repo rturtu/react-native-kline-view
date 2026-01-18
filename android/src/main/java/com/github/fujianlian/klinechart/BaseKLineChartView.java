@@ -321,9 +321,9 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
                 drawK(canvas);
                 drawText(canvas);
                 drawMaxAndMin(canvas);
+                drawOrderLines(canvas);
                 drawValue(canvas, isLongPress ? mSelectedIndex : mStopIndex);
                 drawClosePriceLine(canvas);
-                drawOrderLines(canvas);
                 drawSelector(canvas);
                 android.util.Log.d("BaseKLineChartView", "Chart elements drawn successfully");
             } else {
@@ -888,8 +888,51 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
                         float[] dashIntervals = {15.0f, 10.0f}; // dash length, gap length
                         orderLinePaint.setPathEffect(new DashPathEffect(dashIntervals, 0));
 
-                        // Draw horizontal line across the visible width
-                        canvas.drawLine(0, y, getWidth(), y, orderLinePaint);
+                        // Calculate line start position (after label if it exists)
+                        float lineStartX = 0;
+
+                        // Draw label if available and calculate where line should start
+                        if (orderLineData.containsKey("label")) {
+                            String label = (String) orderLineData.get("label");
+                            if (label != null && !label.isEmpty()) {
+                                // Get font size or use default
+                                float fontSize = 12.0f;
+                                if (orderLineData.containsKey("labelFontSize")) {
+                                    Object fontSizeObj = orderLineData.get("labelFontSize");
+                                    if (fontSizeObj instanceof Number) {
+                                        fontSize = ((Number) fontSizeObj).floatValue();
+                                    }
+                                }
+
+                                // Create paint for label text
+                                Paint labelPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+                                labelPaint.setColor(lineColor);
+                                labelPaint.setTextSize(fontSize * getResources().getDisplayMetrics().scaledDensity);
+                                labelPaint.setTypeface(configManager.font);
+
+                                // Calculate text bounds
+                                Rect textBounds = new Rect();
+                                labelPaint.getTextBounds(label, 0, label.length(), textBounds);
+
+                                // Position label on the left side with padding
+                                float labelPadding = 8 * getResources().getDisplayMetrics().density;
+                                float labelX = labelPadding;
+                                float labelY = y - (textBounds.top + textBounds.bottom) / 2.0f;
+
+                                // Only draw if there's enough space (left third of screen)
+                                if (labelX + textBounds.width() + labelPadding < getWidth() / 3) {
+                                    canvas.drawText(label, labelX, labelY, labelPaint);
+
+                                    // Set line to start after label with additional padding
+                                    lineStartX = labelX + textBounds.width() + labelPadding;
+                                }
+                            }
+                        }
+
+                        // Draw horizontal line starting after the label (or from 0 if no label)
+                        // Stop before the Y-axis scale area (paddingRight)
+                        float lineEndX = getWidth() - configManager.paddingRight;
+                        canvas.drawLine(lineStartX, y, lineEndX, y, orderLinePaint);
                     }
                 }
             }

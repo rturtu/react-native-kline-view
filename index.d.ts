@@ -8,6 +8,8 @@ declare module 'react-native-kline-view' {
     price: number;
     amount: number;
     color: string; // Hex color string (e.g., '#FF0000' for red)
+    label?: string; // Optional label text to display on the line
+    labelFontSize?: number; // Optional font size for the label (default: 12)
   }
 
   export interface RNKLineViewRef {
