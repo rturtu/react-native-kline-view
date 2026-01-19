@@ -473,14 +473,6 @@ class HTKLineView: UIScrollView {
         closePriceLabelFrame = adjustedRect
         print("HTKLineView: Set closePriceLabelFrame (center): \(rect) -> adjusted: \(adjustedRect)")
 
-        context.saveGState()
-        context.setLineDash(phase: 0, lengths: [4, 4])
-        context.setStrokeColor(configManager.closePriceCenterSeparatorColor.cgColor)
-        context.setLineWidth(configManager.lineWidth / 2)
-        context.addLines(between: [CGPoint.init(x: 0, y: y), CGPoint.init(x: allWidth, y: y)])
-        context.strokePath()
-        context.restoreGState()
-
         let rectPath = UIBezierPath.init(roundedRect: rect, cornerRadius: rect.size.height / 2)
         context.setFillColor(configManager.closePriceCenterBackgroundColor.cgColor)
         context.addPath(rectPath.cgPath)
@@ -510,15 +502,6 @@ class HTKLineView: UIScrollView {
 
     func drawClosePriceRight(_ context: CGContext, _ lastModel: HTKLineModel, _ offset: CGFloat) {
         let y = yFromValue(lastModel.close)
-        context.saveGState()
-        context.setLineDash(phase: 0, lengths: [4, 4])
-        context.setStrokeColor(configManager.closePriceRightSeparatorColor.cgColor)
-        context.setLineWidth(configManager.lineWidth / 2)
-        let x = offset + configManager.itemWidth / 2
-        context.addLines(between: [CGPoint.init(x: x, y: y), CGPoint.init(x: allWidth, y: y)])
-        context.strokePath()
-        context.restoreGState()
-
         let title = configManager.precision(lastModel.close, configManager.price)
         let font = configManager.createFont(configManager.rightTextFontSize)
         let color = configManager.closePriceRightSeparatorColor
@@ -778,18 +761,49 @@ class HTKLineView: UIScrollView {
                     ]
                     let textSize = label.size(withAttributes: attributes)
 
-                    // Position label on the left side with some padding
-                    let labelPadding: CGFloat = 8
-                    let labelX = labelPadding
-                    let labelY = y - textSize.height / 2
+                    // Pill container dimensions (match close price pill)
+                    let horizontalPadding: CGFloat = 7
+                    let verticalPadding: CGFloat = 5
+                    let outerPadding: CGFloat = 8
+
+                    let pillWidth = textSize.width + horizontalPadding * 2
+                    let pillHeight = textSize.height + verticalPadding * 2
+
+                    let labelX = outerPadding
+                    let labelY = y - pillHeight / 2
 
                     // Only draw label if there's enough space
-                    if labelX + textSize.width + labelPadding < allWidth / 3 {
-                        let textRect = CGRect(x: labelX, y: labelY, width: textSize.width, height: textSize.height)
+                    if labelX + pillWidth + outerPadding < allWidth / 3 {
+                        // Draw pill background
+                        let pillRect = CGRect(x: labelX, y: labelY, width: pillWidth, height: pillHeight)
+                        // Use same radius calculation as close price pill
+                        let pillPath = UIBezierPath(roundedRect: pillRect, cornerRadius: pillRect.size.height / 2)
+
+                        // Get background color or use default
+                        var backgroundColor = UIColor.clear
+                        if let backgroundColorString = orderLineData["labelBackgroundColor"] as? String {
+                            backgroundColor = UIColor(hexString: backgroundColorString) ?? UIColor.clear
+                        }
+
+                        // Fill background
+                        context.setFillColor(backgroundColor.cgColor)
+                        context.addPath(pillPath.cgPath)
+                        context.fillPath()
+
+                        // Draw border with same color as text
+                        context.setStrokeColor(lineColor.cgColor)
+                        context.setLineWidth(1.0)
+                        context.addPath(pillPath.cgPath)
+                        context.strokePath()
+
+                        // Draw text centered in pill
+                        let textX = labelX + horizontalPadding
+                        let textY = labelY + verticalPadding
+                        let textRect = CGRect(x: textX, y: textY, width: textSize.width, height: textSize.height)
                         label.draw(in: textRect, withAttributes: attributes)
 
-                        // Set line to start after label with additional padding
-                        lineStartX = labelX + textSize.width + labelPadding
+                        // Set line to start after pill with additional padding
+                        lineStartX = labelX + pillWidth + outerPadding
                     }
                 }
 

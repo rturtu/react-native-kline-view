@@ -488,7 +488,6 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
             mClosePriceLabelFrame.set(rect);
             android.util.Log.d("BaseKLineChartView", "Set closePriceLabelFrame (center): " + rect);
 
-            canvas.drawLine(0, y, mWidth, y, mClosePriceLinePaint);
             float radius = (paddingY * 2 + height) / 2;
             mClosePricePointPaint.setColor(configManager.closePriceCenterBackgroundColor);
             mClosePricePointPaint.setStyle(Paint.Style.FILL);
@@ -514,7 +513,6 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
             mClosePriceLabelFrame.set(rightRect);
             android.util.Log.d("BaseKLineChartView", "Set closePriceLabelFrame (right): " + rightRect);
 
-            canvas.drawLine(x, y, mWidth, y, mClosePriceLinePaint);
             canvas.drawRect(rightRect, mClosePricePointPaint);
             canvas.drawText(text, mWidth - width, fixTextY1(y), mClosePriceRightTextPaint);
 
@@ -914,17 +912,57 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
                                 Rect textBounds = new Rect();
                                 labelPaint.getTextBounds(label, 0, label.length(), textBounds);
 
-                                // Position label on the left side with padding
-                                float labelPadding = 8 * getResources().getDisplayMetrics().density;
-                                float labelX = labelPadding;
-                                float labelY = y - (textBounds.top + textBounds.bottom) / 2.0f;
+                                // Pill container dimensions (match close price pill)
+                                float density = getResources().getDisplayMetrics().density;
+                                float horizontalPadding = 20;
+                                float verticalPadding = 14;
+                                float outerPadding = 8 * density;
+
+                                float pillWidth = textBounds.width() + horizontalPadding * 2;
+                                float pillHeight = textBounds.height() + verticalPadding * 2;
+
+                                float labelX = outerPadding;
+                                float labelY = y - pillHeight / 2;
 
                                 // Only draw if there's enough space (left third of screen)
-                                if (labelX + textBounds.width() + labelPadding < getWidth() / 3) {
-                                    canvas.drawText(label, labelX, labelY, labelPaint);
+                                if (labelX + pillWidth + outerPadding < getWidth() / 3) {
+                                    // Create pill background paint
+                                    Paint pillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-                                    // Set line to start after label with additional padding
-                                    lineStartX = labelX + textBounds.width() + labelPadding;
+                                    // Get background color or use default (transparent)
+                                    int backgroundColor = Color.TRANSPARENT;
+                                    if (orderLineData.containsKey("labelBackgroundColor")) {
+                                        String backgroundColorString = (String) orderLineData.get("labelBackgroundColor");
+                                        if (backgroundColorString != null) {
+                                            try {
+                                                backgroundColor = Color.parseColor(backgroundColorString);
+                                            } catch (IllegalArgumentException e) {
+                                                backgroundColor = Color.TRANSPARENT;
+                                            }
+                                        }
+                                    }
+
+                                    // Draw pill background
+                                    RectF pillRect = new RectF(labelX, labelY, labelX + pillWidth, labelY + pillHeight);
+                                    // Use same radius calculation as close price pill
+                                    float radius = (verticalPadding * 2 + textBounds.height()) / 2;
+                                    pillPaint.setColor(backgroundColor);
+                                    pillPaint.setStyle(Paint.Style.FILL);
+                                    canvas.drawRoundRect(pillRect, radius, radius, pillPaint);
+
+                                    // Draw pill border with same color as text
+                                    pillPaint.setColor(lineColor);
+                                    pillPaint.setStyle(Paint.Style.STROKE);
+                                    pillPaint.setStrokeWidth(1 * density);
+                                    canvas.drawRoundRect(pillRect, radius, radius, pillPaint);
+
+                                    // Draw text centered in pill
+                                    float textX = labelX + horizontalPadding;
+                                    float textY = y + textBounds.height() / 2;
+                                    canvas.drawText(label, textX, textY, labelPaint);
+
+                                    // Set line to start after pill with additional padding
+                                    lineStartX = labelX + pillWidth + outerPadding;
                                 }
                             }
                         }

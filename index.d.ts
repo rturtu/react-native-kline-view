@@ -10,6 +10,7 @@ declare module 'react-native-kline-view' {
     color: string; // Hex color string (e.g., '#FF0000' for red)
     label?: string; // Optional label text to display on the line
     labelFontSize?: number; // Optional font size for the label (default: 12)
+    labelBackgroundColor?: string; // Optional background color for the label pill (e.g., '#FF0000' for red)
   }
 
   export interface RNKLineViewRef {
