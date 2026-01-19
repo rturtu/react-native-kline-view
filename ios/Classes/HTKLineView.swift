@@ -830,16 +830,22 @@ class HTKLineView: UIScrollView {
                             backgroundColor = UIColor(hexString: backgroundColorString) ?? UIColor.clear
                         }
 
-                        // Fill background
+                        // Fill background (ensure alpha blending is enabled)
+                        context.setBlendMode(.normal)
                         context.setFillColor(backgroundColor.cgColor)
                         context.addPath(pillPath.cgPath)
                         context.fillPath()
 
-                        // Draw border with same color as text
+                        // Draw border with same color as text (reset dash pattern first)
+                        context.setLineDash(phase: 0, lengths: [])
                         context.setStrokeColor(lineColor.cgColor)
                         context.setLineWidth(1.0)
                         context.addPath(pillPath.cgPath)
                         context.strokePath()
+
+                        // Restore dashed line pattern for the order line
+                        let dashPattern: [CGFloat] = [5.0, 3.0]
+                        context.setLineDash(phase: 0, lengths: dashPattern)
 
                         // Draw label text
                         let labelTextX = labelX + horizontalPadding
