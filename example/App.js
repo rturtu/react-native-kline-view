@@ -330,7 +330,7 @@ const App = () => {
 			color: '#00FF00', // Green color for the order line
 			label: label || `Limit ${orderIdCounter}`,
 			labelFontSize: 14,
-			labelBackgroundColor: '#22CC22' // Black background for the label pill
+			labelBackgroundColor: '#11441144' // Black background for the label pill
 		}
 
 		console.log('Adding limit order:', orderLine)

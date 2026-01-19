@@ -9,7 +9,7 @@
 import Lottie
 import UIKit
 
-// Extension to create UIColor from hex string
+// Extension to create UIColor from hex string with transparency support
 extension UIColor {
     convenience init?(hexString: String) {
         let hex = hexString.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -20,11 +20,25 @@ extension UIColor {
             return nil
         }
 
-        let red = CGFloat((rgbValue & 0xFF0000) >> 16) / 255.0
-        let green = CGFloat((rgbValue & 0x00FF00) >> 8) / 255.0
-        let blue = CGFloat(rgbValue & 0x0000FF) / 255.0
+        let cleanHex = hex.hasPrefix("#") ? String(hex.dropFirst()) : hex
+        let length = cleanHex.count
 
-        self.init(red: red, green: green, blue: blue, alpha: 1.0)
+        if length == 8 {
+            // 8-digit hex with alpha: #RRGGBBAA (React Native style)
+            let red = CGFloat((rgbValue & 0xFF000000) >> 24) / 255.0
+            let green = CGFloat((rgbValue & 0x00FF0000) >> 16) / 255.0
+            let blue = CGFloat((rgbValue & 0x0000FF00) >> 8) / 255.0
+            let alpha = CGFloat(rgbValue & 0x000000FF) / 255.0
+            self.init(red: red, green: green, blue: blue, alpha: alpha)
+        } else if length == 6 {
+            // 6-digit hex without alpha: #RRGGBB
+            let red = CGFloat((rgbValue & 0xFF0000) >> 16) / 255.0
+            let green = CGFloat((rgbValue & 0x00FF00) >> 8) / 255.0
+            let blue = CGFloat(rgbValue & 0x0000FF) / 255.0
+            self.init(red: red, green: green, blue: blue, alpha: 1.0)
+        } else {
+            return nil
+        }
     }
 }
 

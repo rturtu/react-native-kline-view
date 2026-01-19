@@ -7,10 +7,10 @@ declare module 'react-native-kline-view' {
     type: string; // 'limit' | 'liquidation' | 'stop_loss' | 'take_profit' | etc.
     price: number;
     amount: number;
-    color: string; // Hex color string (e.g., '#FF0000' for red)
+    color: string; // Hex color string with optional transparency (e.g., '#FF0000' or '#FF000080' for 50% transparent red)
     label?: string; // Optional label text to display on the line
     labelFontSize?: number; // Optional font size for the label (default: 12)
-    labelBackgroundColor?: string; // Optional background color for the label pill (e.g., '#FF0000' for red)
+    labelBackgroundColor?: string; // Optional background color for the label pill with optional transparency (e.g., '#FF0000' or '#00000080' for 50% transparent black)
   }
 
   export interface RNKLineViewRef {

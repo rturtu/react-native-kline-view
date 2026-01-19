@@ -873,7 +873,15 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
                             String colorString = (String) orderLineData.get("color");
                             if (colorString != null) {
                                 try {
-                                    lineColor = Color.parseColor(colorString);
+                                    // Handle RGBA format (convert to ARGB for Android)
+                                    if (colorString.length() == 9 && colorString.startsWith("#")) {
+                                        // Convert #RRGGBBAA to #AARRGGBB
+                                        String rgba = colorString.substring(1);
+                                        String argb = "#" + rgba.substring(6) + rgba.substring(0, 6);
+                                        lineColor = Color.parseColor(argb);
+                                    } else {
+                                        lineColor = Color.parseColor(colorString);
+                                    }
                                 } catch (IllegalArgumentException e) {
                                     // If parsing fails, use default orange color
                                     lineColor = Color.parseColor("#FF9500");
@@ -935,7 +943,15 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
                                         String backgroundColorString = (String) orderLineData.get("labelBackgroundColor");
                                         if (backgroundColorString != null) {
                                             try {
-                                                backgroundColor = Color.parseColor(backgroundColorString);
+                                                // Handle RGBA format (convert to ARGB for Android)
+                                                if (backgroundColorString.length() == 9 && backgroundColorString.startsWith("#")) {
+                                                    // Convert #RRGGBBAA to #AARRGGBB
+                                                    String rgba = backgroundColorString.substring(1);
+                                                    String argb = "#" + rgba.substring(6) + rgba.substring(0, 6);
+                                                    backgroundColor = Color.parseColor(argb);
+                                                } else {
+                                                    backgroundColor = Color.parseColor(backgroundColorString);
+                                                }
                                             } catch (IllegalArgumentException e) {
                                                 backgroundColor = Color.TRANSPARENT;
                                             }
