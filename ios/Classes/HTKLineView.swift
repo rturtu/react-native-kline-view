@@ -768,20 +768,51 @@ class HTKLineView: UIScrollView {
                     let fontSize = (orderLineData["labelFontSize"] as? CGFloat) ?? 12.0
                     let font = configManager.createFont(fontSize)
 
-                    // Calculate text size
-                    let attributes: [NSAttributedString.Key: Any] = [
+                    // Get label color (defaults to line color)
+                    var labelColor = lineColor
+                    if let labelColorString = orderLineData["labelColor"] as? String {
+                        labelColor = UIColor(hexString: labelColorString) ?? lineColor
+                    }
+
+                    // Calculate label size
+                    let labelAttributes: [NSAttributedString.Key: Any] = [
                         .font: font,
-                        .foregroundColor: lineColor
+                        .foregroundColor: labelColor
                     ]
-                    let textSize = label.size(withAttributes: attributes)
+                    let labelSize = label.size(withAttributes: labelAttributes)
+
+                    // Calculate description size if available
+                    var descriptionSize = CGSize.zero
+                    var descriptionColor = labelColor
+                    var description: String? = nil
+
+                    if let desc = orderLineData["labelDescription"] as? String, !desc.isEmpty {
+                        description = desc
+
+                        // Get description color (defaults to label color)
+                        if let descriptionColorString = orderLineData["labelDescriptionColor"] as? String {
+                            descriptionColor = UIColor(hexString: descriptionColorString) ?? labelColor
+                        }
+
+                        let descriptionAttributes: [NSAttributedString.Key: Any] = [
+                            .font: font,
+                            .foregroundColor: descriptionColor
+                        ]
+                        descriptionSize = desc.size(withAttributes: descriptionAttributes)
+                    }
+
+                    // Calculate total width (label + space + description)
+                    let spacing: CGFloat = description != nil ? 4 : 0
+                    let totalTextWidth = labelSize.width + spacing + descriptionSize.width
+                    let textHeight = max(labelSize.height, descriptionSize.height)
 
                     // Pill container dimensions (match close price pill)
                     let horizontalPadding: CGFloat = 7
                     let verticalPadding: CGFloat = 5
                     let outerPadding: CGFloat = 8
 
-                    let pillWidth = textSize.width + horizontalPadding * 2
-                    let pillHeight = textSize.height + verticalPadding * 2
+                    let pillWidth = totalTextWidth + horizontalPadding * 2
+                    let pillHeight = textHeight + verticalPadding * 2
 
                     let labelX = outerPadding
                     let labelY = y - pillHeight / 2
@@ -810,11 +841,23 @@ class HTKLineView: UIScrollView {
                         context.addPath(pillPath.cgPath)
                         context.strokePath()
 
-                        // Draw text centered in pill
-                        let textX = labelX + horizontalPadding
-                        let textY = labelY + verticalPadding
-                        let textRect = CGRect(x: textX, y: textY, width: textSize.width, height: textSize.height)
-                        label.draw(in: textRect, withAttributes: attributes)
+                        // Draw label text
+                        let labelTextX = labelX + horizontalPadding
+                        let labelTextY = labelY + verticalPadding
+                        let labelRect = CGRect(x: labelTextX, y: labelTextY, width: labelSize.width, height: labelSize.height)
+                        label.draw(in: labelRect, withAttributes: labelAttributes)
+
+                        // Draw description text if available
+                        if let description = description {
+                            let descriptionTextX = labelTextX + labelSize.width + spacing
+                            let descriptionTextY = labelY + verticalPadding
+                            let descriptionRect = CGRect(x: descriptionTextX, y: descriptionTextY, width: descriptionSize.width, height: descriptionSize.height)
+                            let descriptionAttributes: [NSAttributedString.Key: Any] = [
+                                .font: font,
+                                .foregroundColor: descriptionColor
+                            ]
+                            description.draw(in: descriptionRect, withAttributes: descriptionAttributes)
+                        }
 
                         // Set line to start after pill with additional padding
                         lineStartX = labelX + pillWidth + outerPadding

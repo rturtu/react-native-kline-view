@@ -11,6 +11,9 @@ declare module 'react-native-kline-view' {
     label?: string; // Optional label text to display on the line
     labelFontSize?: number; // Optional font size for the label (default: 12)
     labelBackgroundColor?: string; // Optional background color for the label pill with optional transparency (e.g., '#FF0000' or '#00000080' for 50% transparent black)
+    labelColor?: string; // Optional color for the label text (defaults to line color if not specified)
+    labelDescription?: string; // Optional description text displayed next to the label
+    labelDescriptionColor?: string; // Optional color for the description text (defaults to labelColor if not specified)
   }
 
   export interface RNKLineViewRef {

@@ -910,15 +910,76 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
                                     }
                                 }
 
+                                // Get label color (defaults to line color)
+                                int labelColor = lineColor;
+                                if (orderLineData.containsKey("labelColor")) {
+                                    String labelColorString = (String) orderLineData.get("labelColor");
+                                    if (labelColorString != null) {
+                                        try {
+                                            if (labelColorString.length() == 9 && labelColorString.startsWith("#")) {
+                                                String rgba = labelColorString.substring(1);
+                                                String argb = "#" + rgba.substring(6) + rgba.substring(0, 6);
+                                                labelColor = Color.parseColor(argb);
+                                            } else {
+                                                labelColor = Color.parseColor(labelColorString);
+                                            }
+                                        } catch (IllegalArgumentException e) {
+                                            labelColor = lineColor;
+                                        }
+                                    }
+                                }
+
                                 // Create paint for label text
                                 Paint labelPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-                                labelPaint.setColor(lineColor);
+                                labelPaint.setColor(labelColor);
                                 labelPaint.setTextSize(fontSize * getResources().getDisplayMetrics().scaledDensity);
                                 labelPaint.setTypeface(configManager.font);
 
-                                // Calculate text bounds
-                                Rect textBounds = new Rect();
-                                labelPaint.getTextBounds(label, 0, label.length(), textBounds);
+                                // Calculate label text bounds
+                                Rect labelBounds = new Rect();
+                                labelPaint.getTextBounds(label, 0, label.length(), labelBounds);
+
+                                // Calculate description text bounds if available
+                                String description = null;
+                                Rect descriptionBounds = new Rect();
+                                Paint descriptionPaint = null;
+                                int descriptionColor = labelColor;
+                                float spacing = 0;
+
+                                if (orderLineData.containsKey("labelDescription")) {
+                                    description = (String) orderLineData.get("labelDescription");
+                                    if (description != null && !description.isEmpty()) {
+                                        spacing = 4 * getResources().getDisplayMetrics().density;
+
+                                        // Get description color (defaults to label color)
+                                        if (orderLineData.containsKey("labelDescriptionColor")) {
+                                            String descriptionColorString = (String) orderLineData.get("labelDescriptionColor");
+                                            if (descriptionColorString != null) {
+                                                try {
+                                                    if (descriptionColorString.length() == 9 && descriptionColorString.startsWith("#")) {
+                                                        String rgba = descriptionColorString.substring(1);
+                                                        String argb = "#" + rgba.substring(6) + rgba.substring(0, 6);
+                                                        descriptionColor = Color.parseColor(argb);
+                                                    } else {
+                                                        descriptionColor = Color.parseColor(descriptionColorString);
+                                                    }
+                                                } catch (IllegalArgumentException e) {
+                                                    descriptionColor = labelColor;
+                                                }
+                                            }
+                                        }
+
+                                        descriptionPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+                                        descriptionPaint.setColor(descriptionColor);
+                                        descriptionPaint.setTextSize(fontSize * getResources().getDisplayMetrics().scaledDensity);
+                                        descriptionPaint.setTypeface(configManager.font);
+                                        descriptionPaint.getTextBounds(description, 0, description.length(), descriptionBounds);
+                                    }
+                                }
+
+                                // Calculate total width (label + space + description)
+                                float totalTextWidth = labelBounds.width() + spacing + (description != null ? descriptionBounds.width() : 0);
+                                float textHeight = Math.max(labelBounds.height(), description != null ? descriptionBounds.height() : 0);
 
                                 // Pill container dimensions (match close price pill)
                                 float density = getResources().getDisplayMetrics().density;
@@ -926,8 +987,8 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
                                 float verticalPadding = 14;
                                 float outerPadding = 8 * density;
 
-                                float pillWidth = textBounds.width() + horizontalPadding * 2;
-                                float pillHeight = textBounds.height() + verticalPadding * 2;
+                                float pillWidth = totalTextWidth + horizontalPadding * 2;
+                                float pillHeight = textHeight + verticalPadding * 2;
 
                                 float labelX = outerPadding;
                                 float labelY = y - pillHeight / 2;
@@ -961,7 +1022,7 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
                                     // Draw pill background
                                     RectF pillRect = new RectF(labelX, labelY, labelX + pillWidth, labelY + pillHeight);
                                     // Use same radius calculation as close price pill
-                                    float radius = (verticalPadding * 2 + textBounds.height()) / 2;
+                                    float radius = (verticalPadding * 2 + textHeight) / 2;
                                     pillPaint.setColor(backgroundColor);
                                     pillPaint.setStyle(Paint.Style.FILL);
                                     canvas.drawRoundRect(pillRect, radius, radius, pillPaint);
@@ -972,10 +1033,18 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
                                     pillPaint.setStrokeWidth(1 * density);
                                     canvas.drawRoundRect(pillRect, radius, radius, pillPaint);
 
-                                    // Draw text centered in pill
+                                    // Draw label and description separately with their respective colors
                                     float textX = labelX + horizontalPadding;
-                                    float textY = y + textBounds.height() / 2;
+                                    float textY = y + textHeight / 2;
+
+                                    // Draw label text
                                     canvas.drawText(label, textX, textY, labelPaint);
+
+                                    // Draw description text if available
+                                    if (description != null && descriptionPaint != null) {
+                                        float descriptionX = textX + labelBounds.width() + spacing;
+                                        canvas.drawText(description, descriptionX, textY, descriptionPaint);
+                                    }
 
                                     // Set line to start after pill with additional padding
                                     lineStartX = labelX + pillWidth + outerPadding;
