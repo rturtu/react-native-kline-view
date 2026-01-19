@@ -544,7 +544,7 @@ class HTKLineView: UIScrollView {
             animationView.isHidden = false
             UIView.animate(withDuration: 0.15) {
                 self.animationView.center = CGPoint.init(
-                    x: x + self.configManager.itemWidth / 2 + self.contentOffset.x, y: y)
+                    x: rect.origin.x + self.configManager.itemWidth / 2 + self.contentOffset.x, y: y)
             }
         }
     }
