@@ -872,6 +872,8 @@ class HTKLineView: UIScrollView {
 
                 // Draw horizontal line starting after the label (or from 0 if no label)
                 // Stop before the Y-axis scale area (paddingRight)
+                // Ensure correct line color is set just before drawing the line
+                context.setStrokeColor(lineColor.cgColor)
                 let lineEndX = allWidth - configManager.paddingRight
                 context.move(to: CGPoint(x: lineStartX, y: y))
                 context.addLine(to: CGPoint(x: lineEndX, y: y))
