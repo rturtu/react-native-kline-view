@@ -25,5 +25,16 @@ RCT_EXTERN_METHOD(addCandlesticksAtTheEnd:(nonnull NSNumber *)node
 RCT_EXTERN_METHOD(addCandlesticksAtTheStart:(nonnull NSNumber *)node
                   candlesticks:(nonnull NSArray *)candlesticks)
 
+RCT_EXTERN_METHOD(addOrderLine:(nonnull NSNumber *)node
+                  orderLine:(nonnull NSDictionary *)orderLine)
+
+RCT_EXTERN_METHOD(removeOrderLine:(nonnull NSNumber *)node
+                  orderLineId:(nonnull NSString *)orderLineId)
+
+RCT_EXTERN_METHOD(updateOrderLine:(nonnull NSNumber *)node
+                  orderLine:(nonnull NSDictionary *)orderLine)
+
+RCT_EXTERN_METHOD(getOrderLines:(nonnull NSNumber *)node)
+
 @end
 

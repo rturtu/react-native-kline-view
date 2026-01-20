@@ -8,9 +8,16 @@
 import UIKit
 
 class HTKLineContainerView: UIView {
-    
+
     var configManager = HTKLineConfigManager()
-    
+
+    // Order line management
+    private var orderLines: [String: [String: Any]] = [:]
+
+    func getAllOrderLines() -> [String: [String: Any]] {
+        return orderLines
+    }
+
     @objc var onDrawItemDidTouch: RCTBubblingEventBlock?
 
     @objc var onScrollLeft: RCTBubblingEventBlock?
@@ -18,7 +25,7 @@ class HTKLineContainerView: UIView {
     @objc var onChartTouch: RCTBubblingEventBlock?
 
     @objc var onDrawItemComplete: RCTBubblingEventBlock?
-    
+
     @objc var onDrawPointComplete: RCTBubblingEventBlock?
     
     @objc var optionList: String? {
@@ -419,6 +426,66 @@ class HTKLineContainerView: UIView {
         } catch {
             print("HTKLineContainerView: Error adding candlesticks at start: \(error)")
         }
+    }
+
+    @objc func addOrderLine(_ orderLine: NSDictionary) {
+        print("HTKLineContainerView: addOrderLine called with data: \(orderLine)")
+
+        guard let orderLineDict = orderLine as? [String: Any],
+              let id = orderLineDict["id"] as? String else {
+            print("HTKLineContainerView: addOrderLine - Invalid order line data")
+            return
+        }
+
+        // Store the order line
+        orderLines[id] = orderLineDict
+        print("HTKLineContainerView: Added order line with id: \(id)")
+
+        // Trigger redraw to show the order line
+        DispatchQueue.main.async { [weak self] in
+            self?.klineView.setNeedsDisplay()
+        }
+    }
+
+    @objc func removeOrderLine(_ orderLineId: String) {
+        print("HTKLineContainerView: removeOrderLine called with id: \(orderLineId)")
+
+        // Remove the order line
+        orderLines.removeValue(forKey: orderLineId)
+        print("HTKLineContainerView: Removed order line with id: \(orderLineId)")
+
+        // Trigger redraw to remove the order line
+        DispatchQueue.main.async { [weak self] in
+            self?.klineView.setNeedsDisplay()
+        }
+    }
+
+    @objc func updateOrderLine(_ orderLine: NSDictionary) {
+        print("HTKLineContainerView: updateOrderLine called with data: \(orderLine)")
+
+        guard let orderLineDict = orderLine as? [String: Any],
+              let id = orderLineDict["id"] as? String else {
+            print("HTKLineContainerView: updateOrderLine - Invalid order line data")
+            return
+        }
+
+        // Update the order line
+        orderLines[id] = orderLineDict
+        print("HTKLineContainerView: Updated order line with id: \(id)")
+
+        // Trigger redraw to update the order line
+        DispatchQueue.main.async { [weak self] in
+            self?.klineView.setNeedsDisplay()
+        }
+    }
+
+    @objc func getOrderLines() -> NSArray {
+        print("HTKLineContainerView: getOrderLines called")
+
+        // Return all order lines as an array
+        let orderLinesArray = Array(orderLines.values)
+        print("HTKLineContainerView: Returning \(orderLinesArray.count) order lines")
+        return NSArray(array: orderLinesArray)
     }
 
 }
