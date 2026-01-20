@@ -139,14 +139,14 @@ jobs:
           
           echo "Cleanup completed for PR #${{ steps.version.outputs.pr_number }}"
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGE_TOKEN }}
+          NPM_TOKEN: ${{ secrets.GH_PACKAGE_TOKEN }}
 
       # Publish prerelease
       - name: Publish prerelease
         run: |
           npm publish --tag ${{ steps.version.outputs.clean_branch_name }}
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGE_TOKEN }}
+          NPM_TOKEN: ${{ secrets.GH_PACKAGE_TOKEN }}
 
       # Restore original package.json
       - name: Restore original package.json
