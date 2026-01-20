@@ -30,6 +30,9 @@ public class HTKLineContainerView extends RelativeLayout {
 
     public HTShotView shotView;
 
+    // Order line management
+    private Map<String, Map<String, Object>> orderLines = new HashMap<>();
+
     public HTKLineContainerView(ThemedReactContext context) {
         super(context);
         this.reactContext = context;
@@ -552,6 +555,97 @@ public class HTKLineContainerView extends RelativeLayout {
 
         } catch (Exception e) {
             android.util.Log.e("HTKLineContainerView", "Error adding candlesticks at start", e);
+        }
+    }
+
+    public void addOrderLine(Map<String, Object> orderLineData) {
+        android.util.Log.d("HTKLineContainerView", "addOrderLine called with data: " + orderLineData);
+
+        if (orderLineData == null || !orderLineData.containsKey("id")) {
+            android.util.Log.w("HTKLineContainerView", "addOrderLine - Invalid order line data");
+            return;
+        }
+
+        String id = (String) orderLineData.get("id");
+
+        // Store the order line
+        synchronized (orderLines) {
+            orderLines.put(id, orderLineData);
+            android.util.Log.d("HTKLineContainerView", "Added order line with id: " + id);
+        }
+
+        // Trigger redraw to show the order line
+        post(new Runnable() {
+            @Override
+            public void run() {
+                klineView.invalidate();
+            }
+        });
+    }
+
+    public void removeOrderLine(String orderLineId) {
+        android.util.Log.d("HTKLineContainerView", "removeOrderLine called with id: " + orderLineId);
+
+        if (orderLineId == null) {
+            android.util.Log.w("HTKLineContainerView", "removeOrderLine - Invalid order line id");
+            return;
+        }
+
+        // Remove the order line
+        synchronized (orderLines) {
+            orderLines.remove(orderLineId);
+            android.util.Log.d("HTKLineContainerView", "Removed order line with id: " + orderLineId);
+        }
+
+        // Trigger redraw to remove the order line
+        post(new Runnable() {
+            @Override
+            public void run() {
+                klineView.invalidate();
+            }
+        });
+    }
+
+    public void updateOrderLine(Map<String, Object> orderLineData) {
+        android.util.Log.d("HTKLineContainerView", "updateOrderLine called with data: " + orderLineData);
+
+        if (orderLineData == null || !orderLineData.containsKey("id")) {
+            android.util.Log.w("HTKLineContainerView", "updateOrderLine - Invalid order line data");
+            return;
+        }
+
+        String id = (String) orderLineData.get("id");
+
+        // Update the order line
+        synchronized (orderLines) {
+            orderLines.put(id, orderLineData);
+            android.util.Log.d("HTKLineContainerView", "Updated order line with id: " + id);
+        }
+
+        // Trigger redraw to update the order line
+        post(new Runnable() {
+            @Override
+            public void run() {
+                klineView.invalidate();
+            }
+        });
+    }
+
+    public List<Map<String, Object>> getOrderLines() {
+        android.util.Log.d("HTKLineContainerView", "getOrderLines called");
+
+        // Return all order lines as a list
+        synchronized (orderLines) {
+            List<Map<String, Object>> orderLinesList = new ArrayList<>(orderLines.values());
+            android.util.Log.d("HTKLineContainerView", "Returning " + orderLinesList.size() + " order lines");
+            return orderLinesList;
+        }
+    }
+
+    // Method to allow KLineChartView to access order lines for drawing
+    public Map<String, Map<String, Object>> getAllOrderLines() {
+        synchronized (orderLines) {
+            return new HashMap<>(orderLines);
         }
     }
 

@@ -66,6 +66,87 @@ const RNKLineView = forwardRef((props, ref) => {
       } else {
         console.warn('No nodeHandle found for RNKLineView');
       }
+    },
+    addOrderLine: (orderLine) => {
+      const nodeHandle = findNodeHandle(nativeRef.current);
+      if (nodeHandle) {
+        if (Platform.OS === 'ios') {
+          UIManager.dispatchViewManagerCommand(
+            nodeHandle,
+            UIManager.getViewManagerConfig('RNKLineView').Commands.addOrderLine,
+            [orderLine]
+          );
+        } else {
+          UIManager.dispatchViewManagerCommand(
+            nodeHandle,
+            'addOrderLine',
+            [orderLine]
+          );
+        }
+      } else {
+        console.warn('No nodeHandle found for RNKLineView');
+      }
+    },
+    removeOrderLine: (orderLineId) => {
+      const nodeHandle = findNodeHandle(nativeRef.current);
+      if (nodeHandle) {
+        if (Platform.OS === 'ios') {
+          UIManager.dispatchViewManagerCommand(
+            nodeHandle,
+            UIManager.getViewManagerConfig('RNKLineView').Commands.removeOrderLine,
+            [orderLineId]
+          );
+        } else {
+          UIManager.dispatchViewManagerCommand(
+            nodeHandle,
+            'removeOrderLine',
+            [orderLineId]
+          );
+        }
+      } else {
+        console.warn('No nodeHandle found for RNKLineView');
+      }
+    },
+    updateOrderLine: (orderLine) => {
+      const nodeHandle = findNodeHandle(nativeRef.current);
+      if (nodeHandle) {
+        if (Platform.OS === 'ios') {
+          UIManager.dispatchViewManagerCommand(
+            nodeHandle,
+            UIManager.getViewManagerConfig('RNKLineView').Commands.updateOrderLine,
+            [orderLine]
+          );
+        } else {
+          UIManager.dispatchViewManagerCommand(
+            nodeHandle,
+            'updateOrderLine',
+            [orderLine]
+          );
+        }
+      } else {
+        console.warn('No nodeHandle found for RNKLineView');
+      }
+    },
+    getOrderLines: () => {
+      const nodeHandle = findNodeHandle(nativeRef.current);
+      if (nodeHandle) {
+        if (Platform.OS === 'ios') {
+          return UIManager.dispatchViewManagerCommand(
+            nodeHandle,
+            UIManager.getViewManagerConfig('RNKLineView').Commands.getOrderLines,
+            []
+          );
+        } else {
+          return UIManager.dispatchViewManagerCommand(
+            nodeHandle,
+            'getOrderLines',
+            []
+          );
+        }
+      } else {
+        console.warn('No nodeHandle found for RNKLineView');
+        return [];
+      }
     }
   }));
 
