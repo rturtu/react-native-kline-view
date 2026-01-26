@@ -383,13 +383,17 @@ const App = () => {
 	const handleAddBuySellMark = useCallback((type, time, price, amount, orderCount) => {
 		if (!kLineViewRef.current) return
 
+		const finalPrice = price || getCurrentPrice() || 0
+		const finalAmount = amount || '1.0'
+
 		const buySellMark = {
 			id: `buysell-mark-${buySellMarkIdCounter}`,
 			time: time,
 			type: type, // 'buy' or 'sell'
-			amount: amount || '1.0',
-			price: price || getCurrentPrice()?.toString() || '0',
-			orderCount: orderCount || 1
+			amount: finalAmount,
+			price: finalPrice.toString(),
+			orderCount: orderCount || 1,
+			tooltipText: `${type.toUpperCase()} ${finalAmount} at ${finalPrice.toFixed(2)}`
 		}
 
 		console.log('Adding buy/sell mark:', buySellMark)
@@ -419,12 +423,17 @@ const App = () => {
 			return
 		}
 
+		const finalType = newType || existingMark.type
+		const finalPrice = newPrice || parseFloat(existingMark.price)
+		const finalAmount = newAmount || existingMark.amount
+
 		const updatedMark = {
 			...existingMark,
-			type: newType || existingMark.type,
-			price: newPrice?.toString() || existingMark.price,
-			amount: newAmount || existingMark.amount,
-			orderCount: newOrderCount || existingMark.orderCount
+			type: finalType,
+			price: finalPrice.toString(),
+			amount: finalAmount,
+			orderCount: newOrderCount || existingMark.orderCount,
+			tooltipText: `${finalType.toUpperCase()} ${finalAmount} at ${finalPrice.toFixed(2)}`
 		}
 
 		console.log('Updating buy/sell mark:', updatedMark)
@@ -501,7 +510,9 @@ const App = () => {
 			/>
 
 			{/* K-line chart */}
-			{renderKLineChart(styles)}
+			<View style={{height: 400}}>
+				{renderKLineChart(styles)}
+			</View>
 
 
 			<ScrollView style={{maxHeight: 400}}>

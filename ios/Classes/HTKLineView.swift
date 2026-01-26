@@ -659,7 +659,29 @@ class HTKLineView: UIScrollView {
         guard !configManager.isMinute else {
             return
         }
-        let itemList = visibleModelArray[selectedIndex - visibleRange.lowerBound].selectedItemList
+
+        // Get the selected model and its basic selectedItemList
+        let selectedModel = visibleModelArray[selectedIndex - visibleRange.lowerBound]
+        var itemList = selectedModel.selectedItemList
+
+        // Check if there are buy/sell marks for this candlestick and add them to tooltip
+        if let containerView = superview as? HTKLineContainerView {
+            let candleTime = Int64(selectedModel.id)
+
+            // Add buy mark tooltip if exists
+            if let buyMark = containerView.getBuyMarkForTime(candleTime),
+               let tooltipText = buyMark["tooltipText"] as? String {
+                let buyTooltipItem = ["title": "", "detail": tooltipText]
+                itemList.append(buyTooltipItem)
+            }
+
+            // Add sell mark tooltip if exists
+            if let sellMark = containerView.getSellMarkForTime(candleTime),
+               let tooltipText = sellMark["tooltipText"] as? String {
+                let sellTooltipItem = ["title": "", "detail": tooltipText]
+                itemList.append(sellTooltipItem)
+            }
+        }
 
         let font = configManager.createFont(configManager.panelTextFontSize)
         let color = configManager.candleTextColor
