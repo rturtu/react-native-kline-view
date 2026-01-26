@@ -18,6 +18,23 @@ class HTKLineContainerView: UIView {
         return orderLines
     }
 
+    // Buy/sell mark management - indexed by timestamp for O(1) lookup
+    private var buyMarks: [Int64: [String: Any]] = [:]
+    private var sellMarks: [Int64: [String: Any]] = [:]
+    private var buySellMarks: [String: [String: Any]] = [:] // Keep for compatibility
+
+    func getAllBuySellMarks() -> [String: [String: Any]] {
+        return buySellMarks
+    }
+
+    func getBuyMarkForTime(_ time: Int64) -> [String: Any]? {
+        return buyMarks[time]
+    }
+
+    func getSellMarkForTime(_ time: Int64) -> [String: Any]? {
+        return sellMarks[time]
+    }
+
     @objc var onDrawItemDidTouch: RCTBubblingEventBlock?
 
     @objc var onScrollLeft: RCTBubblingEventBlock?
@@ -486,6 +503,110 @@ class HTKLineContainerView: UIView {
         let orderLinesArray = Array(orderLines.values)
         print("HTKLineContainerView: Returning \(orderLinesArray.count) order lines")
         return NSArray(array: orderLinesArray)
+    }
+
+    @objc func addBuySellMark(_ buySellMark: NSDictionary) {
+        print("HTKLineContainerView: addBuySellMark called with data: \(buySellMark)")
+
+        guard let buySellMarkDict = buySellMark as? [String: Any],
+              let id = buySellMarkDict["id"] as? String,
+              let time = buySellMarkDict["time"] as? Int64,
+              let type = buySellMarkDict["type"] as? String else {
+            print("HTKLineContainerView: addBuySellMark - Invalid buy/sell mark data")
+            return
+        }
+
+        // Store in compatibility map
+        buySellMarks[id] = buySellMarkDict
+
+        // Store in efficient lookup maps by timestamp
+        if type == "buy" {
+            buyMarks[time] = buySellMarkDict
+        } else if type == "sell" {
+            sellMarks[time] = buySellMarkDict
+        }
+
+        print("HTKLineContainerView: Added \(type) mark with id: \(id) at time: \(time)")
+
+        // Trigger redraw to show the buy/sell mark
+        DispatchQueue.main.async { [weak self] in
+            self?.klineView.setNeedsDisplay()
+        }
+    }
+
+    @objc func removeBuySellMark(_ buySellMarkId: String) {
+        print("HTKLineContainerView: removeBuySellMark called with id: \(buySellMarkId)")
+
+        // Find and remove from efficient lookup maps
+        if let markData = buySellMarks[buySellMarkId],
+           let time = markData["time"] as? Int64,
+           let type = markData["type"] as? String {
+
+            if type == "buy" {
+                buyMarks.removeValue(forKey: time)
+            } else if type == "sell" {
+                sellMarks.removeValue(forKey: time)
+            }
+        }
+
+        // Remove from compatibility map
+        buySellMarks.removeValue(forKey: buySellMarkId)
+        print("HTKLineContainerView: Removed buy/sell mark with id: \(buySellMarkId)")
+
+        // Trigger redraw to remove the buy/sell mark
+        DispatchQueue.main.async { [weak self] in
+            self?.klineView.setNeedsDisplay()
+        }
+    }
+
+    @objc func updateBuySellMark(_ buySellMark: NSDictionary) {
+        print("HTKLineContainerView: updateBuySellMark called with data: \(buySellMark)")
+
+        guard let buySellMarkDict = buySellMark as? [String: Any],
+              let id = buySellMarkDict["id"] as? String,
+              let time = buySellMarkDict["time"] as? Int64,
+              let type = buySellMarkDict["type"] as? String else {
+            print("HTKLineContainerView: updateBuySellMark - Invalid buy/sell mark data")
+            return
+        }
+
+        // Remove old entry from efficient lookup maps if it exists
+        if let oldMarkData = buySellMarks[id],
+           let oldTime = oldMarkData["time"] as? Int64,
+           let oldType = oldMarkData["type"] as? String {
+
+            if oldType == "buy" {
+                buyMarks.removeValue(forKey: oldTime)
+            } else if oldType == "sell" {
+                sellMarks.removeValue(forKey: oldTime)
+            }
+        }
+
+        // Update compatibility map
+        buySellMarks[id] = buySellMarkDict
+
+        // Add to efficient lookup maps
+        if type == "buy" {
+            buyMarks[time] = buySellMarkDict
+        } else if type == "sell" {
+            sellMarks[time] = buySellMarkDict
+        }
+
+        print("HTKLineContainerView: Updated \(type) mark with id: \(id) at time: \(time)")
+
+        // Trigger redraw to update the buy/sell mark
+        DispatchQueue.main.async { [weak self] in
+            self?.klineView.setNeedsDisplay()
+        }
+    }
+
+    @objc func getBuySellMarks() -> NSArray {
+        print("HTKLineContainerView: getBuySellMarks called")
+
+        // Return all buy/sell marks as an array
+        let buySellMarksArray = Array(buySellMarks.values)
+        print("HTKLineContainerView: Returning \(buySellMarksArray.count) buy/sell marks")
+        return NSArray(array: buySellMarksArray)
     }
 
 }
