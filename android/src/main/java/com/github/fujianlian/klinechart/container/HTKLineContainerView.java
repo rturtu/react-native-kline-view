@@ -655,11 +655,9 @@ public class HTKLineContainerView extends RelativeLayout {
     }
 
     public void addBuySellMark(Map<String, Object> buySellMarkData) {
-        android.util.Log.d("HTKLineContainerView", "addBuySellMark called with data: " + buySellMarkData);
 
         if (buySellMarkData == null || !buySellMarkData.containsKey("id") ||
             !buySellMarkData.containsKey("time") || !buySellMarkData.containsKey("type")) {
-            android.util.Log.w("HTKLineContainerView", "addBuySellMark - Invalid buy/sell mark data");
             return;
         }
 
@@ -695,10 +693,8 @@ public class HTKLineContainerView extends RelativeLayout {
     }
 
     public void removeBuySellMark(String buySellMarkId) {
-        android.util.Log.d("HTKLineContainerView", "removeBuySellMark called with id: " + buySellMarkId);
 
         if (buySellMarkId == null || buySellMarkId.trim().isEmpty()) {
-            android.util.Log.w("HTKLineContainerView", "removeBuySellMark - Invalid buy/sell mark id");
             return;
         }
 
@@ -738,11 +734,9 @@ public class HTKLineContainerView extends RelativeLayout {
     }
 
     public void updateBuySellMark(Map<String, Object> buySellMarkData) {
-        android.util.Log.d("HTKLineContainerView", "updateBuySellMark called with data: " + buySellMarkData);
 
         if (buySellMarkData == null || !buySellMarkData.containsKey("id") ||
             !buySellMarkData.containsKey("time") || !buySellMarkData.containsKey("type")) {
-            android.util.Log.w("HTKLineContainerView", "updateBuySellMark - Invalid buy/sell mark data");
             return;
         }
 
@@ -795,7 +789,6 @@ public class HTKLineContainerView extends RelativeLayout {
     }
 
     public List<Map<String, Object>> getBuySellMarks() {
-        android.util.Log.d("HTKLineContainerView", "getBuySellMarks called");
 
         // Return all buy/sell marks as a list
         synchronized (buySellMarks) {

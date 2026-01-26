@@ -506,13 +506,11 @@ class HTKLineContainerView: UIView {
     }
 
     @objc func addBuySellMark(_ buySellMark: NSDictionary) {
-        print("HTKLineContainerView: addBuySellMark called with data: \(buySellMark)")
 
         guard let buySellMarkDict = buySellMark as? [String: Any],
               let id = buySellMarkDict["id"] as? String,
               let time = buySellMarkDict["time"] as? Int64,
               let type = buySellMarkDict["type"] as? String else {
-            print("HTKLineContainerView: addBuySellMark - Invalid buy/sell mark data")
             return
         }
 
@@ -535,7 +533,6 @@ class HTKLineContainerView: UIView {
     }
 
     @objc func removeBuySellMark(_ buySellMarkId: String) {
-        print("HTKLineContainerView: removeBuySellMark called with id: \(buySellMarkId)")
 
         // Find and remove from efficient lookup maps
         if let markData = buySellMarks[buySellMarkId],
@@ -560,13 +557,11 @@ class HTKLineContainerView: UIView {
     }
 
     @objc func updateBuySellMark(_ buySellMark: NSDictionary) {
-        print("HTKLineContainerView: updateBuySellMark called with data: \(buySellMark)")
 
         guard let buySellMarkDict = buySellMark as? [String: Any],
               let id = buySellMarkDict["id"] as? String,
               let time = buySellMarkDict["time"] as? Int64,
               let type = buySellMarkDict["type"] as? String else {
-            print("HTKLineContainerView: updateBuySellMark - Invalid buy/sell mark data")
             return
         }
 
@@ -601,7 +596,6 @@ class HTKLineContainerView: UIView {
     }
 
     @objc func getBuySellMarks() -> NSArray {
-        print("HTKLineContainerView: getBuySellMarks called")
 
         // Return all buy/sell marks as an array
         let buySellMarksArray = Array(buySellMarks.values)

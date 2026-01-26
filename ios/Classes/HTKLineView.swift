@@ -238,9 +238,19 @@ class HTKLineView: UIScrollView {
     }
 
     func calculateBaseHeight() {
-        self.visibleModelArray =
-            configManager.modelArray.count > 0
-            ? Array(configManager.modelArray[visibleRange]) : configManager.modelArray
+        // Safely handle visible model array calculation with bounds checking
+        if configManager.modelArray.count > 0 {
+            let startIndex = max(0, min(visibleRange.lowerBound, configManager.modelArray.count - 1))
+            let endIndex = max(0, min(visibleRange.upperBound, configManager.modelArray.count - 1))
+
+            if startIndex >= 0 && endIndex >= startIndex && endIndex < configManager.modelArray.count {
+                self.visibleModelArray = Array(configManager.modelArray[startIndex...endIndex])
+            } else {
+                self.visibleModelArray = configManager.modelArray
+            }
+        } else {
+            self.visibleModelArray = configManager.modelArray
+        }
         self.volumeRange =
             configManager.mainFlex...configManager.mainFlex + configManager.volumeFlex
 
@@ -894,20 +904,27 @@ class HTKLineView: UIScrollView {
             return
         }
 
-        let candleTime = model.time
+        let candleTime = Int64(model.id) // Use model.id which contains the timestamp
 
-        // Check for buy mark (O(1) lookup)
-        if let buyMark = containerView.getBuyMarkForTime(candleTime) {
-            drawBuySellMark(buyMark, model, index, "buy", context)
+        // Check for both marks to handle collision detection
+        let buyMark = containerView.getBuyMarkForTime(candleTime)
+        let sellMark = containerView.getSellMarkForTime(candleTime)
+
+        // Check if both marks exist to handle collision avoidance
+        let hasBothMarks = buyMark != nil && sellMark != nil
+
+        // Draw buy mark
+        if let buyMark = buyMark {
+            drawBuySellMark(buyMark, model, index, "buy", context, hasBothMarks: hasBothMarks)
         }
 
-        // Check for sell mark (O(1) lookup)
-        if let sellMark = containerView.getSellMarkForTime(candleTime) {
-            drawBuySellMark(sellMark, model, index, "sell", context)
+        // Draw sell mark
+        if let sellMark = sellMark {
+            drawBuySellMark(sellMark, model, index, "sell", context, hasBothMarks: hasBothMarks)
         }
     }
 
-    private func drawBuySellMark(_ markData: [String: Any], _ model: HTKLineModel, _ index: Int, _ type: String, _ context: CGContext) {
+    private func drawBuySellMark(_ markData: [String: Any], _ model: HTKLineModel, _ index: Int, _ type: String, _ context: CGContext, hasBothMarks: Bool = false) {
         // Calculate X position for the candlestick
         let candleX = CGFloat(index) * configManager.itemWidth + configManager.itemWidth / 2
 
@@ -919,9 +936,23 @@ class HTKLineView: UIScrollView {
         let normalizedPrice = (markPrice - mainMinMaxRange.lowerBound) / priceRange
         let markY = mainBaseY + mainHeight - CGFloat(normalizedPrice) * mainHeight
 
-        // Position mark above the candlestick
-        let circleRadius: CGFloat = 10
-        let markCenterY = markY - circleRadius - 5 // 5 pixels above the high
+        // Make circle radius match candlestick width (same as Android logic)
+        let circleRadius: CGFloat = configManager.itemWidth * 0.4 // 80% of candlestick width for diameter
+
+        // Position both marks above the candlestick, with collision avoidance
+        let markCenterY: CGFloat
+        if type == "buy" {
+            // Buy mark directly above the candlestick
+            markCenterY = markY - circleRadius - 2
+        } else { // sell
+            if hasBothMarks {
+                // If both marks exist, position sell mark one diameter higher
+                markCenterY = markY - circleRadius - 2 - (circleRadius * 2) - 2
+            } else {
+                // If only sell mark exists, position it directly above
+                markCenterY = markY - circleRadius - 2
+            }
+        }
 
         // Determine colors and text based on type
         let circleColor: UIColor
@@ -952,7 +983,7 @@ class HTKLineView: UIScrollView {
         context.strokePath()
 
         // Draw text inside circle
-        let fontSize: CGFloat = 12
+        let fontSize: CGFloat = circleRadius * 1.2 // Text size proportional to circle (same as Android)
         let font = configManager.createFont(fontSize)
         let textAttributes: [NSAttributedString.Key: Any] = [
             .font: font,

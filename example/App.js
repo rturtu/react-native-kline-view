@@ -9,7 +9,8 @@ import {
 	StyleSheet,
 	StatusBar,
 	Platform,
-	PixelRatio
+	PixelRatio,
+	ScrollView
 } from 'react-native'
 import RNKLineView from 'react-native-kline-view'
 import { ThemeManager } from './utils/themes'
@@ -502,71 +503,74 @@ const App = () => {
 			{/* K-line chart */}
 			{renderKLineChart(styles)}
 
-			{/* Order input */}
-			<OrderInput
-				theme={theme}
-				onAddOrder={handleAddLimitOrder}
-				onUpdateOrder={handleUpdateOrder}
-				currentPrice={getCurrentPrice()}
-				orderLines={orderLines}
-			/>
 
-			{/* Buy/Sell mark input */}
-			<BuySellMarkInput
-				theme={theme}
-				onAddBuySellMark={handleAddBuySellMark}
-				onRemoveBuySellMark={handleRemoveBuySellMark}
-				onUpdateBuySellMark={handleUpdateBuySellMark}
-				currentPrice={getCurrentPrice()}
-				buySellMarks={buySellMarks}
-				klineData={klineData}
-			/>
+			<ScrollView style={{maxHeight: 400}}>
+				{/* Order input */}
+				<OrderInput
+					theme={theme}
+					onAddOrder={handleAddLimitOrder}
+					onUpdateOrder={handleUpdateOrder}
+					currentPrice={getCurrentPrice()}
+					orderLines={orderLines}
+				/>
 
-			{/* Bottom control bar */}
-			<ControlBar
-				theme={theme}
-				selectedTimeType={selectedTimeType}
-				selectedMainIndicator={selectedMainIndicator}
-				selectedSubIndicator={selectedSubIndicator}
-				selectedDrawTool={selectedDrawTool}
-				showVolumeChart={showVolumeChart}
-				candleCornerRadius={candleCornerRadius}
-				onShowTimeSelector={() => setShowTimeSelector(true)}
-				onShowIndicatorSelector={() => setShowIndicatorSelector(true)}
-				onToggleDrawToolSelector={() => {
-					setShowDrawToolSelector(!showDrawToolSelector)
-					setShowIndicatorSelector(false)
-					setShowTimeSelector(false)
-				}}
-				onClearDrawings={clearDrawings}
-				onToggleVolume={() => {
-					setShowVolumeChart(!showVolumeChart)
-					setTimeout(() => reloadKLineData(), 0)
-				}}
-				onToggleRounded={() => {
-					setCandleCornerRadius(candleCornerRadius > 0 ? 0 : 1)
-					setTimeout(() => reloadKLineData(), 0)
-				}}
-			/>
+				{/* Buy/Sell mark input */}
+				<BuySellMarkInput
+					theme={theme}
+					onAddBuySellMark={handleAddBuySellMark}
+					onRemoveBuySellMark={handleRemoveBuySellMark}
+					onUpdateBuySellMark={handleUpdateBuySellMark}
+					currentPrice={getCurrentPrice()}
+					buySellMarks={buySellMarks}
+					klineData={klineData}
+				/>
 
-			{/* Selector popup */}
-			<Selectors
-				theme={theme}
-				showTimeSelector={showTimeSelector}
-				showIndicatorSelector={showIndicatorSelector}
-				showDrawToolSelector={showDrawToolSelector}
-				selectedTimeType={selectedTimeType}
-				selectedMainIndicator={selectedMainIndicator}
-				selectedSubIndicator={selectedSubIndicator}
-				selectedDrawTool={selectedDrawTool}
-				drawShouldContinue={drawShouldContinue}
-				onSelectTimeType={selectTimeType}
-				onSelectIndicator={selectIndicator}
-				onSelectDrawTool={selectDrawTool}
-				onCloseTimeSelector={() => setShowTimeSelector(false)}
-				onCloseIndicatorSelector={() => setShowIndicatorSelector(false)}
-				onToggleDrawShouldContinue={(value) => setDrawShouldContinue(value)}
-			/>
+				{/* Bottom control bar */}
+				<ControlBar
+					theme={theme}
+					selectedTimeType={selectedTimeType}
+					selectedMainIndicator={selectedMainIndicator}
+					selectedSubIndicator={selectedSubIndicator}
+					selectedDrawTool={selectedDrawTool}
+					showVolumeChart={showVolumeChart}
+					candleCornerRadius={candleCornerRadius}
+					onShowTimeSelector={() => setShowTimeSelector(true)}
+					onShowIndicatorSelector={() => setShowIndicatorSelector(true)}
+					onToggleDrawToolSelector={() => {
+						setShowDrawToolSelector(!showDrawToolSelector)
+						setShowIndicatorSelector(false)
+						setShowTimeSelector(false)
+					}}
+					onClearDrawings={clearDrawings}
+					onToggleVolume={() => {
+						setShowVolumeChart(!showVolumeChart)
+						setTimeout(() => reloadKLineData(), 0)
+					}}
+					onToggleRounded={() => {
+						setCandleCornerRadius(candleCornerRadius > 0 ? 0 : 1)
+						setTimeout(() => reloadKLineData(), 0)
+					}}
+				/>
+
+				{/* Selector popup */}
+				<Selectors
+					theme={theme}
+					showTimeSelector={showTimeSelector}
+					showIndicatorSelector={showIndicatorSelector}
+					showDrawToolSelector={showDrawToolSelector}
+					selectedTimeType={selectedTimeType}
+					selectedMainIndicator={selectedMainIndicator}
+					selectedSubIndicator={selectedSubIndicator}
+					selectedDrawTool={selectedDrawTool}
+					drawShouldContinue={drawShouldContinue}
+					onSelectTimeType={selectTimeType}
+					onSelectIndicator={selectIndicator}
+					onSelectDrawTool={selectDrawTool}
+					onCloseTimeSelector={() => setShowTimeSelector(false)}
+					onCloseIndicatorSelector={() => setShowIndicatorSelector(false)}
+					onToggleDrawShouldContinue={(value) => setDrawShouldContinue(value)}
+				/>
+			</ScrollView>
 		</View>
 	)
 }

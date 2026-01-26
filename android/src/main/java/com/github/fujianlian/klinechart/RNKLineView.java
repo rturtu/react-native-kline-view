@@ -213,56 +213,45 @@ public class RNKLineView extends SimpleViewManager<HTKLineContainerView> {
                 }
                 break;
             case "addBuySellMark":
-                android.util.Log.d("RNKLineView", "Processing addBuySellMark command");
                 if (args != null && args.size() > 0) {
                     try {
                         ReadableMap buySellMarkData = args.getMap(0);
                         Map<String, Object> dataMap = buySellMarkData.toHashMap();
-                        android.util.Log.d("RNKLineView", "Calling containerView.addBuySellMark with data: " + dataMap);
                         containerView.addBuySellMark(dataMap);
                     } catch (Exception e) {
                         android.util.Log.e("RNKLineView", "Error in addBuySellMark command", e);
                         e.printStackTrace();
                     }
                 } else {
-                    android.util.Log.w("RNKLineView", "addBuySellMark: args is null or empty");
                 }
                 break;
             case "removeBuySellMark":
-                android.util.Log.d("RNKLineView", "Processing removeBuySellMark command");
                 if (args != null && args.size() > 0) {
                     try {
                         String buySellMarkId = args.getString(0);
-                        android.util.Log.d("RNKLineView", "Calling containerView.removeBuySellMark with id: " + buySellMarkId);
                         containerView.removeBuySellMark(buySellMarkId);
                     } catch (Exception e) {
                         android.util.Log.e("RNKLineView", "Error in removeBuySellMark command", e);
                         e.printStackTrace();
                     }
                 } else {
-                    android.util.Log.w("RNKLineView", "removeBuySellMark: args is null or empty");
                 }
                 break;
             case "updateBuySellMark":
-                android.util.Log.d("RNKLineView", "Processing updateBuySellMark command");
                 if (args != null && args.size() > 0) {
                     try {
                         ReadableMap buySellMarkData = args.getMap(0);
                         Map<String, Object> dataMap = buySellMarkData.toHashMap();
-                        android.util.Log.d("RNKLineView", "Calling containerView.updateBuySellMark with data: " + dataMap);
                         containerView.updateBuySellMark(dataMap);
                     } catch (Exception e) {
                         android.util.Log.e("RNKLineView", "Error in updateBuySellMark command", e);
                         e.printStackTrace();
                     }
                 } else {
-                    android.util.Log.w("RNKLineView", "updateBuySellMark: args is null or empty");
                 }
                 break;
             case "getBuySellMarks":
-                android.util.Log.d("RNKLineView", "Processing getBuySellMarks command");
                 try {
-                    android.util.Log.d("RNKLineView", "Calling containerView.getBuySellMarks");
                     containerView.getBuySellMarks();
                 } catch (Exception e) {
                     android.util.Log.e("RNKLineView", "Error in getBuySellMarks command", e);

@@ -104,48 +104,40 @@ class RNKLineView: RCTViewManager {
     }
 
     @objc func addBuySellMark(_ node: NSNumber, buySellMark: NSDictionary) {
-        print("RNKLineView: addBuySellMark called for node \(node) with data: \(buySellMark)")
         DispatchQueue.main.async {
             guard let view = self.bridge?.uiManager.view(forReactTag: node) as? HTKLineContainerView else {
                 print("RNKLineView: Could not find HTKLineContainerView for node \(node)")
                 return
             }
-            print("RNKLineView: Calling view.addBuySellMark")
             view.addBuySellMark(buySellMark)
         }
     }
 
     @objc func removeBuySellMark(_ node: NSNumber, buySellMarkId: NSString) {
-        print("RNKLineView: removeBuySellMark called for node \(node) with id: \(buySellMarkId)")
         DispatchQueue.main.async {
             guard let view = self.bridge?.uiManager.view(forReactTag: node) as? HTKLineContainerView else {
                 print("RNKLineView: Could not find HTKLineContainerView for node \(node)")
                 return
             }
-            print("RNKLineView: Calling view.removeBuySellMark")
             view.removeBuySellMark(buySellMarkId as String)
         }
     }
 
     @objc func updateBuySellMark(_ node: NSNumber, buySellMark: NSDictionary) {
-        print("RNKLineView: updateBuySellMark called for node \(node) with data: \(buySellMark)")
         DispatchQueue.main.async {
             guard let view = self.bridge?.uiManager.view(forReactTag: node) as? HTKLineContainerView else {
                 print("RNKLineView: Could not find HTKLineContainerView for node \(node)")
                 return
             }
-            print("RNKLineView: Calling view.updateBuySellMark")
             view.updateBuySellMark(buySellMark)
         }
     }
 
     @objc func getBuySellMarks(_ node: NSNumber) -> NSArray {
-        print("RNKLineView: getBuySellMarks called for node \(node)")
         guard let view = self.bridge?.uiManager.view(forReactTag: node) as? HTKLineContainerView else {
             print("RNKLineView: Could not find HTKLineContainerView for node \(node)")
             return NSArray()
         }
-        print("RNKLineView: Calling view.getBuySellMarks")
         return view.getBuySellMarks()
     }
 

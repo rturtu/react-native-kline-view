@@ -559,7 +559,7 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
             }
 
             // Draw buy/sell marks for this candlestick if they exist (O(1) lookup)
-            drawBuySellMarksForCandlestick((KLineEntity) currentPoint, i, canvas);
+            drawBuySellMarksForCandlestick((KLineEntity) currentPoint, i, currentPointX, canvas);
         }
 
         //还原 平移缩放
@@ -1065,86 +1065,97 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView implements D
         }
     }
 
-    private void drawBuySellMarksForCandlestick(KLineEntity candlestick, int index, Canvas canvas) {
+    private void drawBuySellMarksForCandlestick(KLineEntity candlestick, int index, float currentPointX, Canvas canvas) {
         // Get parent container view to access buy/sell marks
         if (getParent() instanceof HTKLineContainerView) {
             HTKLineContainerView containerView = (HTKLineContainerView) getParent();
 
-            // Get candlestick time as timestamp
-            long candleTime;
-            try {
-                candleTime = Long.parseLong(candlestick.Date);
-            } catch (NumberFormatException e) {
-                return; // Skip if date is not a valid timestamp
-            }
+            // Use the preserved timestamp to avoid precision loss
+            long candleTime = candlestick.timestamp;
 
-            // Check for buy mark (O(1) lookup)
+            // Check for both marks to handle collision detection
             java.util.Map<String, Object> buyMark = containerView.getBuyMarkForTime(candleTime);
+            java.util.Map<String, Object> sellMark = containerView.getSellMarkForTime(candleTime);
+
+            // Check if both marks exist to handle collision avoidance
+            boolean hasBothMarks = buyMark != null && sellMark != null;
+
+            // Draw buy mark
             if (buyMark != null) {
-                drawBuySellMark(buyMark, candlestick, index, "buy", canvas);
+                drawBuySellMark(buyMark, candlestick, index, currentPointX, "buy", canvas, hasBothMarks);
             }
 
-            // Check for sell mark (O(1) lookup)
-            java.util.Map<String, Object> sellMark = containerView.getSellMarkForTime(candleTime);
+            // Draw sell mark
             if (sellMark != null) {
-                drawBuySellMark(sellMark, candlestick, index, "sell", canvas);
+                drawBuySellMark(sellMark, candlestick, index, currentPointX, "sell", canvas, hasBothMarks);
             }
         }
     }
 
-    private void drawBuySellMark(java.util.Map<String, Object> markData, KLineEntity candlestick, int index, String type, Canvas canvas) {
-        // Calculate X position for the candlestick
-        float candleX = getItemMiddleScrollX(index);
-        float candleViewX = scrollXtoViewX(candleX);
+    private void drawBuySellMark(java.util.Map<String, Object> markData, KLineEntity candlestick, int index, float currentPointX, String type, Canvas canvas, boolean hasBothMarks) {
+        // Use the same X coordinate as candlesticks (same as mMainDraw.drawTranslated)
+        float candleX = currentPointX;
 
-        // Position mark above the candlestick high
-        float markY = yFromValue(candlestick.getHighPrice());
+        // Use the same Y coordinate calculation as MainDraw.drawCandle
+        float candleHigh = candlestick.getHighPrice();
+        float highY = yFromValue(candleHigh); // Same method used by MainDraw.drawCandle
 
-        // Circle properties
-        float circleRadius = dp2px(10);
-        float markCenterY = markY - circleRadius - dp2px(5); // 5dp above the high
+        // Circle properties - diameter should match candlestick width
+        float circleRadius = mPointWidth * 0.4f; // Use 80% of candlestick width for diameter
 
-        // Only draw if visible
-        if (candleViewX >= 0 && candleViewX <= getWidth() &&
-            markCenterY >= 0 && markCenterY <= getHeight()) {
-
-            // Determine colors based on type, using same colors as candlesticks
-            int circleColor;
-            if ("buy".equals(type)) {
-                circleColor = configManager.increaseColor; // Use same color as increasing candlesticks
-            } else { // sell
-                circleColor = configManager.decreaseColor; // Use same color as decreasing candlesticks
+        // Position both marks above the candlestick, with collision avoidance
+        float markCenterY;
+        if ("buy".equals(type)) {
+            // Buy mark directly above the candlestick
+            markCenterY = highY - circleRadius - dp2px(2);
+        } else { // sell
+            if (hasBothMarks) {
+                // If both marks exist, position sell mark one diameter higher
+                markCenterY = highY - circleRadius - dp2px(2) - (circleRadius * 2) - dp2px(2);
+            } else {
+                // If only sell mark exists, position it directly above
+                markCenterY = highY - circleRadius - dp2px(2);
             }
-
-            // Create paint for circle
-            Paint circlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            circlePaint.setColor(circleColor);
-            circlePaint.setStyle(Paint.Style.FILL);
-
-            // Draw circle
-            canvas.drawCircle(candleViewX, markCenterY, circleRadius, circlePaint);
-
-            // Draw border
-            Paint borderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            borderPaint.setColor(circleColor);
-            borderPaint.setStyle(Paint.Style.STROKE);
-            borderPaint.setStrokeWidth(2.0f);
-            canvas.drawCircle(candleViewX, markCenterY, circleRadius, borderPaint);
-
-            // Draw text inside circle
-            String markText = "buy".equals(type) ? "B" : "S";
-            Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            textPaint.setColor(android.graphics.Color.WHITE);
-            textPaint.setTextSize(sp2px(12));
-            textPaint.setTypeface(configManager.font);
-            textPaint.setTextAlign(Paint.Align.CENTER);
-
-            // Calculate text position (center of circle)
-            Paint.FontMetrics fontMetrics = textPaint.getFontMetrics();
-            float textY = markCenterY - (fontMetrics.ascent + fontMetrics.descent) / 2;
-
-            canvas.drawText(markText, candleViewX, textY, textPaint);
         }
+
+        android.util.Log.d("BuySellDebug", "Drawing " + type + " mark - visible at (" + candleX + ", " + markCenterY + ") radius: " + circleRadius);
+
+        // Determine colors based on type, using same colors as candlesticks
+        int circleColor;
+        if ("buy".equals(type)) {
+            circleColor = configManager.increaseColor; // Use same color as increasing candlesticks
+        } else { // sell
+            circleColor = configManager.decreaseColor; // Use same color as decreasing candlesticks
+        }
+
+        // Create paint for circle
+        Paint circlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        circlePaint.setColor(circleColor);
+        circlePaint.setStyle(Paint.Style.FILL);
+
+        // Draw circle
+        canvas.drawCircle(candleX, markCenterY, circleRadius, circlePaint);
+
+        // Draw border
+        Paint borderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        borderPaint.setColor(circleColor);
+        borderPaint.setStyle(Paint.Style.STROKE);
+        borderPaint.setStrokeWidth(2.0f);
+        canvas.drawCircle(candleX, markCenterY, circleRadius, borderPaint);
+
+        // Draw text inside circle
+        String markText = "buy".equals(type) ? "B" : "S";
+        Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        textPaint.setColor(android.graphics.Color.WHITE);
+        textPaint.setTextSize(circleRadius * 1.2f); // Text size proportional to circle
+        textPaint.setTypeface(configManager.font);
+        textPaint.setTextAlign(Paint.Align.CENTER);
+
+        // Calculate text position (center of circle)
+        Paint.FontMetrics fontMetrics = textPaint.getFontMetrics();
+        float textY = markCenterY - (fontMetrics.ascent + fontMetrics.descent) / 2;
+
+        canvas.drawText(markText, candleX, textY, textPaint);
     }
 
     public int dp2px(float dp) {
